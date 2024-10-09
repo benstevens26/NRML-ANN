@@ -25,12 +25,12 @@ jobs:
       
       - name: Linting Checks
         run: |
-          black --check ANN
-          isort --check-only ANN
-          pydocstyle --convention=google ANN
+          black --check ANN-code
+          isort --check-only ANN-code
+          pydocstyle --convention=google ANN-code
       
       - name: pytest
-        run: pytest --cov-report=xml:coverage.xml --cov=ANN --doctest-modules ANN
+        run: pytest --cov-report=xml:coverage.xml --cov=ANN-code --doctest-modules ANN-code
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
