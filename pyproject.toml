@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "your_project_name"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"  # or the versions you're targeting
+black = "^23.0"
+isort = "^5.0"
+pydocstyle = "^6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
