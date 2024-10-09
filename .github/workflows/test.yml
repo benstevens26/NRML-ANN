@@ -17,5 +17,5 @@ jobs:
       - name: Linting Checks
         run: |
           black --check .
-          isort --check-only NR-ANN
-          pydocstyle --convention=google NR-ANN
+          isort --check-only ANN-code
+          pydocstyle --convention=google ANN-code
