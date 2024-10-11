@@ -11,6 +11,7 @@ folder_path = os.path.join("..", "..", "Data/C/300-320keV")
 files = os.listdir(folder_path)
 carbon_events = [np.load(folder_path + "/" + f) for f in files]
 
+
 def extract_axis(image, plot=False, return_extras=False):
     """
     Extract principle axis from image
