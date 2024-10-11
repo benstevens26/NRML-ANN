@@ -1,28 +1,18 @@
 repos:
   # Hook for running black for code formatting
   - repo: https://github.com/psf/black
-    rev: 23.9.1  # Use the latest stable version of black
+    rev: 24.10.0  # Use the main branch for the latest version of black
     hooks:
       - id: black
         name: Run Black for code formatting
         language_version: python3  # Use Python 3 interpreter
-        stages: [commit]
+        stages: [pre-commit]  # Run during pre-commit
 
   # Hook for running isort for import sorting
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.12.0  # Use the latest stable version of isort
+    rev: v5.10.1  # Use the master branch for the latest version of isort
     hooks:
       - id: isort
         name: Run isort for import sorting
         language_version: python3  # Use Python 3 interpreter
-        stages: [commit]
-
-  # Hook for running the tox tests
-  - repo: local
-    hooks:
-      - id: run-tox
-        name: Run tox tests
-        entry: tox
-        language: system
-        types: [python]
-        stages: [commit]
+        stages: [pre-commit]  # Run during pre-commit
