@@ -1,4 +1,16 @@
 repos:
+  # Hook for running the formatting environment in tox
+  - repo: local
+    hooks:
+      - id: tox-format
+        name: Run tox -e format for code formatting (black and isort)
+        entry: tox -e format
+        language: system
+        types: [python]
+        stages: [commit, push]
+        pass_filenames: false  # Ensure tox runs on the entire codebase
+
+  # Hook for running the standard tox tests
   - repo: local
     hooks:
       - id: run-tox
@@ -6,4 +18,4 @@ repos:
         entry: tox
         language: system
         types: [python]
-        stages: [commit]
+        stages: [commit, push]
