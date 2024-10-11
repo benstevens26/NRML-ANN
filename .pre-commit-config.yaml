@@ -1,5 +1,5 @@
 repos:
-  # Hook for running the formatting environment in tox
+  # Hook for running tox -e format for code formatting (black and isort)
   - repo: local
     hooks:
       - id: tox-format
@@ -7,8 +7,17 @@ repos:
         entry: tox -e format
         language: system
         types: [python]
-        stages: [commit, push]
-        pass_filenames: false  # Ensure tox runs on the entire codebase
+        stages: [commit]
+        pass_filenames: false  # Ensures tox runs on the entire codebase
+        always_run: true       # Runs this hook always, regardless of what files changed
+
+      # Automatically re-stage any files modified by tox -e format
+      - id: reformat-staged
+        name: Re-stage files after formatting
+        entry: git add .
+        language: system
+        stages: [commit]
+        always_run: true
 
   # Hook for running the standard tox tests
   - repo: local
@@ -18,4 +27,4 @@ repos:
         entry: tox
         language: system
         types: [python]
-        stages: [commit, push]
+        stages: [commit]
