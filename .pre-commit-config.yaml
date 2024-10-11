@@ -1,25 +1,23 @@
 repos:
-  # Hook for running tox -e format for code formatting (black and isort)
-  - repo: local
+  # Hook for running black for code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.9.1  # Use the latest stable version of black
     hooks:
-      - id: tox-format
-        name: Run tox -e format for code formatting (black and isort)
-        entry: tox -e format
-        language: system
-        types: [python]
+      - id: black
+        name: Run Black for code formatting
+        language_version: python3  # Use Python 3 interpreter
         stages: [commit]
-        pass_filenames: false  # Ensures tox runs on the entire codebase
-        always_run: true       # Runs this hook always, regardless of what files changed
 
-      # Automatically re-stage any files modified by tox -e format
-      - id: reformat-staged
-        name: Re-stage files after formatting
-        entry: git add .
-        language: system
+  # Hook for running isort for import sorting
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.12.0  # Use the latest stable version of isort
+    hooks:
+      - id: isort
+        name: Run isort for import sorting
+        language_version: python3  # Use Python 3 interpreter
         stages: [commit]
-        always_run: true
 
-  # Hook for running the standard tox tests
+  # Hook for running the tox tests
   - repo: local
     hooks:
       - id: run-tox
