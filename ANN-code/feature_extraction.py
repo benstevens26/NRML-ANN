@@ -1,12 +1,12 @@
 # feature extraction for input into the ANN
 
+import os
+import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import svd
-import matplotlib.pyplot as plt
-import os
 
-folder_path = os.path.join("..", "..", "Data/C/300-320keV")
-# folder_path = os.path.join( tom path )
+folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
+
 
 files = os.listdir(folder_path)
 carbon_events = [np.load(folder_path + "/" + f) for f in files]
