@@ -1,12 +1,13 @@
 # feature extraction for input into the ANN
 
-import numpy as np
-from numpy.linalg import svd
-import matplotlib.pyplot as plt
 import os
 
-folder_path = os.path.join("..", "..", "Data/C/300-320keV")
-# folder_path = os.path.join( tom path )
+import matplotlib.pyplot as plt
+import numpy as np
+from numpy.linalg import svd
+
+folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
+
 
 files = os.listdir(folder_path)
 carbon_events = [np.load(folder_path + "/" + f) for f in files]
@@ -113,4 +114,3 @@ def extract_pixels(image, principal_axis, mean_x, mean_y, threshold=2):
 
 for image in carbon_events:
     extract_axis(image, plot=True)
-
