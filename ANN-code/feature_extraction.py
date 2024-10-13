@@ -11,6 +11,15 @@ folder_path = os.path.join("..", "..", "Data/C/300-320keV")
 files = os.listdir(folder_path)
 carbon_events = [np.load(folder_path + "/" + f) for f in files]
 
+test_event = carbon_events[0]
+
+
+class event(self, name):
+    """ """
+
+    self.image = image
+    self.name = name
+
 
 def extract_axis(image, plot=False, return_extras=False):
     """
@@ -64,12 +73,12 @@ def extract_axis(image, plot=False, return_extras=False):
         # Plot the image and the principal axis
         plt.imshow(image, cmap="viridis", origin="lower")
         plt.plot([x_start, x_end], [y_start, y_end], color="red", linewidth=2)
+        plt.title()
+        plt.colorbar()
         plt.show()
 
     if return_extras:
-        # space to return extras if wanted
-
-        return principal_axis
+        return principal_axis, mean_x, mean_y
 
     return principal_axis
 
@@ -111,6 +120,52 @@ def extract_pixels(image, principal_axis, mean_x, mean_y, threshold=2):
     return selected_pixels
 
 
-for image in carbon_events:
-    extract_axis(image, plot=True)
+def plot_deposition(pixels):
+    """
 
+    :param pixels: pixels along the principle axis [(x, y, intensity)]
+    :return:
+    """
+
+    # Extract x, y, intensity values
+    x_vals = [point[0] for point in pixels]
+    y_vals = [point[1] for point in pixels]
+    intensity_vals = [point[2] for point in pixels]
+
+    # Compute distances r along the line
+    r_vals = [0]  # The first point is at distance r = 0
+    initial_x, initial_y = x_vals[0], y_vals[0]
+
+    for i in range(1, len(pixels)):
+        delta_x = x_vals[i] - initial_x
+        delta_y = y_vals[i] - initial_y
+        r = np.sqrt(delta_x**2 + delta_y**2)
+        r_vals.append(r)
+
+    # Plot intensity vs distance
+    plt.figure(figsize=(8, 6))
+    plt.scatter(r_vals, intensity_vals, marker=".", color="red")
+    plt.xlabel("Distance along the PA (r / pixels)")
+    plt.ylabel("Intensity")
+    plt.title("Intensity vs Distance along PA")
+    plt.grid(True)
+    plt.show()
+
+
+def extract_MaxDen(image):
+    """
+    Extract maximumm
+    :param image:
+    :return:
+    """
+
+    return np.max(image)
+
+
+axis, mean_x, mean_y = extract_axis(test_event, plot=True, return_extras=True)
+
+pixels = extract_pixels(test_event, axis, mean_x, mean_y, threshold=1)
+
+
+def extract_length(image, principal_axis):
+    pass
