@@ -52,47 +52,50 @@ class Event:
     def __init__(self, name, image):
         self.name = name
         self.image = image
-        self.energy = self.extract_energy_from_name(name)
-        self.species = self.extract_species_from_name(name)
-        self.length = self.extract_length_from_name(name)
+        self.energy = extract_energy_from_name(name)
+        self.species = extract_species_from_name(name)
+        self.length = extract_length_from_name(name)
 
-    def extract_energy_from_name(self, name):
-        """
-        Extract the energy in keV from the filename.
-        :param name: The filename as a string.
-        :return: The energy in keV as a float.
-        """
-        match = re.search(r"(\d+\.?\d*)keV", name)
-        if match:
-            return float(match.group(1))
-        else:
-            return None
+    def attributes(self):
 
-    def extract_species_from_name(self, name):
-        """
-        Extract the species (C for carbon or F for fluorine) from the filename.
-        :param name: The filename as a string.
-        :return: The species as a string.
-        """
-        match = re.search(r"_(C|F)_", name)
-        if match:
-            return match.group(1)
-        else:
-            return None
-
-    def extract_length_from_name(self, name):
-        """
-        Extract the length in cm from the filename.
-        :param name: The filename as a string.
-        :return: The length in cm as a float.
-        """
-        match = re.search(r"(\d+\.?\d*)cm", name)
-        if match:
-            return float(match.group(1))
-        else:
-            return None
+        return self.name, self.image, self.energy, self.species, self.length
 
 
+def extract_energy_from_name(name):
+    """
+    Extract the energy in keV from the filename.
+    :param name: The filename as a string.
+    :return: The energy in keV as a float.
+    """
+    match = re.search(r"(\d+\.?\d*)keV", name)
+    if match:
+        return float(match.group(1))
+    else:
+        return None
+
+def extract_species_from_name(name):
+    """
+    Extract the species (C for carbon or F for fluorine) from the filename.
+    :param name: The filename as a string.
+    :return: The species as a string.
+    """
+    match = re.search(r"_(C|F)_", name)
+    if match:
+        return match.group(1)
+    else:
+        return None
+
+def extract_length_from_name(name):
+    """
+    Extract the length in cm from the filename.
+    :param name: The filename as a string.
+    :return: The length in cm as a float.
+    """
+    match = re.search(r"(\d+\.?\d*)cm", name)
+    if match:
+        return float(match.group(1))
+    else:
+        return None
 
 
 def load_events(folder_path):
