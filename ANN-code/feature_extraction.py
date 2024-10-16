@@ -21,6 +21,7 @@ Dependencies:
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.ndimage as nd
 import re
 from numpy.linalg import svd
 
@@ -29,15 +30,16 @@ class Event:
     """
     Class to represent an event with a name, associated image data, energy, species, and length.
     """
-    def __init__(self, name, image):
+
+    def __init__(self, name, image, smoothing_sigma=5):
         self.name = name
         self.image = image
+        self.smoothed_image = nd.gaussian_filter(self.image, smoothing_sigma)
         self.energy = extract_energy_from_name(name)
         self.species = extract_species_from_name(name)
         self.length = extract_length_from_name(name)
 
     def attributes(self):
-
         return self.name, self.image, self.energy, self.species, self.length
 
 
@@ -53,6 +55,7 @@ def extract_energy_from_name(name):
     else:
         return None
 
+
 def extract_species_from_name(name):
     """
     Extract the species (C for carbon or F for fluorine) from the filename.
@@ -64,6 +67,7 @@ def extract_species_from_name(name):
         return match.group(1)
     else:
         return None
+
 
 def extract_length_from_name(name):
     """
@@ -96,7 +100,7 @@ def load_events(folder_path):
     return event_objects
 
 
-def extract_axis(event, plot=False, return_extras=False):
+def extract_axis(image, plot=False, return_extras=False, energy=None):
     """
     Extract principle axis from image
 
@@ -106,7 +110,6 @@ def extract_axis(event, plot=False, return_extras=False):
     :return: principle axis
     """
 
-    image = event.image
     height, width = image.shape
 
     # Create a grid of coordinates for each pixel
@@ -149,7 +152,7 @@ def extract_axis(event, plot=False, return_extras=False):
         # Plot the image and the principal axis
         plt.imshow(image, cmap="viridis", origin="lower")
         plt.plot([x_start, x_end], [y_start, y_end], color="red", linewidth=2)
-        plt.title(event.name)
+        plt.title(energy)
         plt.colorbar()
         plt.show()
 
@@ -196,6 +199,8 @@ def extract_pixels(image, principal_axis, mean_x, mean_y, threshold=2):
     return selected_pixels
 
 
+
+
 def plot_deposition(pixels):
     """
 
@@ -230,11 +235,10 @@ def plot_deposition(pixels):
 
 def extract_MaxDen(image):
     """
-    Extract maximumm
+    Extract maximumm intensity value
     :param image:
     :return:
     """
-
     return np.max(image)
 
 
@@ -242,6 +246,5 @@ def extract_length(image, principal_axis):
     raise NotImplementedError("This function is not yet implemented")
 
 
-def total_intensity(image):
-
+def extract_total_intensity(image):
     return np.sum(image)
