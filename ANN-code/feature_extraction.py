@@ -29,6 +29,7 @@ class Event:
     """
     Class to store image information
     """
+
     def __init__(self, name, image):
         self.name = name
         self.image = image
@@ -194,4 +195,3 @@ def extract_MaxDen(image):
 
 def extract_length(image, principal_axis):
     raise NotImplementedError("This function is not yet implemented")
-
