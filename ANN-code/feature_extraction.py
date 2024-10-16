@@ -18,26 +18,6 @@ Dependencies:
     - numpy.linalg.svd: For singular value decomposition in image analysis.
 """
 
-"""
-feature_extraction.py
-
-This module provides functionality to handle and process image data for input into an Artificial Neural Network (ANN).
-It includes classes and methods to load events, process images, and extract relevant features for further analysis.
-
-Classes:
-    - Event: A class to store image data related to an event.
-
-Functions:
-    - load_events(folder_path): Loads image data from the specified folder and returns a list of Event objects.
-    - extract_axis(image, plot=False, return_extras=False): Extracts the principal axis of the input image, with optional plotting.
-
-Dependencies:
-    - os: Used for file handling.
-    - matplotlib.pyplot: For plotting the images.
-    - numpy: For numerical operations and loading image data.
-    - numpy.linalg.svd: For singular value decomposition in image analysis.
-"""
-
 import os
 import re
 
@@ -113,17 +93,11 @@ def load_events(folder_path):
     return event_objects
 
 
-def extract_axis(event, plot=False, return_extras=False):
+def extract_axis(image, plot=False, return_extras=False, energy=None):
     """
     Extract principle axis from image
-
-    :param event: event object
-    :param extras: if True, return extras
-    :param plot: if True, plot the image overlayed with principle axis
-    :return: principle axis
+    :param event: event object    :param extras: if True, return extras    :param plot: if True, plot the image overlayed with principle axis    :return: principle axis
     """
-
-    image = event.image
     height, width = image.shape
 
     # Create a grid of coordinates for each pixel
@@ -166,7 +140,7 @@ def extract_axis(event, plot=False, return_extras=False):
         # Plot the image and the principal axis
         plt.imshow(image, cmap="viridis", origin="lower")
         plt.plot([x_start, x_end], [y_start, y_end], color="red", linewidth=2)
-        plt.title(event.name)
+        plt.title(energy)
         plt.colorbar()
         plt.show()
 

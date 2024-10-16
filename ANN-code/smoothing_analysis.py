@@ -30,9 +30,10 @@ plt.show()
 
 filtered_event = nd.gaussian_filter(test_event, 5)
 plt.imshow(filtered_event)
-import scipy.ndimage as nd
 
-# principal axis analysis on smoothed profiles
+
+# %% principal axis analysis on smoothed profiles
+import scipy.ndimage as nd
 from feature_extraction import *
 
 folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
@@ -46,7 +47,7 @@ for i in events:
     i.smoothed_paxis = extract_axis(i.smoothed, plot=plot)
 
 
-# Total energy conserved
+# %% Total energy conserved
 for event in events:
     original_intensity_sum = np.sum(event.image)
     smoothed_intensity_sum = np.sum(event.smoothed)
@@ -55,4 +56,13 @@ for event in events:
 plt.plot([i.ratio for i in events], "x")
 plt.ylim(0, 1)
 plt.show()
-# Energy to total intensity mapping
+# %% Energy to total intensity mapping
+intensity_energy_ratios = []
+for event in events:
+    intensity_energy_ratios.append(np.sum(event.image) / event.energy)
+
+plt.plot(intensity_energy_ratios, "x")
+plt.ylabel("Total intensity / energy")
+plt.xlabel("event number")
+plt.show()
+# %%
