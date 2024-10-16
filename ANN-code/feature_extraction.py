@@ -47,55 +47,11 @@ from numpy.linalg import svd
 
 class Event:
     """
-    Class to represent an event with a name, associated image data, energy, species, and length.
+    Class to store image information
     """
     def __init__(self, name, image):
         self.name = name
         self.image = image
-        self.energy = extract_energy_from_name(name)
-        self.species = extract_species_from_name(name)
-        self.length = extract_length_from_name(name)
-
-    def attributes(self):
-
-        return self.name, self.image, self.energy, self.species, self.length
-
-
-def extract_energy_from_name(name):
-    """
-    Extract the energy in keV from the filename.
-    :param name: The filename as a string.
-    :return: The energy in keV as a float.
-    """
-    match = re.search(r"(\d+\.?\d*)keV", name)
-    if match:
-        return float(match.group(1))
-    else:
-        return None
-
-def extract_species_from_name(name):
-    """
-    Extract the species (C for carbon or F for fluorine) from the filename.
-    :param name: The filename as a string.
-    :return: The species as a string.
-    """
-    match = re.search(r"_(C|F)_", name)
-    if match:
-        return match.group(1)
-    else:
-        return None
-
-def extract_length_from_name(name):
-    """
-    Extract the length in cm from the filename.
-    :param name: The filename as a string.
-    :return: The length in cm as a float.
-    """
-    match = re.search(r"(\d+\.?\d*)cm", name)
-    if match:
-        return float(match.group(1))
-    else:
-        return None
 
 
 def load_events(folder_path):
@@ -116,7 +72,7 @@ def load_events(folder_path):
     return event_objects
 
 
-def extract_axis(event, plot=False, return_extras=False):
+def extract_axis(image, plot=False, return_extras=False):
     """
     Extract principle axis from image
 
@@ -169,7 +125,6 @@ def extract_axis(event, plot=False, return_extras=False):
         # Plot the image and the principal axis
         plt.imshow(image, cmap="viridis", origin="lower")
         plt.plot([x_start, x_end], [y_start, y_end], color="red", linewidth=2)
-        plt.title(event.name)
         plt.colorbar()
         plt.show()
 
@@ -261,7 +216,3 @@ def extract_MaxDen(image):
 def extract_length(image, principal_axis):
     raise NotImplementedError("This function is not yet implemented")
 
-
-def total_intensity(image):
-
-    return np.sum(image)
