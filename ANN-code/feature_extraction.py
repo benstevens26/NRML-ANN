@@ -17,6 +17,7 @@ Dependencies:
     - numpy: For numerical operations and loading image data.
     - numpy.linalg.svd: For singular value decomposition in image analysis.
 """
+
 """
 feature_extraction.py
 
@@ -38,10 +39,10 @@ Dependencies:
 """
 
 import os
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
-import re
 from numpy.linalg import svd
 
 
@@ -49,6 +50,7 @@ class Event:
     """
     Class to represent an event with a name, associated image data, energy, species, and length.
     """
+
     def __init__(self, name, image):
         self.name = name
         self.image = image
@@ -91,8 +93,6 @@ class Event:
             return float(match.group(1))
         else:
             return None
-
-
 
 
 def load_events(folder_path):
