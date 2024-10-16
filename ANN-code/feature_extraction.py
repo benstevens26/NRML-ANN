@@ -1,6 +1,7 @@
 # feature extraction for input into the ANN
 
 import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import svd
