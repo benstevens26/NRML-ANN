@@ -17,6 +17,25 @@ Dependencies:
     - numpy: For numerical operations and loading image data.
     - numpy.linalg.svd: For singular value decomposition in image analysis.
 """
+"""
+feature_extraction.py
+
+This module provides functionality to handle and process image data for input into an Artificial Neural Network (ANN).
+It includes classes and methods to load events, process images, and extract relevant features for further analysis.
+
+Classes:
+    - Event: A class to store image data related to an event.
+
+Functions:
+    - load_events(folder_path): Loads image data from the specified folder and returns a list of Event objects.
+    - extract_axis(image, plot=False, return_extras=False): Extracts the principal axis of the input image, with optional plotting.
+
+Dependencies:
+    - os: Used for file handling.
+    - matplotlib.pyplot: For plotting the images.
+    - numpy: For numerical operations and loading image data.
+    - numpy.linalg.svd: For singular value decomposition in image analysis.
+"""
 
 import os
 
@@ -30,7 +49,6 @@ class Event:
     """
     Class to represent an event with a name, associated image data, energy, species, and length.
     """
-
     def __init__(self, name, image):
         self.name = name
         self.image = image
