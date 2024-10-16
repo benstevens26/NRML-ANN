@@ -1,24 +1,54 @@
-# feature extraction for input into the ANN
+"""
+feature_extraction.py
+
+This module provides functionality to handle and process image data for input into an Artificial Neural Network (ANN).
+It includes classes and methods to load events, process images, and extract relevant features for further analysis.
+
+Classes:
+    - Event: A class to store image data related to an event.
+
+Functions:
+    - load_events(folder_path): Loads image data from the specified folder and returns a list of Event objects.
+    - extract_axis(image, plot=False, return_extras=False): Extracts the principal axis of the input image, with optional plotting.
+
+Dependencies:
+    - os: Used for file handling.
+    - matplotlib.pyplot: For plotting the images.
+    - numpy: For numerical operations and loading image data.
+    - numpy.linalg.svd: For singular value decomposition in image analysis.
+"""
 
 import os
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import svd
 
-folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
+
+class Event:
+    """
+    Class to store image information
+    """
+    def __init__(self, name, image):
+        self.name = name
+        self.image = image
 
 
-files = os.listdir(folder_path)
-carbon_events = [np.load(folder_path + "/" + f) for f in files]
+def load_events(folder_path):
+    """
+    load all events in folder_path into Event objects
+    :param folder_path:
+    :return:
+    """
+    event_objects = []
+    files = os.listdir(folder_path)
 
-test_event = carbon_events[0]
+    for f in files:
+        file_path = os.path.join(folder_path, f)
+        image_data = np.load(file_path)
+        event = Event(f, image_data)
+        event_objects.append(event)
 
-
-# class event(self, name):
-#     """ """
-#
-#     self.image = image
-#     self.name = name
+    return event_objects
 
 
 def extract_axis(image, plot=False, return_extras=False):
@@ -73,7 +103,6 @@ def extract_axis(image, plot=False, return_extras=False):
         # Plot the image and the principal axis
         plt.imshow(image, cmap="viridis", origin="lower")
         plt.plot([x_start, x_end], [y_start, y_end], color="red", linewidth=2)
-        plt.title()
         plt.colorbar()
         plt.show()
 
@@ -162,10 +191,6 @@ def extract_MaxDen(image):
     return np.max(image)
 
 
-axis, mean_x, mean_y = extract_axis(test_event, plot=True, return_extras=True)
-
-pixels = extract_pixels(test_event, axis, mean_x, mean_y, threshold=1)
-
-
 def extract_length(image, principal_axis):
-    pass
+    raise NotImplementedError("This function is not yet implemented")
+
