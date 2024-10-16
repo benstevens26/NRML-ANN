@@ -14,11 +14,11 @@ carbon_events = [np.load(folder_path + "/" + f) for f in files]
 test_event = carbon_events[0]
 
 
-class event(self, name):
-    """ """
-
-    self.image = image
-    self.name = name
+# class event(self, name):
+#     """ """
+#
+#     self.image = image
+#     self.name = name
 
 
 def extract_axis(image, plot=False, return_extras=False):
