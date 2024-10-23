@@ -1,7 +1,37 @@
 """
+This module provides the `Event` class, which represents a nuclear recoil event with attributes
+such as the event's name, image, energy, species, and track length.
+
 Classes:
     - Event: Represents a nuclear recoil event with attributes such as name, image, energy, species,
-      and length.
+      and length. Provides methods to process the event image, extract features such as species and energy,
+      and compute the principal axis using image analysis.
+
+Methods in Event:
+    - __init__(self, name, image, smoothing=5): Initializes an Event object with the event name
+      and raw image data. It also applies Gaussian smoothing to the image and extracts the
+      energy, species, and track length from the event name.
+
+    - get_energy_from_name(self): Extracts the energy in keV from the event's filename.
+
+    - get_species_from_name(self): Extracts the species (C for carbon, F for fluorine)
+      from the event's filename.
+
+    - get_length_from_name(self): Extracts the track length in cm from the event's filename.
+
+    - get_attributes(self): Returns the key attributes of the event, including name, species, energy,
+      length, and processed image.
+
+    - get_smoothed_image(self, smoothing_sigma): Applies Gaussian smoothing to the raw image data
+      to reduce noise.
+
+    - extract_principal_axis(self, plot=False): Calculates the principal axis of the event
+      using Singular Value Decomposition (SVD) on the image data. Optionally plots the image
+      with the principal axis overlaid.
+
+Additional setup:
+    - The module loads custom Matplotlib plotting parameters from a JSON file, which is used
+      to globally update Matplotlib's settings.
 """
 
 import os
@@ -139,9 +169,7 @@ class Event:
         height, width = image.shape
 
         # Calculate the length of the principal axis extended over the whole image
-        line_length = np.sqrt(
-            width**2 + height**2
-        )
+        line_length = np.sqrt(width**2 + height**2)
 
         # Extend the principal axis over the full image dimensions
         x_start = mean_x - principal_axis[0] * line_length / 2
@@ -285,8 +313,7 @@ class Event:
         plt.show()
 
     def plot_intensity_profile(self, num_segments):
-        """
-        """
+        """ """
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
@@ -345,7 +372,9 @@ class Event:
                     )
 
                     # Calculate the cross products to check which side of the bisector the pixel is on
-                    cross_current = cross_product_2d(bisector_vector, vector_to_bisector)
+                    cross_current = cross_product_2d(
+                        bisector_vector, vector_to_bisector
+                    )
                     cross_next = cross_product_2d(
                         next_bisector_vector, vector_to_next_bisector
                     )

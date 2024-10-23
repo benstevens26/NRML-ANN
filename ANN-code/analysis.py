@@ -14,8 +14,3 @@ events = random.sample(events, 10)
 test_event = events[0]
 
 test_event.plot_intensity_profile(num_segments=50)
-
-
-
-
-
