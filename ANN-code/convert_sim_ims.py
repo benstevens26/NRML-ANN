@@ -52,7 +52,7 @@ def convert_im(
     im = gen.binomial((gain_corr * im).astype(np.int32), light_fraction) / 0.11
     if reflect_fraction:
         im = im + reflect_fraction * convolve2d(
-            im, gauss_kernel(10, 5), mode="same", boundary="symm"
+            im, gauss_kernel(10, 5), mode="same", boundary="symm"  # type: ignore
         )
     im = np.round(im) + dark_sample  # * 0.11
 

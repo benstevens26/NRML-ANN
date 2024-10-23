@@ -24,12 +24,15 @@ dark_sample = get_dark_sample(
 )
 # plt.imshow(dark_sample)
 
-events[0].noisy_image = convert_im(events[0].image, dark_sample)
-plt.imshow(events[0].noisy_image)
+# events[0].noisy_image = convert_im(events[0].image, dark_sample)
+# plt.imshow(events[0].noisy_image)
+
+test_events = [events[np.random.randint(0, len(events) - 1)] for i in range(5)]
 
 
-for e in events:
-    e.noisy_image = convert_im(
+for e in test_events:
+    # e.plot_image_with_axis()
+    e.image = convert_im(  # THIS SHOULD NOT OVERWRITE THE IMAGE REALLY THIS IS A TEMP FIX UNTIL I NEXT MERGE
         e.image,
         get_dark_sample(
             m_dark,
@@ -37,3 +40,4 @@ for e in events:
             example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
         ),
     )
+    e.plot_image_with_axis()
