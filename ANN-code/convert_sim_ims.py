@@ -129,14 +129,6 @@ def create_md_and_noise(binning=1, save=True):
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-m_dark_list = [np.load(f) for f in glob.glob("Data/darks/master_dark_*.npy")]
-m_dark = m_dark_list[
-    1
-]  # This is only for while I don't care about the others. I cba to implement ordering them by the numbers at the end of the file names
-example_dark = np.load("Data/darks/quest_std_dark_1.npy")[
-    np.random.randint(0, 199)
-]  # This is an array of 200 dark images. I believe the other 9 are the same as well
-
 
 def get_dark_sample(m_dark, im_dims, example_dark):
     """
@@ -168,7 +160,3 @@ def get_dark_sample(m_dark, im_dims, example_dark):
 
     dark_sample = np.array(example_dark_sample) - np.array(m_dark_sample)
     return dark_sample
-
-
-dark_sample = get_dark_sample(m_dark, [200, 200], example_dark)
-plt.imshow(dark_sample)
