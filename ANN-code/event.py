@@ -232,7 +232,7 @@ class Event:
         ax.grid(False)
         ax.imshow(image)
 
-        plt.title(self.plot_name)
+        plt.title(self.plot_name + " image")
         plt.show()
 
     def plot_image_with_axis(self, image_type=None):
@@ -276,11 +276,11 @@ class Event:
             label="Principal Axis",
             linewidth=2,
         )
-        plt.title(self.plot_name + " principal axis")
+        plt.title(self.plot_name + " with principal axis")
         plt.legend()
         plt.show()
 
-    def plot_bisectors_on_image(self, num_segments, image_type=None):
+    def plot_image_with_bisectors(self, num_segments, image_type=None):
         """
         """
 
@@ -329,7 +329,7 @@ class Event:
                 label="Bisector" if bisector == bisectors[0] else "",
             )
 
-        plt.title(self.plot_name + " principal axis and bisectors")
+        plt.title(self.plot_name + " with principal axis and bisectors")
         plt.legend()
         plt.show()
 
