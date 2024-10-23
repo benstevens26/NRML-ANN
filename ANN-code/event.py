@@ -113,11 +113,10 @@ class Event:
         :return: list [principle axis, mean_x, mean_y]
         """
 
-        if image_type is None:
-            image = self.image
-
         if image_type == "raw":
             image = self.raw_image
+        else:
+            image = self.image
 
         energy = self.energy
         height, width = image.shape
@@ -167,11 +166,10 @@ class Event:
     def get_bisectors(self, num_segments, image_type=None):
         """ """
 
-        if image_type is None:
-            image = self.image
-
         if image_type == "raw":
             image = self.raw_image
+        else:
+            image = self.image
 
         if self.principal_axis is None:
             self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
@@ -221,11 +219,10 @@ class Event:
 
     def plot_image(self, image_type=None):
 
-        if image_type is None:
-            image = self.image
-
         if image_type == "raw":
             image = self.raw_image
+        else:
+            image = self.image
 
         fig, ax = plt.subplots()
 
@@ -241,11 +238,10 @@ class Event:
         :return:
         """
 
-        if image_type is None:
-            image = self.image
-
         if image_type == "raw":
             image = self.raw_image
+        else:
+            image = self.image
 
         if self.principal_axis is None:
             self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
@@ -288,11 +284,10 @@ class Event:
             self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
 
-        if image_type is None:
-            image = self.image
-
         if image_type == "raw":
             image = self.raw_image
+        else:
+            image = self.image
 
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
