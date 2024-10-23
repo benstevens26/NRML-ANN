@@ -34,8 +34,6 @@ Additional setup:
       to globally update Matplotlib's settings.
 """
 
-import os
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage as nd
