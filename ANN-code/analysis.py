@@ -1,10 +1,15 @@
 """
-test module
-"""
-import random
-from feature_extraction import *
+analysis
 
-folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
+"""
+
+from event import Event
+from event import load_events
+
+import numpy as np
+import random
+
+folder_path = "Data/C/300-320keV"
 events = load_events(folder_path)
 
 # sample some events for analysis
