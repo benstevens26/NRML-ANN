@@ -4,15 +4,15 @@ Classes:
       and length.
 """
 
+import json
 import os
+import re
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage as nd
-import re
-import json
 from numpy.linalg import svd
-
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -139,9 +139,7 @@ class Event:
         height, width = image.shape
 
         # Calculate the length of the principal axis extended over the whole image
-        line_length = np.sqrt(
-            width**2 + height**2
-        )
+        line_length = np.sqrt(width**2 + height**2)
 
         # Extend the principal axis over the full image dimensions
         x_start = mean_x - principal_axis[0] * line_length / 2
@@ -285,8 +283,7 @@ class Event:
         plt.show()
 
     def plot_intensity_profile(self, num_segments):
-        """
-        """
+        """ """
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
@@ -345,7 +342,9 @@ class Event:
                     )
 
                     # Calculate the cross products to check which side of the bisector the pixel is on
-                    cross_current = cross_product_2d(bisector_vector, vector_to_bisector)
+                    cross_current = cross_product_2d(
+                        bisector_vector, vector_to_bisector
+                    )
                     cross_next = cross_product_2d(
                         next_bisector_vector, vector_to_next_bisector
                     )

@@ -14,14 +14,26 @@ m_dark_list = [np.load(f) for f in glob.glob("Data/darks/master_dark_*.npy")]
 m_dark = m_dark_list[
     1
 ]  # This is only for while I don't care about the others. I cba to implement ordering them by the numbers at the end of the file names
-example_dark = np.load("Data/darks/quest_std_dark_1.npy")[
-    np.random.randint(0, 199)
-]  # This is an array of 200 dark images. I believe the other 9 are the same as well
+example_dark_list = np.load(
+    "Data/darks/quest_std_dark_1.npy"
+)  # This is an array of 200 dark images. I believe the other 9 are the same as well
+example_dark = example_dark_list[np.random.randint(0, len(example_dark_list) - 1)]
 
 dark_sample = get_dark_sample(
     m_dark, [len(events[0].image[0]), len(events[0].image)], example_dark
 )
-plt.imshow(dark_sample)
+# plt.imshow(dark_sample)
 
 events[0].noisy_image = convert_im(events[0].image, dark_sample)
 plt.imshow(events[0].noisy_image)
+
+
+for e in events:
+    e.noisy_image = convert_im(
+        e.image,
+        get_dark_sample(
+            m_dark,
+            [len(e.image[0]), len(e.image)],
+            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+        ),
+    )
