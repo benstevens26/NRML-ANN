@@ -40,11 +40,12 @@ import scipy.ndimage as nd
 import re
 import os
 import json
+from tqdm import tqdm
 from numpy.linalg import svd
 
 
 with open("matplotlibrc.json", "r") as file:
-    custom_params = json.load(file)
+   custom_params = json.load(file)
 
 plt.rcParams.update(custom_params)
 
@@ -264,14 +265,17 @@ class Event:
         plt.legend()
         plt.show()
 
-    def plot_bisectors_on_image(self, num_segments):
-        """ """
+    def plot_bisectors_on_image(self, num_segments, image=None):
+        """
+        """
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
 
-        image = self.image
+        if image is None:
+            image = self.image
+
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
         # Calculate the length of the principal axis extended over the whole image
@@ -328,7 +332,7 @@ class Event:
 
         # Loop through each pixel in the image
         height, width = image.shape
-        for x in range(width):
+        for x in tqdm(range(width), desc="PLOTTING BISECTORS", total=100):
             for y in range(height):
                 # Get the intensity value of the current pixel
                 intensity = image[y, x]
