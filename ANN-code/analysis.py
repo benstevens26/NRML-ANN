@@ -15,7 +15,6 @@ events = load_events(folder_path)
 # sample some events for analysis
 events = random.sample(events, 10)
 test_event = events[0]
-test_event.plot_intensity_profile(num_segments=250)
-
-
-print("success")
+test_event.plot_image_with_axis(image_type="raw")
+test_event.plot_image_with_axis()
+#test_event.plot_intensity_profile(num_segments=250)

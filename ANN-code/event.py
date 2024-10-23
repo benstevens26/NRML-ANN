@@ -102,16 +102,21 @@ class Event:
             raise ValueError("Could not extract length.")
 
     def get_attributes(self):
-        return self.name, self.image, self.energy, self.species, self.length
+        return self.name, self.energy, self.species, self.length
 
-    def get_principal_axis(self):
+    def get_principal_axis(self, image_type=None):
         """
         Extract principal axis from image
 
         :return: list [principle axis, mean_x, mean_y]
         """
 
-        image = self.image
+        if image_type is None:
+            image = self.image
+
+        if image_type == "raw":
+            image = self.raw_image
+
         energy = self.energy
         height, width = image.shape
 
@@ -157,15 +162,20 @@ class Event:
     def get_recoil_angle(self):
         raise NotImplementedError("This function is not yet implemented")
 
-    def get_bisectors(self, num_segments):
+    def get_bisectors(self, num_segments, image_type=None):
         """ """
 
+        if image_type is None:
+            image = self.image
+
+        if image_type == "raw":
+            image = self.raw_image
+
         if self.principal_axis is None:
-            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
 
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
-        image = self.image
         height, width = image.shape
 
         # Calculate the length of the principal axis extended over the whole image
@@ -207,35 +217,39 @@ class Event:
 
         return bisectors
 
-    def plot_image(self, smoothed=True):
+    def plot_image(self, smoothed=True, image=None):
+
+        if image is None:
+            image = self.image
+
+        if image == "raw":
+            image = self.raw_image
+
         if smoothed:
             fig, ax = plt.subplots()
 
             ax.grid(False)
-            ax.imshow(self.image)
+            ax.imshow(image)
 
-            plt.title(self.name + " smoothed")
+            plt.title(self.name)
             plt.show()
 
-        if not smoothed:
-            fig, ax = plt.subplots()
-
-            ax.grid(False)
-            ax.imshow(self.raw_image)
-
-            plt.title(self.name + " raw")
-            plt.show()
-
-    def plot_image_with_axis(self):
+    def plot_image_with_axis(self, image_type=None):
         """
 
         :return:
         """
 
-        if self.principal_axis is None:
-            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
+        if image_type is None:
+            image = self.image
 
-        height, width = self.image.shape
+        if image_type == "raw":
+            image = self.raw_image
+
+        if self.principal_axis is None:
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
+
+        height, width = image.shape
 
         # Calculate the length of the principal axis extended over the whole image
         line_length = np.sqrt(
@@ -253,7 +267,7 @@ class Event:
         fig, ax = plt.subplots()
 
         ax.grid(False)
-        ax.imshow(self.image)
+        ax.imshow(image)
         ax.plot(
             [x_start, x_end],
             [y_start, y_end],
@@ -265,7 +279,7 @@ class Event:
         plt.legend()
         plt.show()
 
-    def plot_bisectors_on_image(self, num_segments, image=None):
+    def plot_bisectors_on_image(self, num_segments, image_type=None):
         """
         """
 
@@ -273,8 +287,11 @@ class Event:
             self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
 
-        if image is None:
+        if image_type is None:
             image = self.image
+
+        if image_type == "raw":
+            image = self.raw_image
 
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
@@ -332,7 +349,7 @@ class Event:
 
         # Loop through each pixel in the image
         height, width = image.shape
-        for x in tqdm(range(width), desc="PLOTTING BISECTORS", total=100):
+        for x in tqdm(range(width), desc="PLOTTING BISECTORS"):
             for y in range(height):
                 # Get the intensity value of the current pixel
                 intensity = image[y, x]
