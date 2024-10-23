@@ -63,6 +63,8 @@ class Event:
         self.energy = self.get_energy_from_name()
         self.length = self.get_length_from_name()
 
+        self.plot_name = str(self.energy) + "keV" + " " + self.species
+
         self.principal_axis = None
         self.bisectors = None
         self.mean_x = None
@@ -217,22 +219,21 @@ class Event:
 
         return bisectors
 
-    def plot_image(self, smoothed=True, image=None):
+    def plot_image(self, image_type=None):
 
-        if image is None:
+        if image_type is None:
             image = self.image
 
-        if image == "raw":
+        if image_type == "raw":
             image = self.raw_image
 
-        if smoothed:
-            fig, ax = plt.subplots()
+        fig, ax = plt.subplots()
 
-            ax.grid(False)
-            ax.imshow(image)
+        ax.grid(False)
+        ax.imshow(image)
 
-            plt.title(self.name)
-            plt.show()
+        plt.title(self.plot_name)
+        plt.show()
 
     def plot_image_with_axis(self, image_type=None):
         """
@@ -275,7 +276,7 @@ class Event:
             label="Principal Axis",
             linewidth=2,
         )
-        plt.title(self.name + " principal axis")
+        plt.title(self.plot_name + " principal axis")
         plt.legend()
         plt.show()
 
@@ -328,7 +329,7 @@ class Event:
                 label="Bisector" if bisector == bisectors[0] else "",
             )
 
-        plt.title(self.name + " principal axis and bisectors")
+        plt.title(self.plot_name + " principal axis and bisectors")
         plt.legend()
         plt.show()
 
