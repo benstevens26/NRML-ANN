@@ -53,11 +53,9 @@ plt.rcParams.update(custom_params)
 class Event:
     """ """
 
-    def __init__(self, name, image, smoothing=5):
+    def __init__(self, name, image):
         self.name = name
-
-        self.raw_image = image
-        self.image = self.get_smoothed_image(smoothing_sigma=smoothing)
+        self.image = image
 
         self.species = self.get_species_from_name()
         self.energy = self.get_energy_from_name()
@@ -86,7 +84,7 @@ class Event:
         Extract the species (C for carbon or F for fluorine) from the filename.
         :return: The species as a string.
         """
-        match = re.search(r"_(C|F)_", self.name)
+        match = re.search(r"_([C|F])_", self.name)
         if match:
             return match.group(1)
         else:
@@ -106,19 +104,14 @@ class Event:
     def get_attributes(self):
         return self.name, self.energy, self.species, self.length
 
-    def get_principal_axis(self, image_type=None):
+    def get_principal_axis(self):
         """
         Extract principal axis from image
 
         :return: list [principle axis, mean_x, mean_y]
         """
 
-        if image_type == "raw":
-            image = self.raw_image
-        else:
-            image = self.image
-
-        energy = self.energy
+        image = self.image().copy()
         height, width = image.shape
 
         # Create a grid of coordinates for each pixel
@@ -148,9 +141,6 @@ class Event:
 
         return principal_axis, mean_x, mean_y
 
-    def get_smoothed_image(self, smoothing_sigma):
-        return nd.gaussian_filter(self.raw_image, sigma=smoothing_sigma)
-
     def get_track_length(self):
         raise NotImplementedError("This function is not yet implemented")
 
@@ -163,16 +153,13 @@ class Event:
     def get_recoil_angle(self):
         raise NotImplementedError("This function is not yet implemented")
 
-    def get_bisectors(self, num_segments, image_type=None):
+    def get_bisectors(self, num_segments):
         """ """
 
-        if image_type == "raw":
-            image = self.raw_image
-        else:
-            image = self.image
+        image = self.image().copy()
 
         if self.principal_axis is None:
-            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
 
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
@@ -217,12 +204,9 @@ class Event:
 
         return bisectors
 
-    def plot_image(self, image_type=None):
+    def plot_image(self):
 
-        if image_type == "raw":
-            image = self.raw_image
-        else:
-            image = self.image
+        image = self.image().copy()
 
         fig, ax = plt.subplots()
 
@@ -232,19 +216,14 @@ class Event:
         plt.title(self.plot_name + " image")
         plt.show()
 
-    def plot_image_with_axis(self, image_type=None):
+    def plot_image_with_principal_axis(self):
+        """
         """
 
-        :return:
-        """
-
-        if image_type == "raw":
-            image = self.raw_image
-        else:
-            image = self.image
+        image = self.image().copy()
 
         if self.principal_axis is None:
-            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis(image_type)
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
 
         height, width = image.shape
 
@@ -276,18 +255,15 @@ class Event:
         plt.legend()
         plt.show()
 
-    def plot_image_with_bisectors(self, num_segments, image_type=None):
+    def plot_image_with_bisectors(self, num_segments):
         """
         """
+
+        image = self.image().copy()
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
-
-        if image_type == "raw":
-            image = self.raw_image
-        else:
-            image = self.image
 
         principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
@@ -331,11 +307,12 @@ class Event:
     def plot_intensity_profile(self, num_segments):
         """ """
 
+        image = self.image().copy()
+
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
 
         bisectors = self.bisectors
-        image = self.image
         # Initialize an array to store the total intensity for each segment
         segment_intensities = np.zeros(num_segments)
 
@@ -432,8 +409,89 @@ class Event:
         )
         plt.xlabel("Distance Along Principal Axis (pixels)")
         plt.ylabel("Total Intensity")
-        plt.title("Intensity Profile Along Principal Axis")
+        plt.title(self.plot_name + " Intensity Profile Along Principal Axis")
         plt.show()
+
+
+    def plot_intensity_profile_2(self, num_segments):
+        """
+        """
+
+        # Get the bisectors that define each segment
+        if self.bisectors is None:
+            self.bisectors = self.get_bisectors(num_segments)
+        bisectors = self.bisectors
+
+
+
+        # Initialize an array to store the total intensity for each segment
+        segment_intensities = np.zeros(num_segments)
+
+        # Identify non-zero pixels
+        non_zero_y, non_zero_x = np.nonzero(image)  # Get y and x indices of non-zero pixels
+        non_zero_pixels = zip(non_zero_x, non_zero_y)  # Create a list of (x, y) tuples for non-zero pixels
+
+        # Function to calculate the cross product of two vectors
+        def cross_product_2d(v1, v2):
+            return v1[0] * v2[1] - v1[1] * v2[0]
+
+        # Loop through each non-zero pixel
+        for x, y in non_zero_pixels:
+            # Get the intensity value of the current pixel
+            intensity = image[y, x]
+
+            # Convert pixel position to array
+            pixel_pos = np.array([x, y])
+
+            # Check which segment this pixel belongs to by using cross products
+            for i in range(num_segments):
+                # Get current bisector and the next bisector (defining the segment boundaries)
+                (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
+                (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = \
+                bisectors[i + 1]
+
+                # Define the vectors from the pixel to the start of the bisectors
+                vector_to_bisector = pixel_pos - np.array([x_bisector_start, y_bisector_start])
+                vector_to_next_bisector = pixel_pos - np.array([x_next_bisector_start, y_next_bisector_start])
+
+                # Define the direction vectors of the bisectors
+                bisector_vector = np.array([x_bisector_end - x_bisector_start, y_bisector_end - y_bisector_start])
+                next_bisector_vector = np.array(
+                    [x_next_bisector_end - x_next_bisector_start, y_next_bisector_end - y_next_bisector_start])
+
+                # Calculate the cross products to check which side of the bisector the pixel is on
+                cross_current = cross_product_2d(bisector_vector, vector_to_bisector)
+                cross_next = cross_product_2d(next_bisector_vector, vector_to_next_bisector)
+
+                # Check if the pixel lies between the two bisectors
+                if cross_current <= 0 and cross_next >= 0:
+                    # Add the pixel intensity to the corresponding segment
+                    segment_intensities[i] += intensity
+                    break  # Once classified, move to the next pixel
+
+        # Calculate actual distances along the principal axis
+        segment_distances = []
+        total_distance = 0
+
+        for i in range(num_segments):
+            # Get the current segment's start and next bisector
+            (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
+            (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = bisectors[
+                i + 1]
+
+            # Calculate the distance between current bisector and next bisector
+            distance = np.sqrt(
+                (x_next_bisector_start - x_bisector_start) ** 2 + (y_next_bisector_start - y_bisector_start) ** 2)
+            total_distance += distance
+            segment_distances.append(total_distance)
+
+        # Plot the intensity profile as a function of the actual distance along the principal axis
+        plt.bar(segment_distances, segment_intensities, width=segment_distances[1] - segment_distances[0])
+        plt.xlabel('Distance Along Principal Axis (pixels)')
+        plt.ylabel('Total Intensity')
+        plt.title('Intensity Profile Along Principal Axis')
+        plt.show()
+
 
 
 def load_events(folder_path):
@@ -452,3 +510,7 @@ def load_events(folder_path):
         event_objects.append(event)
 
     return event_objects
+
+
+def get_smoothed_image(image, smoothing_sigma):
+    return nd.gaussian_filter(image, sigma=smoothing_sigma)
