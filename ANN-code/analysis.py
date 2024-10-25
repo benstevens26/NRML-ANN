@@ -30,14 +30,18 @@ dark_sample = get_dark_sample(
 test_events = [events[np.random.randint(0, len(events) - 1)] for i in range(5)]
 
 
-for e in test_events:
-    # e.plot_image_with_axis()
-    e.image = convert_im(  # THIS SHOULD NOT OVERWRITE THE IMAGE REALLY THIS IS A TEMP FIX UNTIL I NEXT MERGE
-        e.image,
-        get_dark_sample(
-            m_dark,
-            [len(e.image[0]), len(e.image)],
-            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
-        ),
-    )
-    e.plot_image_with_axis()
+# -------------------------------------------- Add noise and remove below threshold --------------------------------
+# for e in test_events:
+#     # e.plot_image_with_axis()
+#     e.image = convert_im(  # THIS SHOULD NOT OVERWRITE THE IMAGE REALLY THIS IS A TEMP FIX UNTIL I NEXT MERGE
+#         e.image,
+#         get_dark_sample(
+#             m_dark,
+#             [len(e.image[0]), len(e.image)],
+#             example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+#         ),
+#     )
+#     e.image = np.array([[j if j > 50 else 0 for j in i] for i in e.image])
+#     e.plot_image_with_axis()
+#     # e.plot_intensity_profile(num_segments=40)
+# ------------------------------------------------------------------------------------------------------------------
