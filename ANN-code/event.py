@@ -43,9 +43,8 @@ import json
 from tqdm import tqdm
 from numpy.linalg import svd
 
-
 with open("matplotlibrc.json", "r") as file:
-   custom_params = json.load(file)
+    custom_params = json.load(file)
 
 plt.rcParams.update(custom_params)
 
@@ -111,7 +110,7 @@ class Event:
         :return: list [principle axis, mean_x, mean_y]
         """
 
-        image = self.image().copy()
+        image = self.image
         height, width = image.shape
 
         # Create a grid of coordinates for each pixel
@@ -141,8 +140,43 @@ class Event:
 
         return principal_axis, mean_x, mean_y
 
-    def get_track_length(self):
-        raise NotImplementedError("This function is not yet implemented")
+    def get_track_length(self, num_segments, segment_distances=None, segment_intensities=None):
+        """
+        Calculate the track length based on segment distances and segment intensities.
+
+        Parameters:
+        - segment_distances: List of cumulative distances along the principal axis.
+        - segment_intensities: List of total intensities for each segment.
+
+        Returns:
+        - track_length: The calculated length of the track.
+        """
+
+        if segment_distances is None:
+            segment_distances, segment_intensities = self.get_intensity_profile(num_segments)
+
+        non_zero_indices = [i for i, intensity in enumerate(segment_intensities) if intensity > 0]
+
+        if not non_zero_indices:
+            # If there are no non-zero segments, return zero length
+            return 0.0
+
+        # First and last non-zero intensity segment indices
+        first_non_zero_index = non_zero_indices[0]
+        last_non_zero_index = non_zero_indices[-1]
+
+        # Calculate the midpoints of the first and last non-zero segments
+        midpoint_first = (segment_distances[first_non_zero_index] + segment_distances[first_non_zero_index + 1]) / 2
+
+        if last_non_zero_index < len(segment_distances) - 1:
+            midpoint_last = (segment_distances[last_non_zero_index] + segment_distances[last_non_zero_index + 1]) / 2
+        else:
+            # If last_non_zero_index is the last segment, use only that segment's distance
+            midpoint_last = segment_distances[last_non_zero_index]
+        # Calculate the track length as the distance between the two midpoints
+        track_length = abs(midpoint_last - midpoint_first)
+
+        return track_length
 
     def get_track_energy(self):
         raise NotImplementedError("This function is not yet implemented")
@@ -156,7 +190,7 @@ class Event:
     def get_bisectors(self, num_segments):
         """ """
 
-        image = self.image().copy()
+        image = self.image
 
         if self.principal_axis is None:
             self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
@@ -166,7 +200,7 @@ class Event:
         height, width = image.shape
 
         # Calculate the length of the principal axis extended over the whole image
-        line_length = np.sqrt(width**2 + height**2)
+        line_length = np.sqrt(width ** 2 + height ** 2)
 
         # Extend the principal axis over the full image dimensions
         x_start = mean_x - principal_axis[0] * line_length / 2
@@ -204,9 +238,77 @@ class Event:
 
         return bisectors
 
+    def get_intensity_profile(self, num_segments):
+
+        image = self.image
+        self.bisectors = self.get_bisectors(num_segments)
+        bisectors = self.bisectors
+
+        segment_intensities = np.zeros(num_segments)
+
+        # Identify non-zero pixels
+        non_zero_y, non_zero_x = np.nonzero(image)  # Get y and x indices of non-zero pixels
+        non_zero_pixels = zip(non_zero_x, non_zero_y)  # Create a list of (x, y) tuples for non-zero pixels
+
+        # Function to calculate the cross product of two vectors
+        def cross_product_2d(v1, v2):
+            return v1[0] * v2[1] - v1[1] * v2[0]
+
+        # Loop through each non-zero pixel
+        for x, y in non_zero_pixels:
+            # Get the intensity value of the current pixel
+            intensity = image[y, x]
+
+            # Convert pixel position to array
+            pixel_pos = np.array([x, y])
+
+            # Check which segment this pixel belongs to by using cross products
+            for i in range(num_segments):
+                # Get current bisector and the next bisector (defining the segment boundaries)
+                (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
+                (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = \
+                    bisectors[i + 1]
+
+                # Define the vectors from the pixel to the start of the bisectors
+                vector_to_bisector = pixel_pos - np.array([x_bisector_start, y_bisector_start])
+                vector_to_next_bisector = pixel_pos - np.array([x_next_bisector_start, y_next_bisector_start])
+
+                # Define the direction vectors of the bisectors
+                bisector_vector = np.array([x_bisector_end - x_bisector_start, y_bisector_end - y_bisector_start])
+                next_bisector_vector = np.array(
+                    [x_next_bisector_end - x_next_bisector_start, y_next_bisector_end - y_next_bisector_start])
+
+                # Calculate the cross products to check which side of the bisector the pixel is on
+                cross_current = cross_product_2d(bisector_vector, vector_to_bisector)
+                cross_next = cross_product_2d(next_bisector_vector, vector_to_next_bisector)
+
+                # Check if the pixel lies between the two bisectors
+                if cross_current <= 0 <= cross_next:
+                    # Add the pixel intensity to the corresponding segment
+                    segment_intensities[i] += intensity
+                    break  # Once classified, move to the next pixel
+
+        # Calculate actual distances along the principal axis
+        segment_distances = []
+        total_distance = 0
+
+        for i in range(num_segments):
+            # Get the current segment's start and next bisector
+            (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
+            (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = bisectors[
+                i + 1]
+
+            # Calculate the distance between current bisector and next bisector
+            distance = np.sqrt(
+                (x_next_bisector_start - x_bisector_start) ** 2 + (y_next_bisector_start - y_bisector_start) ** 2)
+            total_distance += distance
+            segment_distances.append(total_distance)
+
+        return segment_distances, segment_intensities
+
     def plot_image(self):
 
-        image = self.image().copy()
+        image = self.image
 
         fig, ax = plt.subplots()
 
@@ -220,7 +322,7 @@ class Event:
         """
         """
 
-        image = self.image().copy()
+        image = self.image
 
         if self.principal_axis is None:
             self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
@@ -229,7 +331,7 @@ class Event:
 
         # Calculate the length of the principal axis extended over the whole image
         line_length = np.sqrt(
-            width**2 + height**2
+            width ** 2 + height ** 2
         )  # Diagonal length to ensure it covers the whole image
 
         # Extend the principal axis over the full image dimensions
@@ -259,7 +361,7 @@ class Event:
         """
         """
 
-        image = self.image().copy()
+        image = self.image
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
@@ -269,7 +371,7 @@ class Event:
 
         # Calculate the length of the principal axis extended over the whole image
         height, width = image.shape
-        line_length = np.sqrt(width**2 + height**2)
+        line_length = np.sqrt(width ** 2 + height ** 2)
 
         # Extend the principal axis over the full image dimensions
         x_start = mean_x - principal_axis[0] * line_length / 2
@@ -304,194 +406,18 @@ class Event:
         plt.legend()
         plt.show()
 
-    def plot_intensity_profile(self, num_segments):
-        """ """
-
-        image = self.image().copy()
-
-        if self.bisectors is None:
-            self.bisectors = self.get_bisectors(num_segments)
-
-        bisectors = self.bisectors
-        # Initialize an array to store the total intensity for each segment
-        segment_intensities = np.zeros(num_segments)
-
-        # Function to calculate the cross product of two vectors
-        def cross_product_2d(v1, v2):
-            return v1[0] * v2[1] - v1[1] * v2[0]
-
-        # Loop through each pixel in the image
-        height, width = image.shape
-        for x in tqdm(range(width), desc="PLOTTING BISECTORS"):
-            for y in range(height):
-                # Get the intensity value of the current pixel
-                intensity = image[y, x]
-
-                # Convert pixel position to array
-                pixel_pos = np.array([x, y])
-
-                # Check which segment this pixel belongs to by using cross products
-                for i in range(num_segments):
-                    # Get current bisector and the next bisector (defining the segment boundaries)
-                    (x_bisector_start, y_bisector_start), (
-                        x_bisector_end,
-                        y_bisector_end,
-                    ) = bisectors[i]
-                    (x_next_bisector_start, y_next_bisector_start), (
-                        x_next_bisector_end,
-                        y_next_bisector_end,
-                    ) = bisectors[i + 1]
-
-                    # Define the vectors from the pixel to the start of the bisectors
-                    vector_to_bisector = pixel_pos - np.array(
-                        [x_bisector_start, y_bisector_start]
-                    )
-                    vector_to_next_bisector = pixel_pos - np.array(
-                        [x_next_bisector_start, y_next_bisector_start]
-                    )
-
-                    # Define the direction vectors of the bisectors
-                    bisector_vector = np.array(
-                        [
-                            x_bisector_end - x_bisector_start,
-                            y_bisector_end - y_bisector_start,
-                        ]
-                    )
-                    next_bisector_vector = np.array(
-                        [
-                            x_next_bisector_end - x_next_bisector_start,
-                            y_next_bisector_end - y_next_bisector_start,
-                        ]
-                    )
-
-                    # Calculate the cross products to check which side of the bisector the pixel is on
-                    cross_current = cross_product_2d(
-                        bisector_vector, vector_to_bisector
-                    )
-                    cross_next = cross_product_2d(
-                        next_bisector_vector, vector_to_next_bisector
-                    )
-
-                    # Check if the pixel lies between the two bisectors
-                    if cross_current <= 0 <= cross_next:
-                        # Add the pixel intensity to the corresponding segment
-                        segment_intensities[i] += intensity
-                        break  # Once classified, move to the next pixel
-
-        # Calculate actual distances along the principal axis
-        segment_distances = []
-        total_distance = 0
-
-        for i in range(num_segments):
-            # Get the current segment's start and next bisector
-            (x_bisector_start, y_bisector_start), (
-                x_bisector_end,
-                y_bisector_end,
-            ) = bisectors[i]
-            (x_next_bisector_start, y_next_bisector_start), (
-                x_next_bisector_end,
-                y_next_bisector_end,
-            ) = bisectors[i + 1]
-
-            # Calculate the distance between current bisector and next bisector
-            distance = np.sqrt(
-                (x_next_bisector_start - x_bisector_start) ** 2
-                + (y_next_bisector_start - y_bisector_start) ** 2
-            )
-            total_distance += distance
-            segment_distances.append(total_distance)
-
-        fig, ax = plt.subplots()
-        ax.bar(
-            segment_distances,
-            segment_intensities,
-            width=segment_distances[1] - segment_distances[0],
-        )
-        plt.xlabel("Distance Along Principal Axis (pixels)")
-        plt.ylabel("Total Intensity")
-        plt.title(self.plot_name + " Intensity Profile Along Principal Axis")
-        plt.show()
-
-
-    def plot_intensity_profile_2(self, num_segments):
+    def plot_intensity_profile(self, num_segments, segment_distances=None, segment_intensities=None):
         """
         """
 
-        # Get the bisectors that define each segment
-        if self.bisectors is None:
-            self.bisectors = self.get_bisectors(num_segments)
-        bisectors = self.bisectors
-
-
-
-        # Initialize an array to store the total intensity for each segment
-        segment_intensities = np.zeros(num_segments)
-
-        # Identify non-zero pixels
-        non_zero_y, non_zero_x = np.nonzero(image)  # Get y and x indices of non-zero pixels
-        non_zero_pixels = zip(non_zero_x, non_zero_y)  # Create a list of (x, y) tuples for non-zero pixels
-
-        # Function to calculate the cross product of two vectors
-        def cross_product_2d(v1, v2):
-            return v1[0] * v2[1] - v1[1] * v2[0]
-
-        # Loop through each non-zero pixel
-        for x, y in non_zero_pixels:
-            # Get the intensity value of the current pixel
-            intensity = image[y, x]
-
-            # Convert pixel position to array
-            pixel_pos = np.array([x, y])
-
-            # Check which segment this pixel belongs to by using cross products
-            for i in range(num_segments):
-                # Get current bisector and the next bisector (defining the segment boundaries)
-                (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
-                (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = \
-                bisectors[i + 1]
-
-                # Define the vectors from the pixel to the start of the bisectors
-                vector_to_bisector = pixel_pos - np.array([x_bisector_start, y_bisector_start])
-                vector_to_next_bisector = pixel_pos - np.array([x_next_bisector_start, y_next_bisector_start])
-
-                # Define the direction vectors of the bisectors
-                bisector_vector = np.array([x_bisector_end - x_bisector_start, y_bisector_end - y_bisector_start])
-                next_bisector_vector = np.array(
-                    [x_next_bisector_end - x_next_bisector_start, y_next_bisector_end - y_next_bisector_start])
-
-                # Calculate the cross products to check which side of the bisector the pixel is on
-                cross_current = cross_product_2d(bisector_vector, vector_to_bisector)
-                cross_next = cross_product_2d(next_bisector_vector, vector_to_next_bisector)
-
-                # Check if the pixel lies between the two bisectors
-                if cross_current <= 0 and cross_next >= 0:
-                    # Add the pixel intensity to the corresponding segment
-                    segment_intensities[i] += intensity
-                    break  # Once classified, move to the next pixel
-
-        # Calculate actual distances along the principal axis
-        segment_distances = []
-        total_distance = 0
-
-        for i in range(num_segments):
-            # Get the current segment's start and next bisector
-            (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = bisectors[i]
-            (x_next_bisector_start, y_next_bisector_start), (x_next_bisector_end, y_next_bisector_end) = bisectors[
-                i + 1]
-
-            # Calculate the distance between current bisector and next bisector
-            distance = np.sqrt(
-                (x_next_bisector_start - x_bisector_start) ** 2 + (y_next_bisector_start - y_bisector_start) ** 2)
-            total_distance += distance
-            segment_distances.append(total_distance)
-
+        if segment_distances is None:
+            segment_distances, segment_intensities = self.get_intensity_profile(num_segments)
         # Plot the intensity profile as a function of the actual distance along the principal axis
         plt.bar(segment_distances, segment_intensities, width=segment_distances[1] - segment_distances[0])
         plt.xlabel('Distance Along Principal Axis (pixels)')
         plt.ylabel('Total Intensity')
-        plt.title('Intensity Profile Along Principal Axis')
+        plt.title(self.plot_name + " with intensity profile")
         plt.show()
-
 
 
 def load_events(folder_path):
