@@ -58,7 +58,7 @@ class Event:
 
         self.species = self.get_species_from_name()
         self.energy = self.get_energy_from_name()
-        self.length = self.get_length_from_name()
+        self.depth = self.get_depth_from_name()
 
         self.plot_name = str(self.energy) + "keV" + " " + self.species
 
@@ -89,7 +89,7 @@ class Event:
         else:
             raise ValueError("Could not extract species.")
 
-    def get_length_from_name(self):
+    def get_depth_from_name(self):
         """
         Extract the length in cm from the filename.
         :return: The length in cm as a float.
