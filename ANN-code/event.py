@@ -135,6 +135,9 @@ class Event:
         # The principal axis is given by the first row of Vt (right singular vectors)
         principal_axis = Vt[0]
 
+        if principal_axis[0] < 0:
+            principal_axis[0] = - principal_axis[0]
+
         mean_x = np.mean(x_flat)
         mean_y = np.mean(y_flat)
 
@@ -182,10 +185,29 @@ class Event:
         raise NotImplementedError("This function is not yet implemented")
 
     def get_max_den(self):
-        raise NotImplementedError("This function is not yet implemented")
 
-    def get_recoil_angle(self):
-        raise NotImplementedError("This function is not yet implemented")
+        max_den = 1 / max(self.image)
+        return max_den
+
+    def get_recoil_angle(self, principal_axis=None):
+        """
+        Calculate the angle between the principal axis and the +x direction.
+        """
+
+        x_direction = np.array([1, 0])
+
+        # Normalize the principal axis vector
+        principal_axis = np.array(principal_axis)
+        principal_axis_norm = principal_axis / np.linalg.norm(principal_axis)
+
+        # Calculate the angle using the dot product formula
+        dot_product = np.dot(principal_axis_norm, x_direction)
+        angle_rad = np.arccos(dot_product)  # Angle in radians
+
+        # Convert the angle to degrees
+        angle_deg = np.degrees(angle_rad)
+
+        return angle_deg
 
     def get_bisectors(self, num_segments):
         """ """
@@ -431,7 +453,7 @@ def load_events(folder_path):
 
     for f in files:
         file_path = os.path.join(folder_path, f)
-        image = np.load(file_path)
+        image = get_smoothed_image(np.load(file_path), smoothing_sigma = 5)
         event = Event(f, image)
         event_objects.append(event)
 
