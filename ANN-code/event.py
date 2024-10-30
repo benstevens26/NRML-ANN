@@ -40,7 +40,6 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.ndimage as nd
 from numpy.linalg import svd
 from tqdm import tqdm
 
@@ -195,10 +194,9 @@ class Event:
         return track_length
 
     def get_track_energy(self):
-        raise NotImplementedError("This function is not yet implemented")
+        return np.sum(self.image)
 
     def get_max_den(self):
-
         max_den = 1 / np.max(self.image)
         return max_den
 
@@ -274,7 +272,6 @@ class Event:
         return bisectors
 
     def get_intensity_profile(self, num_segments):
-
         image = self.image
         self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
@@ -353,9 +350,10 @@ class Event:
 
         for i in range(num_segments):
             # Get the current segment's start and next bisector
-            (x_bisector_start, y_bisector_start), (x_bisector_end, y_bisector_end) = (
-                bisectors[i]
-            )
+            (x_bisector_start, y_bisector_start), (
+                x_bisector_end,
+                y_bisector_end,
+            ) = bisectors[i]
             (x_next_bisector_start, y_next_bisector_start), (
                 x_next_bisector_end,
                 y_next_bisector_end,
@@ -372,7 +370,6 @@ class Event:
         return segment_distances, segment_intensities
 
     def plot_image(self):
-
         image = self.image
 
         fig, ax = plt.subplots()
@@ -488,25 +485,3 @@ class Event:
         plt.ylabel("Total Intensity")
         plt.title(self.plot_name + " with intensity profile")
         plt.show()
-
-
-def load_events(folder_path):
-    """
-    load all events in folder_path into Event objects
-    :param folder_path: path to event folder
-    :return: list of events
-    """
-    event_objects = []
-    files = os.listdir(folder_path)
-
-    for f in files:
-        file_path = os.path.join(folder_path, f)
-        image = get_smoothed_image(np.load(file_path), smoothing_sigma=5)
-        event = Event(f, image)
-        event_objects.append(event)
-
-    return event_objects
-
-
-def get_smoothed_image(image, smoothing_sigma):
-    return nd.gaussian_filter(image, sigma=smoothing_sigma)
