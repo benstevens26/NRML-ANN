@@ -186,7 +186,7 @@ class Event:
 
     def get_max_den(self):
 
-        max_den = 1 / max(self.image)
+        max_den = 1 / np.max(self.image)
         return max_den
 
     def get_recoil_angle(self, principal_axis=None):
