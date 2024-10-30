@@ -1,10 +1,5 @@
-import glob
-import os
-
-import matplotlib.pyplot as plt
 import numpy as np
 from convert_sim_ims import *
-from event import load_events
 
 
 def noise_adder(event_list, m_dark, example_dark_list):
