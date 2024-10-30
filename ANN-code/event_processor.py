@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.ndimage as nd
-
+import os
+from event import Event
 def noise_adder():
     return None
 
@@ -36,30 +37,23 @@ def event_processor(events):
         events[i].image = smooth_operator(noisy_images[i])
 
 
-def load_events(folder_path):
-    """
-    load all events in folder_path into Event objects
-    :param folder_path: path to event folder
-    :return: list of events
-    """
-    event_objects = []
-    files = os.listdir(folder_path)
+def yield_events(base_dirs):
+    """Generator function to load events in chunks from the given directories"""
 
-    for f in files:
-        file_path = os.path.join(folder_path, f)
-        image = np.load(file_path)
-        event = Event(f, image)
-        event_objects.append(event)
+    for base_dir in base_dirs:
+        for root, dirs, files in os.walk(base_dir):
+            # Sort directories and files to ensure consistent order
+            dirs.sort()  # Sort directories alphabetically
+            files = sorted(f for f in files if f.endswith('.npy'))  # Sort and filter files for .npy
 
-    return event_objects
+            for file in files:
+                file_path = os.path.join(root, file)
+                # Load the event data from the .npy file
+                image = np.load(file_path)
+                event = Event(file, image)
 
+                yield event
 
-def yield_events(path):
-    """Generator function to load events in chunks from the given path."""
-    # Implement logic to yield events from the large dataset in a memory-efficient way
-    # For example, reading a large file line by line or loading files one at a time
-    for event_file in event_files:  # Replace with actual file loading logic
-        yield event_file
 
 
 
