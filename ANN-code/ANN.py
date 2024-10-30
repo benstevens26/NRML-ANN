@@ -7,6 +7,7 @@ import sklearn
 from add_noise import noise_adder
 from convert_sim_ims import *
 from event import *
+from feature_extraction import extract_features
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -17,16 +18,16 @@ C_events = load_events(folder_path)
 F_events = load_events("Data/F/260-280keV")
 events = C_events + F_events
 
-features = [[event.get_energy_from_name()] for event in events]
+features = [extract_features(event, 50) for event in events]
 labels = [event.get_species_from_name() for event in events]
 
 features_train, features_test, labels_train, labels_test = train_test_split(
     features, labels, test_size=0.2, random_state=42
 )
 
-classifier = MLPClassifier(random_state=42)
-classifier.fit(features_train, labels_train)
-labels_pred = classifier.predict(features_test)
+DUNNCE = MLPClassifier(random_state=42, hidden_layer_sizes=(10, 10, 10))
+DUNNCE.fit(features_train, labels_train)
+labels_pred = DUNNCE.predict(features_test)
 
 # Calculate accuracy
 accuracy = accuracy_score(labels_test, labels_pred)
