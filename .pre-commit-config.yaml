@@ -16,3 +16,5 @@ repos:
         name: Run isort for import sorting
         language_version: python3  # Use Python 3 interpreter
         stages: [pre-commit]  # Run during pre-commit
+        args: ["--profile=black"]  # Pass the --profile=black argument
+
