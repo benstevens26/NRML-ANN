@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from convert_sim_ims import *
-from feature_extraction import *
+from event import load_events
 
 folder_path = "Data/C/300-320keV"  # Change to whichever data you want to use
 events = load_events(folder_path)
