@@ -182,7 +182,7 @@ class Event:
         return track_length
 
     def get_track_energy(self):
-        raise NotImplementedError("This function is not yet implemented")
+        return np.sum(self.image)
 
     def get_max_den(self):
 
