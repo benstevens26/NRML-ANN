@@ -1,40 +1,22 @@
 """
-feature_extraction.py
-
-This module provides functionality to handle and process image data for input into an Artificial Neural Network (ANN).
-It includes classes and methods to load events, process images, and extract relevant features for further analysis.
-
-
-
-Functions:
-
-Dependencies:
-
 """
-
-import os
-import re
-
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy.ndimage as nd
-from event import Event
-from numpy.linalg import svd
 
-
-def load_events(folder_path):
+def extract_features(event, num_segments):
     """
-    load all events in folder_path into Event objects
-    :param folder_path: path to event folder
-    :return: list of events
+
+    :param event: event object
+    :return: array of features [length, energy, max_den, recoil_angle]
     """
-    event_objects = []
-    files = os.listdir(folder_path)
 
-    for f in files:
-        file_path = os.path.join(folder_path, f)
-        image = np.load(file_path)
-        event = Event(f, image)
-        event_objects.append(event)
+    axis, mean_x, mean_y = event.get_principal_axis()
 
-    return event_objects
+    recoil_angle = event.get_recoil_angle(principal_axis=axis)
+
+    segment_distances, segment_intensities = event.get_intensity_profile(num_segments)
+    length = event.get_track_length(num_segments, segment_distances, segment_intensities)
+    energy = event.energy
+    max_den = event.get_max_den()
+
+    return np.array([length, energy, max_den, recoil_angle])
+
