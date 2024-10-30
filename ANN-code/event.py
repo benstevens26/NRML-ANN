@@ -453,7 +453,7 @@ def load_events(folder_path):
 
     for f in files:
         file_path = os.path.join(folder_path, f)
-        image = get_smoothed_image(np.load(file_path), smoothing_sigma = 5)
+        image = np.load(file_path)
         event = Event(f, image)
         event_objects.append(event)
 
