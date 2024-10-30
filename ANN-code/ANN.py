@@ -4,9 +4,9 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
-from analysis import *
+from add_noise import noise_adder
 from convert_sim_ims import *
-from feature_extraction import *
+from event import *
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
