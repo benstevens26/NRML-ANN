@@ -36,7 +36,7 @@ Additional setup:
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.ndimage as nd
+
 import re
 import os
 import json
@@ -442,23 +442,6 @@ class Event:
         plt.show()
 
 
-def load_events(folder_path):
-    """
-    load all events in folder_path into Event objects
-    :param folder_path: path to event folder
-    :return: list of events
-    """
-    event_objects = []
-    files = os.listdir(folder_path)
-
-    for f in files:
-        file_path = os.path.join(folder_path, f)
-        image = np.load(file_path)
-        event = Event(f, image)
-        event_objects.append(event)
-
-    return event_objects
 
 
-def get_smoothed_image(image, smoothing_sigma):
-    return nd.gaussian_filter(image, sigma=smoothing_sigma)
+
