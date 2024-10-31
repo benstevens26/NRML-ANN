@@ -1,47 +1,13 @@
 """
-This module provides the `Event` class, which represents a nuclear recoil event with attributes
-such as the event's name, image, energy, species, and track length.
-
-Classes:
-    - Event: Represents a nuclear recoil event with attributes such as name, image, energy, species,
-      and length. Provides methods to process the event image, extract features such as species and energy,
-      and compute the principal axis using image analysis.
-
-Methods in Event:
-    - __init__(self, name, image, smoothing=5): Initializes an Event object with the event name
-      and raw image data. It also applies Gaussian smoothing to the image and extracts the
-      energy, species, and track length from the event name.
-
-    - get_energy_from_name(self): Extracts the energy in keV from the event's filename.
-
-    - get_species_from_name(self): Extracts the species (C for carbon, F for fluorine)
-      from the event's filename.
-
-    - get_length_from_name(self): Extracts the track length in cm from the event's filename.
-
-    - get_attributes(self): Returns the key attributes of the event, including name, species, energy,
-      length, and processed image.
-
-    - get_smoothed_image(self, smoothing_sigma): Applies Gaussian smoothing to the raw image data
-      to reduce noise.
-
-    - extract_principal_axis(self, plot=False): Calculates the principal axis of the event
-      using Singular Value Decomposition (SVD) on the image data. Optionally plots the image
-      with the principal axis overlaid.
-
-Additional setup:
-    - The module loads custom Matplotlib plotting parameters from a JSON file, which is used
-      to globally update Matplotlib's settings.
+This module contains the `Event` class, which endows a nuclear recoil image with attributes.
 """
 
 import json
-import os
 import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.linalg import svd
-from tqdm import tqdm
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
