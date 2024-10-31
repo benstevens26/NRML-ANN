@@ -1,9 +1,6 @@
-import numpy as np
 import scipy.ndimage as nd
-import os
 import csv
 from convert_sim_ims import *
-from tqdm import tqdm
 from event import Event
 
 
@@ -11,6 +8,7 @@ def smooth_operator(event, smoothing_sigma=5):
     event.image = nd.gaussian_filter(event.image, sigma=smoothing_sigma)
 
     return event
+
 
 def noise_adder(event, m_dark, example_dark_list):
     """Adds noise to an array of raw images
@@ -25,13 +23,13 @@ def noise_adder(event, m_dark, example_dark_list):
     """
 
     event.image = convert_im(
-            event.image,
-            get_dark_sample(
-                m_dark,
-                [len(event.image[0]), len(event.image)],
-                example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
-            ),
-        )
+        event.image,
+        get_dark_sample(
+            m_dark,
+            [len(event.image[0]), len(event.image)],
+            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+        ),
+    )
     return event
 
 
