@@ -17,31 +17,32 @@ plt.rcParams.update(custom_params)
 
 class Event:
     """
-   A class to hold information and process data for an individual event.
+    A class to hold information and process data for an individual event.
 
-   Attributes:
-   ----------
-   name : str
-       The filename of the event
-   image : np.ndarray
-       2D array representing the image data of the event.
-   species : str
-       The extracted species (C or F) from the filename.
-   energy : float
-       The extracted energy in keV from the filename.
-   depth : float
-       The extracted drift length in cm from the filename.
-   plot_name : str
-       Event information for plot tiles.
-   principal_axis : np.ndarray or None
-       The principal axis direction vector.
-   bisectors : list or None
-       A list of bisectors calculated along the principal axis.
-   mean_x : float or None
-       The mean x-coordinate of non-zero pixels in the image.
-   mean_y : float or None
-       The mean y-coordinate of non-zero pixels in the image.
+    Attributes:
+    ----------
+    name : str
+        The filename of the event
+    image : np.ndarray
+        2D array representing the image data of the event.
+    species : str
+        The extracted species (C or F) from the filename.
+    energy : float
+        The extracted energy in keV from the filename.
+    depth : float
+        The extracted drift length in cm from the filename.
+    plot_name : str
+        Event information for plot tiles.
+    principal_axis : np.ndarray or None
+        The principal axis direction vector.
+    bisectors : list or None
+        A list of bisectors calculated along the principal axis.
+    mean_x : float or None
+        The mean x-coordinate of non-zero pixels in the image.
+    mean_y : float or None
+        The mean y-coordinate of non-zero pixels in the image.
     """
+
     def __init__(self, name, image):
         """
         Initialize an Event instance.
