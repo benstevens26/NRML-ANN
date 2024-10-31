@@ -1,8 +1,6 @@
 import glob
 import math
-import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import HTML, display
 from scipy.signal import convolve2d
