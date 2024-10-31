@@ -5,21 +5,43 @@ from event import Event
 
 
 def smooth_operator(event, smoothing_sigma=5):
+    """
+    Apply Gaussian smoothing to an event image.
+
+    Parameters
+    ----------
+    event : Event
+        The Event object containing the image to smooth.
+    smoothing_sigma : float, optional
+        The standard deviation for Gaussian kernel, controlling the smoothing level (default is 5).
+
+    Returns
+    -------
+    Event
+        The Event object with the smoothed image.
+    """
     event.image = nd.gaussian_filter(event.image, sigma=smoothing_sigma)
 
     return event
 
 
 def noise_adder(event, m_dark, example_dark_list):
-    """Adds noise to an array of raw images
+    """
+    Add noise to an event image based on a master dark image and random sample from example darks.
 
-    Args:
-        event_list (array): An array containing instances of the Event class to have noise added to them. NOTE that the events should be initialised with the raw images.
-        m_dark (array): 2D array (image) containing the master dark. This is by default loaded from "Data/darks/master_dark_1x1.npy", but would change with binning.
-        example_dark_list (array): An array containing the example darks. This is by default loaded from "Data/darks/quest_std_dark_1.npy" but should really use a random one from that folder each time.
+    Parameters
+    ----------
+    event : Event
+        The Event object with an image to which noise will be added.
+    m_dark : np.ndarray
+        2D array (image) containing the master dark.
+    example_dark_list : list of np.ndarray
+        List of example dark images from which a random sample is selected for noise addition.
 
-    Returns:
-        array: An array of images that have had a random sample of noise added to them.
+    Returns
+    -------
+    Event
+        The Event object with noise added to the image.
     """
 
     event.image = convert_im(
@@ -33,11 +55,21 @@ def noise_adder(event, m_dark, example_dark_list):
     return event
 
 
-def extract_features(event, num_segments=10):
+def extract_features(event, num_segments=15):
     """
+    Extract key features from an event for classification.
 
-    :param event: event object
-    :return: array of features [length, energy, max_den, recoil_angle]
+    Parameters
+    ----------
+    event : Event
+        The Event object to extract features from.
+    num_segments : int, optional
+        The number of segments for intensity profiling along the principal axis (default is 15).
+
+    Returns
+    -------
+    np.ndarray
+        Array of features including [name, length, energy, max_den, recoil_angle].
     """
 
     axis, mean_x, mean_y = event.get_principal_axis()
@@ -48,7 +80,7 @@ def extract_features(event, num_segments=10):
     length = event.get_track_length(
         num_segments, segment_distances, segment_intensities
     )
-    energy = event.get_track_energy()
+    energy = event.get_track_intensity()
     max_den = event.get_max_den()
     name = event.name
 
@@ -56,6 +88,23 @@ def extract_features(event, num_segments=10):
 
 
 def event_processor(events, chunk_size, output_csv):
+    """
+    Process events in chunks and write extracted features to a CSV file.
+
+    Parameters
+    ----------
+    events : generator
+        A generator yielding Event objects to be processed.
+    chunk_size : int
+        Number of events to process and write at once.
+    output_csv : str
+        Path to the output CSV file where features will be saved.
+
+    Writes
+    ------
+    CSV file
+        Updates the output CSV file with feature data for each processed chunk.
+    """
     with open(output_csv, mode="w", newline="") as csv_file:
         writer = csv.writer(csv_file)
 
@@ -81,7 +130,19 @@ def event_processor(events, chunk_size, output_csv):
 
 
 def yield_events(base_dirs):
-    """Generator function to load events in chunks from the given directories"""
+    """
+    Generator function to load and yield Event objects from .npy files within specified directories.
+
+    Parameters
+    ----------
+    base_dirs : list of str
+        List of base directory paths containing .npy event files.
+
+    Yields
+    ------
+    Event
+        An Event object for each .npy file found in the specified directories.
+    """
 
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
