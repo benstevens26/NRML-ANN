@@ -258,7 +258,7 @@ class Event:
         """
 
         if self.principal_axis is None:
-            self.principal_axis = self.get_principal_axis()
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
 
         principal_axis = self.principal_axis
 
