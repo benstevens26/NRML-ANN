@@ -1,5 +1,6 @@
 import scipy.ndimage as nd
 import csv
+import os
 from convert_sim_ims import *
 from event import Event
 
@@ -25,7 +26,7 @@ def smooth_operator(event, smoothing_sigma=5):
     return event
 
 
-def noise_adder(event, m_dark, example_dark_list):
+def noise_adder(event, m_dark=None, example_dark_list=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
 
@@ -43,6 +44,10 @@ def noise_adder(event, m_dark, example_dark_list):
     Event
         The Event object with noise added to the image.
     """
+
+    if m_dark or example_dark_list is None:
+        print("WARNING: Noise isn't being added.")
+        return event
 
     event.image = convert_im(
         event.image,
@@ -74,7 +79,7 @@ def extract_features(event, num_segments=15):
 
     axis, mean_x, mean_y = event.get_principal_axis()
 
-    recoil_angle = event.get_recoil_angle(principal_axis=axis)
+    recoil_angle = event.get_recoil_angle()
 
     segment_distances, segment_intensities = event.get_intensity_profile(num_segments)
     length = event.get_track_length(
