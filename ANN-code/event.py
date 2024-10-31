@@ -16,9 +16,43 @@ plt.rcParams.update(custom_params)
 
 
 class Event:
-    """ """
+    """
+   A class to hold information and process data for an individual event.
 
+   Attributes:
+   ----------
+   name : str
+       The filename of the event
+   image : np.ndarray
+       2D array representing the image data of the event.
+   species : str
+       The extracted species (C or F) from the filename.
+   energy : float
+       The extracted energy in keV from the filename.
+   depth : float
+       The extracted drift length in cm from the filename.
+   plot_name : str
+       Event information for plot tiles.
+   principal_axis : np.ndarray or None
+       The principal axis direction vector.
+   bisectors : list or None
+       A list of bisectors calculated along the principal axis.
+   mean_x : float or None
+       The mean x-coordinate of non-zero pixels in the image.
+   mean_y : float or None
+       The mean y-coordinate of non-zero pixels in the image.
+    """
     def __init__(self, name, image):
+        """
+        Initialize an Event instance.
+
+        Parameters:
+        ----------
+        name : str
+            The filename of the event
+        image : np.ndarray
+            2D array representing the image data of the event. Could be raw or processed.
+        """
         self.name = name
         self.image = image
 
@@ -36,7 +70,11 @@ class Event:
     def get_energy_from_name(self):
         """
         Extract the energy in keV from the filename.
-        :return: The energy in keV as a float.
+
+        Returns:
+        -------
+        float
+            The energy in keV.
         """
         match = re.search(r"(\d+\.?\d*)keV", self.name)
         if match:
@@ -47,7 +85,11 @@ class Event:
     def get_species_from_name(self):
         """
         Extract the species (C for carbon or F for fluorine) from the filename.
-        :return: The species as a string.
+
+        Returns:
+        -------
+        str
+            The species (either 'C' or 'F').
         """
         match = re.search(r"_([C|F])_", self.name)
         if match:
@@ -57,8 +99,12 @@ class Event:
 
     def get_depth_from_name(self):
         """
-        Extract the length in cm from the filename.
-        :return: The length in cm as a float.
+        Extract the depth (drift length) in cm from the filename.
+
+        Returns:
+        -------
+        float
+            The depth in cm.
         """
         match = re.search(r"(\d+\.?\d*)cm", self.name)
         if match:
@@ -67,13 +113,24 @@ class Event:
             raise ValueError("Could not extract length.")
 
     def get_attributes(self):
-        return self.name, self.energy, self.species, self.length
+        """
+        Return primary attributes of the event.
+
+        Returns:
+        -------
+        tuple
+            name, energy, species, and depth
+        """
+        return self.name, self.energy, self.species, self.depth
 
     def get_principal_axis(self):
         """
-        Extract principal axis from image
+        Calculate the principal axis of the image via SVD
 
-        :return: list [principle axis, mean_x, mean_y]
+        Returns:
+        -------
+        tuple
+            Principal axis vector (np.ndarray), mean x-coordinate, and mean y-coordinate.
         """
 
         image = self.image
@@ -110,17 +167,24 @@ class Event:
         return principal_axis, mean_x, mean_y
 
     def get_track_length(
-        self, num_segments, segment_distances=None, segment_intensities=None
+        self, num_segments=15, segment_distances=None, segment_intensities=None
     ):
         """
-        Calculate the track length based on segment distances and segment intensities.
+        Calculate the track length from segmented distances and intensities.
 
         Parameters:
-        - segment_distances: List of cumulative distances along the principal axis.
-        - segment_intensities: List of total intensities for each segment.
+        ----------
+        num_segments : int, optional
+            Number of segments along the principal axis. Defaults to 15.
+        segment_distances : list, optional
+            Cumulative distances along the principal axis. Defaults to None.
+        segment_intensities : list, optional
+            Total intensities for each segment. Defaults to None.
 
         Returns:
-        - track_length: The calculated length of the track.
+        -------
+        float
+            The calculated track length.
         """
 
         if segment_distances is None:
@@ -159,17 +223,43 @@ class Event:
 
         return track_length
 
-    def get_track_energy(self):
+    def get_track_intensity(self):
+        """
+        Calculates a proxy for track energy by summing pixel intensities.
+
+        Returns:
+        -------
+        float
+            The total track intensity
+        """
         return np.sum(self.image)
 
     def get_max_den(self):
+        """
+        Calculate the maximum density as 1 over the max pixel value.
+
+        Returns:
+        -------
+        float
+            The maximum density.
+        """
         max_den = 1 / np.max(self.image)
         return max_den
 
-    def get_recoil_angle(self, principal_axis=None):
+    def get_recoil_angle(self):
         """
         Calculate the angle between the principal axis and the +x direction.
+
+        Returns:
+        -------
+        float
+            The angle in degrees.
         """
+
+        if self.principal_axis is None:
+            self.principal_axis = self.get_principal_axis()
+
+        principal_axis = self.principal_axis
 
         x_direction = np.array([1, 0])
 
@@ -186,8 +276,20 @@ class Event:
 
         return angle_deg
 
-    def get_bisectors(self, num_segments):
-        """ """
+    def get_bisectors(self, num_segments=15):
+        """
+        Calculate bisectors along the principal axis
+
+        Parameters:
+        ----------
+        num_segments : int, optional
+            Number of segments to divide the principal axis into. Defaults to 15.
+
+        Returns:
+        -------
+        list of tuple
+            List of bisector start and end points as tuples.
+        """
 
         image = self.image
 
@@ -237,9 +339,25 @@ class Event:
 
         return bisectors
 
-    def get_intensity_profile(self, num_segments):
+    def get_intensity_profile(self, num_segments=15):
+        """
+        Calculate the (segmented) intensity profile along the principal axis
+
+        Parameters:
+        ----------
+        num_segments : int, optional
+            Number of segments along the principal axis. Defaults to 15.
+
+        Returns:
+        -------
+        tuple
+            Lists of segment distances and intensities.
+        """
+
         image = self.image
-        self.bisectors = self.get_bisectors(num_segments)
+        if self.bisectors is None:
+            self.bisectors = self.get_bisectors(num_segments)
+
         bisectors = self.bisectors
 
         segment_intensities = np.zeros(num_segments)
@@ -336,6 +454,9 @@ class Event:
         return segment_distances, segment_intensities
 
     def plot_image(self):
+        """
+        Display the event image.
+        """
         image = self.image
 
         fig, ax = plt.subplots()
@@ -347,8 +468,9 @@ class Event:
         plt.show()
 
     def plot_image_with_principal_axis(self):
-        """ """
-
+        """
+        Plot the event image overlaid with the principal axis.
+        """
         image = self.image
 
         if self.principal_axis is None:
@@ -384,16 +506,26 @@ class Event:
         plt.legend()
         plt.show()
 
-    def plot_image_with_bisectors(self, num_segments):
-        """ """
+    def plot_image_with_bisectors(self, num_segments=15):
+        """
+        Plot the event image with the principal axis and bisectors.
+
+        Parameters:
+        ----------
+        num_segments : int, optional
+            Number of segments to divide the principal axis. Defaults to 15.
+        """
 
         image = self.image
+
+        if self.principal_axis is None:
+            self.principal_axis, self.mean_x, self.mean_y = self.get_principal_axis()
+
+        principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
         if self.bisectors is None:
             self.bisectors = self.get_bisectors(num_segments)
         bisectors = self.bisectors
-
-        principal_axis, mean_x, mean_y = self.principal_axis, self.mean_x, self.mean_y
 
         # Calculate the length of the principal axis extended over the whole image
         height, width = image.shape
@@ -433,9 +565,20 @@ class Event:
         plt.show()
 
     def plot_intensity_profile(
-        self, num_segments, segment_distances=None, segment_intensities=None
+        self, num_segments=15, segment_distances=None, segment_intensities=None
     ):
-        """ """
+        """
+        Plot the intensity profile as a function of distance along the principal axis.
+
+        Parameters:
+        ----------
+        num_segments : int, optional
+            Number of segments along the principal axis. Defaults to 15.
+        segment_distances : list, optional
+            Distances along the principal axis. Defaults to None.
+        segment_intensities : list, optional
+            Total intensities for each segment. Defaults to None.
+        """
 
         if segment_distances is None:
             segment_distances, segment_intensities = self.get_intensity_profile(
