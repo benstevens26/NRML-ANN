@@ -1,22 +1,10 @@
-import glob
-import os
-
-import matplotlib.pyplot as plt
-import numpy as np
-import sklearn
-from add_noise import noise_adder
-from convert_sim_ims import *
-from event import *
-from feature_extraction import extract_features
+from event_processor import extract_features
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
-# folder_path = "../../../../MIGDAL/sim_ims/"  # on the ssh
-folder_path = "Data/C/300-320keV"  # on local
-C_events = load_events(folder_path)
-F_events = load_events("Data/F/260-280keV")
-events = C_events + F_events
+# import events
+events = []
 
 features = [extract_features(event, 50) for event in events]
 labels = [event.get_species_from_name() for event in events]
