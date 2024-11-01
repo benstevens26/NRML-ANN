@@ -88,11 +88,12 @@ def extract_features(event, num_segments=15):
     energy = event.get_track_intensity()
     max_den = event.get_max_den()
     name = event.name
+    noise_index = event.noise_index
 
-    return np.array([name, length, energy, max_den, recoil_angle])
+    return np.array([name, noise_index, length, energy, max_den, recoil_angle])
 
 
-def event_processor(events, chunk_size, output_csv,m_dark,example_dark_list):
+def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
     """
     Process events in chunks and write extracted features to a CSV file.
 
@@ -115,13 +116,13 @@ def event_processor(events, chunk_size, output_csv,m_dark,example_dark_list):
 
         # Optionally write a header row if your feature extraction has fixed feature names
         writer.writerow(
-            ["Name", "Length", "Energy", "Max_Den", "Recoil Angle"]
+            ["Name", "Noise Index", "Length", "Energy", "Max_Den", "Recoil Angle"]
         )  # Example headers
 
         chunk = []
 
         for event in events:
-            event = noise_adder(event,m_dark,example_dark_list)
+            event = noise_adder(event, m_dark, example_dark_list)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)
