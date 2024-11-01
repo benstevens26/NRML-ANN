@@ -45,7 +45,7 @@ def noise_adder(event, m_dark=None, example_dark_list=None):
         The Event object with noise added to the image.
     """
 
-    if m_dark or example_dark_list is None:
+    if m_dark is None or example_dark_list is None:
         print("WARNING: Noise isn't being added.")
         return event
 
@@ -92,7 +92,7 @@ def extract_features(event, num_segments=15):
     return np.array([name, length, energy, max_den, recoil_angle])
 
 
-def event_processor(events, chunk_size, output_csv):
+def event_processor(events, chunk_size, output_csv,m_dark,example_dark_list):
     """
     Process events in chunks and write extracted features to a CSV file.
 
@@ -121,7 +121,7 @@ def event_processor(events, chunk_size, output_csv):
         chunk = []
 
         for event in events:
-            event = noise_adder(event)
+            event = noise_adder(event,m_dark,example_dark_list)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)
