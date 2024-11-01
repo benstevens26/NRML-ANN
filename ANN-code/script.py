@@ -10,5 +10,5 @@ darks = np.load("../../../../MIGDAL/sim_ims/darks/quest_std_dark_0.npy")
 
 
 
-events = yield_events(base_dirs)  
+events = yield_events(base_dirs)
 event_processor(events, chunk_size, output_csv="test_features.csv",m_dark=master, example_dark_list=darks)

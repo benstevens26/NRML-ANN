@@ -3,6 +3,7 @@ import csv
 import os
 from convert_sim_ims import *
 from event import Event
+from tqdm import tqdm
 
 
 def smooth_operator(event, smoothing_sigma=5):
@@ -124,7 +125,7 @@ def event_processor(events, chunk_size, output_csv,m_dark,example_dark_list):
 
         chunk = []
 
-        for event in events:
+        for event in tqdm(events):
             event = noise_adder(event,m_dark,example_dark_list)
             event = smooth_operator(event)
             features = extract_features(event)
