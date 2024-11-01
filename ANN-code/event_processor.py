@@ -26,7 +26,7 @@ def smooth_operator(event, smoothing_sigma=5):
     return event
 
 
-def noise_adder(event, m_dark=None, example_dark_list=None):
+def noise_adder(event, m_dark=None, example_dark_list=None,noise_index=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
 
@@ -49,12 +49,16 @@ def noise_adder(event, m_dark=None, example_dark_list=None):
         print("WARNING: Noise isn't being added.")
         return event
 
+    if noise_index is None:
+        noise_index = np.random.randint(0, len(example_dark_list) - 1)
+    
+    event.noise_index = noise_index
     event.image = convert_im(
         event.image,
         get_dark_sample(
             m_dark,
             [len(event.image[0]), len(event.image)],
-            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+            example_dark_list[noise_index],
         ),
     )
     return event
