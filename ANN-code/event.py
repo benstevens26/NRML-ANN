@@ -56,6 +56,7 @@ class Event:
         """
         self.name = name
         self.image = image
+        self.noise_index = None
 
         self.species = self.get_species_from_name()
         self.energy = self.get_energy_from_name()
@@ -67,6 +68,7 @@ class Event:
         self.bisectors = None
         self.mean_x = None
         self.mean_y = None
+
 
     def get_energy_from_name(self):
         """
