@@ -1,9 +1,11 @@
-import scipy.ndimage as nd
 import csv
 import os
+
+import scipy.ndimage as nd
+from tqdm import tqdm
+
 from convert_sim_ims import *
 from event import Event
-from tqdm import tqdm
 
 
 def smooth_operator(event, smoothing_sigma=5):
@@ -27,7 +29,7 @@ def smooth_operator(event, smoothing_sigma=5):
     return event
 
 
-def noise_adder(event, m_dark=None, example_dark_list=None,noise_index=None):
+def noise_adder(event, m_dark=None, example_dark_list=None, noise_index=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
 
@@ -52,7 +54,7 @@ def noise_adder(event, m_dark=None, example_dark_list=None,noise_index=None):
 
     if noise_index is None:
         noise_index = np.random.randint(0, len(example_dark_list) - 1)
-    
+
     event.noise_index = noise_index
     event.image = convert_im(
         event.image,
@@ -127,7 +129,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
         chunk = []
 
         for event in tqdm(events):
-            event = noise_adder(event,m_dark,example_dark_list)
+            event = noise_adder(event, m_dark, example_dark_list)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)

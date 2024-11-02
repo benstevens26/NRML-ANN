@@ -69,7 +69,6 @@ class Event:
         self.mean_x = None
         self.mean_y = None
 
-
     def get_energy_from_name(self):
         """
         Extract the energy in keV from the filename.
