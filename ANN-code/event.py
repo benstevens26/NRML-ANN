@@ -458,7 +458,6 @@ class Event:
         return segment_distances, segment_intensities
 
     def get_intensity_parameters(self, segment_intensities):
-
         mean = np.mean(segment_intensities)
         skew = scipy.stats.skew(segment_intensities)
         kurt = kurtosis(segment_intensities)
