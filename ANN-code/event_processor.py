@@ -67,7 +67,6 @@ def noise_adder(event, m_dark=None, example_dark_list=None, noise_index=None):
 
 
 def noise_remover(event, threshold=50):
-
     denoised_image = np.copy(event.image)
 
     # Zero out pixels below the threshold
@@ -76,6 +75,7 @@ def noise_remover(event, threshold=50):
     event.image = denoised_image
 
     return event
+
 
 def extract_features(event, num_segments=15):
     """
@@ -106,10 +106,23 @@ def extract_features(event, num_segments=15):
     max_den = event.get_max_den()
     name = event.name
     noise_index = event.noise_index
-    int_mean, int_median, int_skew, int_kurt = event.get_intensity_parameters(segment_intensities)
+    int_mean, int_median, int_skew, int_kurt = event.get_intensity_parameters(
+        segment_intensities
+    )
 
-    return np.array([name, noise_index, length, total_intensity, max_den,
-                     recoil_angle, int_mean, int_median, int_skew, int_kurt])
+    return np.array(
+        [
+            name,
+            noise_index,
+            length,
+            total_intensity,
+            max_den,
+            recoil_angle,
+            int_mean,
+            int_skew,
+            int_kurt,
+        ]
+    )
 
 
 def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
@@ -143,9 +156,8 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
                 "max_den",
                 "recoil_angle",
                 "int_mean",
-                "int_median",
                 "int_skew",
-                "int_kurt"
+                "int_kurt",
             ]
         )  # Example headers
 
@@ -153,7 +165,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
 
         for event in tqdm(events):
             event = noise_adder(event, m_dark, example_dark_list)
-            event = noise_remover(event, m_dark)
+            event = noise_remover(event)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)
