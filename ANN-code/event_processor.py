@@ -28,7 +28,7 @@ def smooth_operator(event, smoothing_sigma=5):
     return event
 
 
-def noise_adder(event, m_dark=None, example_dark_list=None,noise_index=None):
+def noise_adder(event, m_dark=None, example_dark_list=None, noise_index=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
 
@@ -53,7 +53,7 @@ def noise_adder(event, m_dark=None, example_dark_list=None,noise_index=None):
 
     if noise_index is None:
         noise_index = np.random.randint(0, len(example_dark_list) - 1)
-    
+
     event.noise_index = noise_index
     event.image = convert_im(
         event.image,
@@ -122,13 +122,20 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
 
         # Optionally write a header row if your feature extraction has fixed feature names
         writer.writerow(
-            ["name", "noise_index", "length", "total_intensity", "max_den", "recoil_angle"]
+            [
+                "name",
+                "noise_index",
+                "length",
+                "total_intensity",
+                "max_den",
+                "recoil_angle",
+            ]
         )  # Example headers
 
         chunk = []
 
         for event in tqdm(events):
-            event = noise_adder(event,m_dark,example_dark_list)
+            event = noise_adder(event, m_dark, example_dark_list)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)
@@ -174,19 +181,17 @@ def yield_events(base_dirs):
 
 
 def load_event(name):
-
     cluster_path = "../../../../MIGDAL/sim_ims"
 
     match = re.search(r"_([C|F])_", name)
     if match:
-        cluster_path += "/"+match.group(1)
+        cluster_path += "/" + match.group(1)
 
     match = re.search(r"(\d+\.?\d*)keV", name)
     if match:
-        cluster_path += "/"+match.group(1)
+        cluster_path += "/" + match.group(1)
 
-
-    raise("this ain't finished ...")
+    raise ("this ain't finished ...")
 
 
 def load_events(file_path):
@@ -198,7 +203,7 @@ def load_events(file_path):
 
     # Iterate over all .npy files in the directory
     for filename in os.listdir(file_path):
-        if filename.endswith('.npy'):
+        if filename.endswith(".npy"):
             # Construct full file path
             full_path = os.path.join(file_path, filename)
 
@@ -212,11 +217,3 @@ def load_events(file_path):
             events.append(event)
 
     return events
-
-
-
-
-
-
-
-
