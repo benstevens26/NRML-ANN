@@ -121,7 +121,7 @@ def extract_features(event, num_segments=15):
             int_mean,
             int_skew,
             int_kurt,
-            int_std
+            int_std,
         ]
     )
 
