@@ -106,7 +106,7 @@ def extract_features(event, num_segments=15):
     max_den = event.get_max_den()
     name = event.name
     noise_index = event.noise_index
-    int_mean, int_median, int_skew, int_kurt = event.get_intensity_parameters(
+    int_mean, int_median, int_skew, int_kurt, int_std = event.get_intensity_parameters(
         segment_intensities
     )
 
@@ -121,6 +121,7 @@ def extract_features(event, num_segments=15):
             int_mean,
             int_skew,
             int_kurt,
+            int_std
         ]
     )
 
@@ -158,6 +159,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
                 "int_mean",
                 "int_skew",
                 "int_kurt",
+                "int_std",
             ]
         )  # Example headers
 

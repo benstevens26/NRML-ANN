@@ -462,8 +462,9 @@ class Event:
         skew = scipy.stats.skew(segment_intensities)
         kurt = kurtosis(segment_intensities)
         median = np.median(segment_intensities)
+        std = np.std(segment_intensities)
 
-        return mean, median, skew, kurt
+        return mean, median, skew, kurt, std
 
     def plot_image(self):
         """
