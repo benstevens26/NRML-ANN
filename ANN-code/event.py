@@ -7,7 +7,9 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 from numpy.linalg import svd
+from scipy.stats import skew, kurtosis
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -454,6 +456,15 @@ class Event:
             segment_distances.append(total_distance)
 
         return segment_distances, segment_intensities
+
+    def get_intensity_parameters(self, segment_intensities):
+
+        mean = np.mean(segment_intensities)
+        skew = scipy.stats.skew(segment_intensities)
+        kurt = kurtosis(segment_intensities)
+        median = np.median(segment_intensities)
+
+        return mean, median, skew, kurt
 
     def plot_image(self):
         """
