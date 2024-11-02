@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -7,11 +8,11 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 
 
-#%%
+
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("Data/all_features.csv")
+data = pd.read_csv("all_features.csv") # Change to file path
 
 # Extract features and labels
 def extract_species(name):
@@ -63,3 +64,5 @@ history = LENRI.fit(X_train, y_train, epochs=30, batch_size=32, validation_data=
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
 print(f"Test Loss: {test_loss:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
+
+# %%
