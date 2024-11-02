@@ -69,8 +69,9 @@ def noise_adder(event, m_dark=None, example_dark_list=None, noise_index=None):
 def noise_remover(event, threshold=50):
     denoised_image = np.copy(event.image)
 
+    denoised_image = np.nan_to_num(denoised_image, nan=0.0)
     # Zero out pixels below the threshold
-    denoised_image[denoised_image < threshold] = 0
+    denoised_image[denoised_image < threshold] = 0.0
 
     event.image = denoised_image
 
