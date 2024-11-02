@@ -1,6 +1,7 @@
 import scipy.ndimage as nd
 import csv
 import os
+import re
 from convert_sim_ims import *
 from event import Event
 
@@ -89,12 +90,12 @@ def extract_features(event, num_segments=15):
     length = event.get_track_length(
         num_segments, segment_distances, segment_intensities
     )
-    energy = event.get_track_intensity()
+    total_intensity = event.get_track_intensity()
     max_den = event.get_max_den()
     name = event.name
     noise_index = event.noise_index
 
-    return np.array([name, noise_index, length, energy, max_den, recoil_angle])
+    return np.array([name, noise_index, length, total_intensity, max_den, recoil_angle])
 
 
 def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
@@ -120,7 +121,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
 
         # Optionally write a header row if your feature extraction has fixed feature names
         writer.writerow(
-            ["Name", "Noise Index", "Length", "Energy", "Max_Den", "Recoil Angle"]
+            ["name", "noise_index", "length", "total_intensity", "max_den", "recoil_angle"]
         )  # Example headers
 
         chunk = []
@@ -169,3 +170,22 @@ def yield_events(base_dirs):
                 event = Event(file, image)
 
                 yield event
+
+
+def load_event(name):
+
+    cluster_path = "../../../../MIGDAL/sim_ims"
+
+    match = re.search(r"_([C|F])_", name)
+    if match:
+        cluster_path += "/"+match.group(1)
+
+    match = re.search(r"(\d+\.?\d*)keV", name)
+    if match:
+        cluster_path += "/"+match.group(1)
+
+
+    return cluster_path
+
+
+
