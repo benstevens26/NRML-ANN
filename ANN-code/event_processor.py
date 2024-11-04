@@ -94,7 +94,6 @@ def extract_features(event, num_segments=15):
     np.ndarray
         Array of features including [name, length, energy, max_den, recoil_angle].
     """
-
     axis, mean_x, mean_y = event.get_principal_axis()
 
     recoil_angle = event.get_recoil_angle()
@@ -168,7 +167,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
 
         for event in tqdm(events):
             event = noise_adder(event, m_dark, example_dark_list)
-            event = noise_remover(event)
+            # event = noise_remover(event)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)
