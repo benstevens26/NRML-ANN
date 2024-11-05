@@ -69,8 +69,9 @@ def noise_adder(event, m_dark=None, example_dark_list=None, noise_index=None):
 def noise_remover(event, threshold=50):
     denoised_image = np.copy(event.image)
 
+    denoised_image = np.nan_to_num(denoised_image, nan=0.0)
     # Zero out pixels below the threshold
-    denoised_image[denoised_image < threshold] = 0
+    denoised_image[denoised_image < threshold] = 0.0
 
     event.image = denoised_image
 
@@ -93,7 +94,6 @@ def extract_features(event, num_segments=15):
     np.ndarray
         Array of features including [name, length, energy, max_den, recoil_angle].
     """
-
     axis, mean_x, mean_y = event.get_principal_axis()
 
     recoil_angle = event.get_recoil_angle()
@@ -167,7 +167,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
 
         for event in tqdm(events):
             event = noise_adder(event, m_dark, example_dark_list)
-            event = noise_remover(event)
+            # event = noise_remover(event)
             event = smooth_operator(event)
             features = extract_features(event)
             chunk.append(features)

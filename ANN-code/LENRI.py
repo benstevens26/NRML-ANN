@@ -14,7 +14,7 @@ from performance import plot_model_performance
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("all_features.csv")  # Change to file path
+data = pd.read_csv("more_features_noisy.csv")  # Change to file path
 
 
 # Extract features and labels
@@ -23,7 +23,7 @@ def extract_species(name):
     return 0 if "C" in name else 1
 
 
-data["species"] = data["Name"].apply(extract_species)
+data["species"] = data["name"].apply(extract_species)
 X = data.iloc[
     :, 1:5
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
