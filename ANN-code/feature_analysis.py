@@ -8,16 +8,15 @@ with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
 
 plt.rcParams.update(custom_params)
-
-
+model_name = "LENRI"
 def feature_analysis():
-    df = pd.read_csv("Data/all_features.csv")
+    df = pd.read_csv("more_features_noisy.csv")
 
     # choose actual features (so ignore name and dark frame columns)
     features = df.drop(df.columns[:2], axis=1)
 
-    carbon = df[df["Name"].str.contains("C")]
-    fluorine = df[df["Name"].str.contains("F")]
+    carbon = df[df["name"].str.contains("C")]
+    fluorine = df[df["name"].str.contains("F")]
 
     for feature in features:
         plt.figure(figsize=(10, 6))
@@ -43,6 +42,7 @@ def feature_analysis():
         plt.xlabel(feature)
         plt.ylabel("Density")
         plt.legend()
+        plt.savefig("figures/feature-analysis/" + model_name + "/" + feature + ".png")
         plt.show()
 
 
