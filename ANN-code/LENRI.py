@@ -30,9 +30,16 @@ X = data.iloc[
 y = data["species"].values
 
 # Split into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+train_ratio = 0.75
+validation_ratio = 0.15
+test_ratio = 0.10
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_ratio,random_state=42)
+
+X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=test_ratio/(test_ratio + validation_ratio),random_state=42) 
+
+
 
 # Scale features for better convergence
 scaler = StandardScaler()
@@ -67,7 +74,7 @@ LENRI.summary()
 
 # Train the model
 history = LENRI.fit(
-    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_test, y_test)
+    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
 )
 
 # %%
