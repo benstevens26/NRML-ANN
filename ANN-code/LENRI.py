@@ -25,7 +25,7 @@ def extract_species(name):
 
 data["species"] = data["name"].apply(extract_species)
 X = data.iloc[
-    :, 1:5
+    :, 3:12 # CHANGE WHEN MORE FEATURES ADDED
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
 y = data["species"].values
 
@@ -45,17 +45,21 @@ X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=test_r
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
+X_val = scaler.transform(X_val)
+
 
 # Convert labels to categorical (one-hot encoding for binary classification)
 y_train = to_categorical(y_train, num_classes=2)
 y_test = to_categorical(y_test, num_classes=2)
+y_val = to_categorical(y_val,num_classes=2)
+
 
 # %%
 
 # Define the LENRI model architecture
 LENRI = Sequential(
     [
-        Dense(32, input_shape=(4,), activation="relu"),  # Input layer with 4 features
+        Dense(32, input_shape=(9,), activation="relu"),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
         Dropout(0.2),  # Dropout for regularization
         Dense(16, activation="relu"),  # Hidden layer
         Dropout(0.2),  # Dropout for regularization
