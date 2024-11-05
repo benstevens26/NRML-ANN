@@ -17,6 +17,8 @@ def plot_model_performance(
     model_name,
     accuracy=None,
     loss=None,
+    val_accuracy=None,
+    val_loss=None,
     confusion_matrix=None,
     precision=None,
     recall=None,
@@ -30,6 +32,8 @@ def plot_model_performance(
     - model_name: Name of the model (string).
     - accuracy: List of accuracy values over epochs.
     - loss: List of loss values over epochs.
+    - val_accuracy: List of validation set accuracies over epochs.
+    - val_loss: List of validation set loss values over epochs.
     - confusion_matrix: 2D array representing the confusion matrix.
     - precision: Precision score.
     - recall: Recall score.
@@ -44,17 +48,21 @@ def plot_model_performance(
     plot_cols = 2
 
     # 1. Accuracy and loss plot (top row spanning both columns)
-    if accuracy or loss:
+    if accuracy or loss or val_accuracy or val_loss:
         ax1 = fig.add_subplot(plot_rows, 1, 1)  # Single row for accuracy/loss plot
         lines = []
         if accuracy:
             lines += ax1.plot(accuracy, label="Accuracy", color="blue")
+        if val_accuracy:
+            lines+=ax1.plot(val_accuracy, label="Validation Accuracy", color="blue", linestyle="--")
         if loss:
             axloss = ax1.twinx()
             axloss.grid()
             axloss.yaxis.label.set_color("red")
-            lines += axloss.plot(loss, label="Loss", color="red", linestyle="--")
+            lines += axloss.plot(loss, label="Loss", color="red")
             axloss.tick_params(axis="y", colors="red")
+        if val_loss:
+            lines+=axloss.plot(val_loss, label="Validation Loss", color="red", linestyle="--")
         labels = [l.get_label() for l in lines]
         ax1.legend(lines, labels, loc="center right")
         ax1.set_title(f"{model_name} - Accuracy and Loss over Epochs")

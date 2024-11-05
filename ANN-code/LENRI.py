@@ -1,5 +1,6 @@
 # %%
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
@@ -8,7 +9,6 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
-
 from performance import plot_model_performance
 
 # Data Preparation
@@ -71,6 +71,7 @@ LENRI = Sequential(
 # Compile LENRI
 LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
+
 # LENRI
 LENRI.summary()
 
@@ -78,7 +79,7 @@ LENRI.summary()
 
 # Train the model
 history = LENRI.fit(
-    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
+    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val),callbacks=[tensorboard_callback]
 )
 
 # %%
@@ -101,11 +102,23 @@ plot_model_performance(
     "LENRI",
     history.history["accuracy"],
     history.history["loss"],
+    history.history['val_accuracy'],
+    history.history['val_loss'],
     cm,
     precision,
     recall,
     f1,
 )
 
+first_layer_weights = LENRI.layers[0].get_weights()[0]
+names = [i for i in data.columns[3:12]]
 
-# %%
+summed_weights = [np.sum([abs(j[i]) for i in range(first_layer_weights.shape[1])]) for j in first_layer_weights]
+
+plt.plot([0,1,2,3,4,5,6,7,8],summed_weights,'o',markersize=6,color="blue")
+plt.title("Weights of Input Layer (Feature Importance)")
+plt.xlabel("Input Features")
+plt.xticks([0,1,2,3,4,5,6,7,8],names,rotation="vertical")
+plt.ylabel("Relative Importance")
+plt.tight_layout()
+plt.show()
