@@ -16,6 +16,11 @@ from performance import plot_model_performance
 # Load CSV data
 data = pd.read_csv("more_features_noisy.csv")  # Change to file path
 
+# #Trying to match carbon and fluorine data amounts
+# carbon_events = data[data["name"].str.contains("C")]
+# fluorine_events = data[data["name"].str.contains("F")].sample(n=len(carbon_events),random_state=42)
+# balanced_data = pd.concat([carbon_events,fluorine_events]).reset_index(drop=True)
+# data = balanced_data.copy()
 
 # Extract features and labels
 def extract_species(name):
@@ -59,11 +64,11 @@ y_val = to_categorical(y_val,num_classes=2)
 # Define the LENRI model architecture
 LENRI = Sequential(
     [
-        Dense(32, input_shape=(9,), activation="relu"),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-        Dropout(0.2),  # Dropout for regularization
-        Dense(16, activation="relu"),  # Hidden layer
-        Dropout(0.2),  # Dropout for regularization
-        Dense(8, activation="relu"),  # Another hidden layer
+        Dense(32, input_shape=(9,), activation="leaky_relu"),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+        Dropout(0.2),  # Dropout for regularisation
+        Dense(16, activation="leaky_relu"),  # Hidden layer
+        Dropout(0.2),  # Dropout for regularisation
+        Dense(8, activation="leaky_relu"),  # Another hidden layer
         Dense(2, activation="softmax"),  # Output layer for binary classification
     ]
 )
@@ -77,9 +82,9 @@ LENRI.summary()
 
 # %%
 
-# Train the model
+# Train LENRI
 history = LENRI.fit(
-    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val),callbacks=[tensorboard_callback]
+    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
 )
 
 # %%
