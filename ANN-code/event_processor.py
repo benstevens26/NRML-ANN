@@ -1,10 +1,11 @@
 import csv
 import os
-from tqdm import tqdm
 import re
+
 import scipy.ndimage as nd
 from convert_sim_ims import *
 from event import Event
+from tqdm import tqdm
 
 
 def smooth_operator(event, smoothing_sigma=5):
@@ -126,7 +127,13 @@ def extract_features(event, num_segments=15):
     )
 
 
-def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
+def event_processor(
+    events,
+    chunk_size,
+    output_csv,
+    dark_dir="../../../../MIGDAL/sim_ims/darks",
+    binning=1,
+):
     """
     Process events in chunks and write extracted features to a CSV file.
 
@@ -138,12 +145,20 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
         Number of events to process and write at once.
     output_csv : str
         Path to the output CSV file where features will be saved.
+    dark_dir : str
+        Path to the darks folder which should contain both the master darks and the dark lists
+    binning : int
+        An integer N reflecting the NxN binning of the image
 
     Writes
     ------
     CSV file
         Updates the output CSV file with feature data for each processed chunk.
     """
+    dark_list_number = 0
+    m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
+    example_dark_list = np.load(f"{dark_dir}/quest_std_dark_{dark_list_number}.npy")
+
     with open(output_csv, mode="w", newline="") as csv_file:
         writer = csv.writer(csv_file)
 
@@ -164,6 +179,7 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
         )  # Example headers
 
         chunk = []
+        count = 4995
 
         for event in tqdm(events):
             event = noise_adder(event, m_dark, example_dark_list)
@@ -175,6 +191,15 @@ def event_processor(events, chunk_size, output_csv, m_dark, example_dark_list):
             if len(chunk) >= chunk_size:
                 writer.writerows(chunk)
                 chunk = []
+                count += chunk_size
+                if (
+                    count // 5000 > dark_list_number
+                ):  # Change the 5000 here if things go wrong
+                    dark_list_number += 1
+                    example_dark_list = np.load(
+                        f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
+                    )
+                    print("Success!")
 
         if chunk:
             writer.writerows(chunk)
