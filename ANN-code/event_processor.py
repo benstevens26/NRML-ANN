@@ -179,7 +179,7 @@ def event_processor(
         )  # Example headers
 
         chunk = []
-        count = 4995
+        count = 0
 
         for event in tqdm(events):
             event = noise_adder(event, m_dark, example_dark_list)
@@ -260,7 +260,9 @@ def load_event(event_name, cluster_path="../../../../MIGDAL/sim_ims"):
         event = Event(event_name, event_data)
         return event
     else:
-        raise FileNotFoundError(f"Event file '{event_name}' not found in the expected directory '{full_path}'.")
+        raise FileNotFoundError(
+            f"Event file '{event_name}' not found in the expected directory '{full_path}'."
+        )
 
 
 def load_events(file_path):
