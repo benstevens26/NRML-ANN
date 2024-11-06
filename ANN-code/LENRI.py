@@ -14,7 +14,7 @@ from performance import plot_model_performance
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("more_features_noisy.csv")  # Change to file path
+data = pd.read_csv("Data/more_features_noisy.csv")  # Change to file path
 
 
 # Extract features and labels
