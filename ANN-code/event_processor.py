@@ -212,18 +212,30 @@ def yield_events(base_dirs):
                 yield event
 
 
-def load_event(name):
-    cluster_path = "../../../../MIGDAL/sim_ims"
+def load_event(event_name, cluster_path="../../../../MIGDAL/sim_ims"):
 
-    match = re.search(r"_([C|F])_", name)
-    if match:
-        cluster_path += "/" + match.group(1)
+    # Determine if the event is in the "C" or "F" folder
+    element_folder = "C" if "C" in event_name else "F"
 
-    match = re.search(r"(\d+\.?\d*)keV", name)
-    if match:
-        cluster_path += "/" + match.group(1)
+    # Extract the energy value (before "keV") from the event name
+    energy_str = event_name.split("keV")[0]
+    energy_value = float(energy_str)  # Convert energy to float
 
-    raise ("this ain't finished ...")
+    # Determine the energy range folder
+    lower_bound = int(energy_value // 20) * 20
+    upper_bound = lower_bound + 20
+    energy_folder = f"{lower_bound}-{upper_bound}keV"
+
+    # Construct the full path to the event file
+    full_path = os.path.join(cluster_path, element_folder, energy_folder, event_name)
+
+    # Check if the file exists and load it
+    if os.path.exists(full_path):
+        event_data = np.load(full_path)
+        event = Event(event_name, event_data)
+        return event
+    else:
+        raise FileNotFoundError(f"Event file '{event_name}' not found in the expected directory '{full_path}'.")
 
 
 def load_events(file_path):
