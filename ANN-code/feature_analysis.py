@@ -10,7 +10,7 @@ with open("matplotlibrc.json", "r") as file:
 plt.rcParams.update(custom_params)
 model_name = "LENRI"
 def feature_analysis():
-    df = pd.read_csv("more_features_noisy.csv")
+    df = pd.read_csv("Data/more_features_noisy.csv")
 
     # choose actual features (so ignore name and dark frame columns)
     features = df.drop(df.columns[:2], axis=1)
