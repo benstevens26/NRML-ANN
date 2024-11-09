@@ -154,7 +154,7 @@ def weights_plotter(
         plt.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 0.1 * (0.75 if bar.get_height() > 0 else -2.5),
-            round(bar.get_height(), 1),
+            round(bar.get_height(), 2),
             horizontalalignment="center",
         )
     plt.title(title)
