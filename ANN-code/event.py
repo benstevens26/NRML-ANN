@@ -158,7 +158,7 @@ class Event:
 
         # Perform SVD on the data matrix
         U, S, Vt = svd(data_matrix - np.mean(data_matrix, axis=0), full_matrices=False)
-        
+
         # The principal axis is given by the first row of Vt (right singular vectors)
         principal_axis = Vt[0]
 

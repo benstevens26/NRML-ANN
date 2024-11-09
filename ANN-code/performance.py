@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy.stats import zscore
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -54,7 +55,9 @@ def plot_model_performance(
         if accuracy:
             lines += ax1.plot(accuracy, label="Accuracy", color="blue")
         if val_accuracy:
-            lines+=ax1.plot(val_accuracy, label="Validation Accuracy", color="blue", linestyle="--")
+            lines += ax1.plot(
+                val_accuracy, label="Validation Accuracy", color="blue", linestyle="--"
+            )
         if loss:
             axloss = ax1.twinx()
             axloss.grid()
@@ -62,7 +65,9 @@ def plot_model_performance(
             lines += axloss.plot(loss, label="Loss", color="red")
             axloss.tick_params(axis="y", colors="red")
         if val_loss:
-            lines+=axloss.plot(val_loss, label="Validation Loss", color="red", linestyle="--")
+            lines += axloss.plot(
+                val_loss, label="Validation Loss", color="red", linestyle="--"
+            )
         labels = [l.get_label() for l in lines]
         ax1.legend(lines, labels, loc="center right")
         ax1.set_title(f"{model_name} - Accuracy and Loss over Epochs")
@@ -112,3 +117,55 @@ def plot_model_performance(
 
     fig.tight_layout(pad=3.0)
     plt.show()
+
+
+def weights_plotter(
+    weights,
+    names,
+    title="Relative Importance of Weights",
+    x_label="Input Features",
+    y_label="Relative Importance",
+):
+    """A function to plot the relative importance of model weights.
+
+    Args:
+        weights (2D array): 2D array of size (input_ndim, output_ndim)
+        containing the weights of each connection in a given layer. Typically
+        the result of calling MODEL.layers[n].get_weights()[0].
+        names (array): 1D array containing the names of the variables.
+
+    Returns:
+        None: doesn't return anything, just plots the relative importance
+        of the weights.
+    """
+
+    normalised_summed_weights = zscore(
+        [np.sum([abs(j[i]) for i in range(weights.shape[1])]) for j in weights]
+    )
+    colours = ["g" if i > 0 else "r" for i in normalised_summed_weights]
+    bars = plt.bar(
+        np.arange(0, len(normalised_summed_weights)),
+        normalised_summed_weights,
+        color=colours,
+        edgecolor="black",
+        width=0.5,
+    )
+    for bar in bars:
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.1 * (0.75 if bar.get_height() > 0 else -2.5),
+            round(bar.get_height(), 1),
+            horizontalalignment="center",
+        )
+    plt.title(title)
+    plt.xlabel(x_label)
+    plt.xlim(-0.5, len(normalised_summed_weights) + 0.5)
+    plt.ylim(min(normalised_summed_weights) - 0.5, max(normalised_summed_weights) + 0.5)
+    plt.xticks(np.arange(0, len(normalised_summed_weights)), names, rotation="vertical")
+    plt.ylabel(y_label)
+    plt.tight_layout()
+    plt.hlines(
+        [0], -0.5, len(normalised_summed_weights) + 0.5, "black", "solid", lw=2.5
+    )
+    plt.show()
+    return None

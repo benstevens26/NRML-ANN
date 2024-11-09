@@ -9,6 +9,8 @@ with open("matplotlibrc.json", "r") as file:
 
 plt.rcParams.update(custom_params)
 model_name = "LENRI"
+
+
 def feature_analysis():
     df = pd.read_csv("Data/more_features_noisy.csv")
 

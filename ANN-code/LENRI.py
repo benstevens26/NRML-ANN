@@ -9,18 +9,19 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
-from performance import plot_model_performance
+import performance as pf
 
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("Data/more_features_noisy.csv")  # Change to file path
+data = pd.read_csv("more_features_noisy.csv")  # Change to file path
 
 # #Trying to match carbon and fluorine data amounts
 # carbon_events = data[data["name"].str.contains("C")]
 # fluorine_events = data[data["name"].str.contains("F")].sample(n=len(carbon_events),random_state=42)
 # balanced_data = pd.concat([carbon_events,fluorine_events]).reset_index(drop=True)
 # data = balanced_data.copy()
+
 
 # Extract features and labels
 def extract_species(name):
@@ -30,7 +31,7 @@ def extract_species(name):
 
 data["species"] = data["name"].apply(extract_species)
 X = data.iloc[
-    :, 3:12 # CHANGE WHEN MORE FEATURES ADDED
+    :, 3:12  # CHANGE WHEN MORE FEATURES ADDED
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
 y = data["species"].values
 
@@ -40,10 +41,16 @@ validation_ratio = 0.15
 test_ratio = 0.10
 
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_ratio,random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=1 - train_ratio, random_state=42
+)
 
-X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=test_ratio/(test_ratio + validation_ratio),random_state=42) 
-
+X_val, X_test, y_val, y_test = train_test_split(
+    X_test,
+    y_test,
+    test_size=test_ratio / (test_ratio + validation_ratio),
+    random_state=42,
+)
 
 
 # Scale features for better convergence
@@ -56,7 +63,7 @@ X_val = scaler.transform(X_val)
 # Convert labels to categorical (one-hot encoding for binary classification)
 y_train = to_categorical(y_train, num_classes=2)
 y_test = to_categorical(y_test, num_classes=2)
-y_val = to_categorical(y_val,num_classes=2)
+y_val = to_categorical(y_val, num_classes=2)
 
 
 # %%
@@ -64,7 +71,9 @@ y_val = to_categorical(y_val,num_classes=2)
 # Define the LENRI model architecture
 LENRI = Sequential(
     [
-        Dense(32, input_shape=(9,), activation="leaky_relu"),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+        Dense(
+            32, input_shape=(9,), activation="leaky_relu"
+        ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
         Dropout(0.2),  # Dropout for regularisation
         Dense(16, activation="leaky_relu"),  # Hidden layer
         Dropout(0.2),  # Dropout for regularisation
@@ -103,12 +112,12 @@ recall = recall_score(y_true, y_pred, average="weighted")
 f1 = f1_score(y_true, y_pred, average="weighted")
 
 
-plot_model_performance(
+pf.plot_model_performance(
     "LENRI",
     history.history["accuracy"],
     history.history["loss"],
-    history.history['val_accuracy'],
-    history.history['val_loss'],
+    history.history["val_accuracy"],
+    history.history["val_loss"],
     cm,
     precision,
     recall,
@@ -118,12 +127,4 @@ plot_model_performance(
 first_layer_weights = LENRI.layers[0].get_weights()[0]
 names = [i for i in data.columns[3:12]]
 
-summed_weights = [np.sum([abs(j[i]) for i in range(first_layer_weights.shape[1])]) for j in first_layer_weights]
-
-plt.plot([0,1,2,3,4,5,6,7,8],summed_weights,'o',markersize=6,color="blue")
-plt.title("Weights of Input Layer (Feature Importance)")
-plt.xlabel("Input Features")
-plt.xticks([0,1,2,3,4,5,6,7,8],names,rotation="vertical")
-plt.ylabel("Relative Importance")
-plt.tight_layout()
-plt.show()
+pf.weights_plotter(first_layer_weights, names)

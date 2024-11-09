@@ -238,7 +238,6 @@ def yield_events(base_dirs):
 
 
 def load_event(event_name, cluster_path="../../../../MIGDAL/sim_ims"):
-
     # Determine if the event is in the "C" or "F" folder
     element_folder = "C" if "C" in event_name else "F"
 
