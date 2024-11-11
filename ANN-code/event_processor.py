@@ -8,6 +8,23 @@ from event import Event
 from tqdm import tqdm
 
 
+def bin_event(event, N):
+    image = event.image
+    height, width = image.shape
+
+    new_height = (height // N) * N
+    new_width = (width // N) * N
+
+    trimmed_image = image[:new_height, :new_width]
+
+    binned_image = trimmed_image.reshape(new_height // N, N, new_width // N, N).sum(
+        axis=(1, 3)
+    )
+    event.image = binned_image
+
+    return event
+
+
 def smooth_operator(event, smoothing_sigma=5):
     """
     Apply Gaussian smoothing to an event image.
