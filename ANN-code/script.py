@@ -15,7 +15,7 @@ events = yield_events(base_dirs)
 event_processor(
     events,
     chunk_size,
-    output_csv="more_features_noisy.csv",
+    output_csv="2x2_more_features_noisy_subset.csv",
     dark_dir="Data/darks",
-    binning=1,
+    binning=2,
 )

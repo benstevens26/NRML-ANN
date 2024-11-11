@@ -8,8 +8,22 @@ from event import Event
 from tqdm import tqdm
 
 
-def bin_event(event, N):
-    image = event.image
+def bin_event(event, N, parse_image=False):
+    """A function to bin an event's image.
+    IMPORTANT: The noise has to be binned as well which is NOT handled by this function.
+
+    Args:
+        event (object): The instance of the Event class to be binned
+        N (int): The degree of binning. E.g. if you want to bin the image into 2x2 pixels, pass N=2.
+        parse_image (bool): adds hacky functionality to bin an image that's not attached to an event. This is useful for darks. To use it, just parse the image where you would normally put the event.
+
+    Returns:
+        object: the event object with the image updated to the binned version.
+    """
+    if parse_image:
+        image = event
+    else:
+        image = event.image
     height, width = image.shape
 
     new_height = (height // N) * N
@@ -20,9 +34,12 @@ def bin_event(event, N):
     binned_image = trimmed_image.reshape(new_height // N, N, new_width // N, N).sum(
         axis=(1, 3)
     )
-    event.image = binned_image
 
-    return event
+    if parse_image:
+        return binned_image
+    else:
+        event.image = binned_image
+        return event
 
 
 def smooth_operator(event, smoothing_sigma=5):
@@ -174,7 +191,12 @@ def event_processor(
     """
     dark_list_number = 0
     m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
-    example_dark_list = np.load(f"{dark_dir}/quest_std_dark_{dark_list_number}.npy")
+    example_dark_list_unbinned = np.load(
+        f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
+    )
+    example_dark_list = [
+        bin_event(i, binning, parse_image=True) for i in example_dark_list_unbinned
+    ]
 
     with open(output_csv, mode="w", newline="") as csv_file:
         writer = csv.writer(csv_file)
