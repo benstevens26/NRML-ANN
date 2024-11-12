@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
+from sklearn.metrics import roc_curve, auc
+
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -168,4 +170,32 @@ def weights_plotter(
         [0], -0.5, len(normalised_summed_weights) + 0.5, "black", "solid", lw=2.5
     )
     plt.show()
+    return None
+
+
+def roc_plotter(y_true, y_pred_prob):
+    """generates a ROC curve using the given inputs and sklearn's implementation.
+
+
+    Args:
+        y_true (numpy array): an array containing the truth values (i.e. an array of 0s and 1s)
+        y_pred_prob (numpy array): an array containing the probability of each event being in each output  category
+
+    Returns:
+        None: plots the ROC curve.
+    """
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob)
+    roc_auc = auc(fpr, tpr)
+
+    # Plotting the ROC Curve
+    plt.figure()
+    plt.plot(fpr, tpr, color="blue", label=f"ROC Curve (AUC = {roc_auc:.2f})")
+    plt.plot([0, 1], [0, 1], color="grey", linestyle="--")  # Dashed diagonal line
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("ROC Curve for LENRI Model")
+    plt.legend(loc="lower right")
+    plt.grid(visible=True)
+    plt.show()
+
     return None

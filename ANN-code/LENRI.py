@@ -10,6 +10,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 import performance as pf
+from sklearn.metrics import roc_curve, auc
+
 
 # Data Preparation
 
@@ -103,6 +105,7 @@ test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
 print(f"Test Loss: {test_loss:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
 y_pred = np.argmax(LENRI.predict(X_test), axis=1)  # For multi-class classification
+y_pred_prob = LENRI.predict(X_test)[:, 1]  # Probability for class 1
 y_true = np.argmax(y_test, axis=1)  # Assuming y_test is one-hot encoded
 cm = confusion_matrix(y_true, y_pred)
 precision = precision_score(
@@ -128,3 +131,4 @@ first_layer_weights = LENRI.layers[0].get_weights()[0]
 names = [i for i in data.columns[3:12]]
 
 pf.weights_plotter(first_layer_weights, names)
+pf.roc_plotter(y_true, y_pred_prob)
