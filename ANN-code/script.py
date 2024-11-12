@@ -66,10 +66,11 @@ if __name__ == "__main__":
 
     num_segments = 20  # CHANGE to number of segments
     binning = 2
-    output_csv_prefix = "2x2_binned_features"
+    output_csv_prefix = f"{str(binning)}x{str(binning)}_binned_features"
     # DON'T FORGET TO CHANGE THE NUMBER OF EVENTS IF ANALYSING A SUBSET
-    # Call the processing function
     # print("Current working directory:", os.getcwd())
+
+    # Call the processing function
     process_segment(
         segment_id, base_dirs, num_segments, dark_dir, binning, output_csv_prefix
     )
