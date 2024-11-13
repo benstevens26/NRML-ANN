@@ -16,7 +16,7 @@ from sklearn.metrics import roc_curve, auc
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("more_features_noisy.csv")  # Change to file path
+data = pd.read_csv("all_2x2_binned_features.csv")  # Change to file path
 
 # #Trying to match carbon and fluorine data amounts
 # carbon_events = data[data["name"].str.contains("C")]
@@ -33,7 +33,7 @@ def extract_species(name):
 
 data["species"] = data["name"].apply(extract_species)
 X = data.iloc[
-    :, 3:12  # CHANGE WHEN MORE FEATURES ADDED
+    :, 2:10  # CHANGE WHEN MORE FEATURES ADDED
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
 y = data["species"].values
 
@@ -74,7 +74,7 @@ y_val = to_categorical(y_val, num_classes=2)
 LENRI = Sequential(
     [
         Dense(
-            32, input_shape=(9,), activation="leaky_relu"
+            32, input_shape=(8,), activation="leaky_relu"
         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
         Dropout(0.2),  # Dropout for regularisation
         Dense(16, activation="leaky_relu"),  # Hidden layer
@@ -128,7 +128,7 @@ pf.plot_model_performance(
 )
 
 first_layer_weights = LENRI.layers[0].get_weights()[0]
-names = [i for i in data.columns[3:12]]
+names = [i for i in data.columns[2:10]]
 
 pf.weights_plotter(first_layer_weights, names)
 pf.roc_plotter(y_true, y_pred_prob)
