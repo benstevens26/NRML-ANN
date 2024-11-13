@@ -167,6 +167,7 @@ def event_processor(
     output_csv,
     dark_dir="../../../../MIGDAL/sim_ims/darks",
     binning=1,
+    num_bisector_segments=15,
 ):
     """
     Process events in chunks and write extracted features to a CSV file.
@@ -224,7 +225,7 @@ def event_processor(
             event = noise_adder(event, m_dark, example_dark_list)
             # event = noise_remover(event)
             event = smooth_operator(event)
-            features = extract_features(event)
+            features = extract_features(event, num_segments=num_bisector_segments)
             chunk.append(features)
 
             if len(chunk) >= chunk_size:
@@ -238,7 +239,7 @@ def event_processor(
                     example_dark_list = np.load(
                         f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
                     )
-                    print("Success!")
+                    # print("Success!")
 
         if chunk:
             writer.writerows(chunk)

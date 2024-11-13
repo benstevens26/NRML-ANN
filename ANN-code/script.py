@@ -50,6 +50,7 @@ def process_segment(
         output_csv=output_csv,
         dark_dir=dark_dir,
         binning=binning,
+        num_bisector_segments=30,
     )
 
 
@@ -64,7 +65,7 @@ if __name__ == "__main__":
         base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
         dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
 
-    num_segments = 20  # CHANGE to number of segments
+    num_segments = 50  # CHANGE to number of segments
     binning = 2
     output_csv_prefix = f"{str(binning)}x{str(binning)}_binned_features"
     # DON'T FORGET TO CHANGE THE NUMBER OF EVENTS IF ANALYSING A SUBSET
