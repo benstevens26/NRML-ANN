@@ -6,7 +6,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 import performance as pf
@@ -16,7 +16,7 @@ from sklearn.metrics import roc_curve, auc
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("all_2x2_binned_features.csv")  # Change to file path
+data = pd.read_csv("more_features_noisy.csv")  # Change to file path
 
 # #Trying to match carbon and fluorine data amounts
 # carbon_events = data[data["name"].str.contains("C")]
@@ -84,8 +84,23 @@ LENRI = Sequential(
     ]
 )
 
+# # updated hyperparams: (worse)
+# LENRI = Sequential(
+#     [
+#         Dense(
+#             64, input_shape=(8,), activation="leaky_relu"
+#         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+#         Dropout(0.3),  # Dropout for regularisation
+#         Dense(48, activation="leaky_relu"),  # Hidden layer
+#         Dropout(0.4),  # Dropout for regularisation
+#         Dense(8, activation="leaky_relu"),  # Another hidden layer
+#         Dropout(0.4), # Another dropout 
+#         Dense(2, activation="softmax"),  # Output layer for binary classification
+#     ]
+# )
 # Compile LENRI
 LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+# K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
 
 
 # LENRI
@@ -99,7 +114,6 @@ history = LENRI.fit(
 )
 
 # %%
-
 # LENRI Evaluation
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
 print(f"Test Loss: {test_loss:.4f}")
