@@ -1,4 +1,4 @@
-# %%
+#%%
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,11 +6,13 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.models import Sequential
+from tensorflow.keras import Sequential
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 import performance as pf
+import keras-tuner
 
+#%%
 # Data Preparation
 
 # Load CSV data
@@ -128,3 +130,5 @@ first_layer_weights = LENRI.layers[0].get_weights()[0]
 names = [i for i in data.columns[3:12]]
 
 pf.weights_plotter(first_layer_weights, names)
+
+#%% hyperparameter tuning
