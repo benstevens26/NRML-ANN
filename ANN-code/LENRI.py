@@ -11,12 +11,13 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 import performance as pf
 from sklearn.metrics import roc_curve, auc
+import pickle
 
 
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("more_features_noisy.csv")  # Change to file path
+data = pd.read_csv("Data/more_features_noisy.csv")  # Change to file path
 
 # #Trying to match carbon and fluorine data amounts
 # carbon_events = data[data["name"].str.contains("C")]
@@ -113,6 +114,27 @@ history = LENRI.fit(
     X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
 )
 
+# %%
+# Saving LENRI
+model_save_path = "old_models/LENRIv1.keras"
+LENRI.save(model_save_path)
+
+# Saving LENRI's training history
+history_save_path = "old_models/LENRIv1_history.pkl"
+with open(history_save_path, "wb") as file:
+    pickle.dump(history.history, file)
+
+
+# # For loading the files:
+# model_save_path = "saved_models/LENRI_model.keras"
+# history_save_path = "saved_models/LENRI_history.pkl"
+
+# # Load the saved model
+# LENRI_loaded = load_model(model_save_path)
+
+# # Load the training history
+# with open(history_save_path, "rb") as file:
+#     loaded_history = pickle.load(file)
 # %%
 # LENRI Evaluation
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)

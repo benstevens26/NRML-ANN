@@ -8,7 +8,7 @@ with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
 
 plt.rcParams.update(custom_params)
-model_name = "LENRI"
+model_name = "LENRI 2x2 binning 30 segments"
 
 
 def feature_analysis(path):
@@ -44,7 +44,7 @@ def feature_analysis(path):
         plt.xlabel(feature)
         plt.ylabel("Density")
         plt.legend()
-        plt.xlim(0, 2)
+        # plt.xlim(0, 2)
         # plt.savefig("figures/feature-analysis/" + model_name + "/" + feature + ".png")
         plt.show()
 
@@ -93,4 +93,4 @@ def feature_analysis(path):
 # print(result.head())
 
 
-feature_analysis("/vols/lz/twatson/ANN/NR-ANN/ANN-code/2x2_binning_comparison.csv")
+feature_analysis("/vols/lz/twatson/ANN/NR-ANN/ANN-code/Data/30_segs_2x2_binned_features.csv")

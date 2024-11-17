@@ -57,6 +57,7 @@ def process_segment(
 if __name__ == "__main__":
     # Parse command-line arguments
     segment_id = int(sys.argv[1])  # Segment ID passed from HTCondor
+    # segment_id = 5 # hacky fix to run section again
     local = False  # Change to reflect if you're running this locally or on the SSH.
     if local:
         base_dirs = ["Data/C", "Data/F"]
