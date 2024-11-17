@@ -1,4 +1,3 @@
-import numpy as np
 from event_processor import event_processor, yield_events
 
 local = True  # Change to reflect if you're running this locally or on the SSH.
