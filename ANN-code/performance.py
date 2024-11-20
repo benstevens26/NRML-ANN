@@ -8,11 +8,23 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
 from sklearn.metrics import auc, roc_curve
+import os
 
-with open("matplotlibrc.json", "r") as file:
-    custom_params = json.load(file)
+try:
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    index = script_dir.find("ANN-code")
+    if index != -1:  # Ensure the substring exists
+        result = script_dir[:index + len("ANN-code")]
+        config_path = os.path.join(result, "matplotlibrc.json")
+    else:
+        print("Something went wrong loading matplotlibrc.json")
+        pass
+    with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
+        custom_params = json.load(file)
 
-plt.rcParams.update(custom_params)
+    plt.rcParams.update(custom_params)
+except:
+    print("Something went wrong loading matplotlibrc.json")
 
 
 def plot_model_performance(

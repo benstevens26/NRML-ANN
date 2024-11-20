@@ -13,7 +13,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 
-train_LENRI = False  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
+train_LENRI = True  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
 
 # Data Preparation
 
@@ -46,14 +46,14 @@ test_ratio = 0.10
 
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=1 - train_ratio, random_state=42
+    X, y, test_size=1 - train_ratio, random_state=1
 )
 
 X_val, X_test, y_val, y_test = train_test_split(
     X_test,
     y_test,
     test_size=test_ratio / (test_ratio + validation_ratio),
-    random_state=42,
+    random_state=1,
 )
 
 
@@ -71,58 +71,60 @@ y_val = to_categorical(y_val, num_classes=2)
 
 
 # %%
+
+# Define the LENRI model architecture
+LENRI = Sequential(
+    [
+        Dense(
+            32, input_shape=(8,), activation="leaky_relu"
+        ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+        Dropout(0.2),  # Dropout for regularisation
+        Dense(16, activation="leaky_relu"),  # Hidden layer
+        Dropout(0.2),  # Dropout for regularisation
+        Dense(8, activation="leaky_relu"),  # Another hidden layer
+        Dense(2, activation="softmax"),  # Output layer for binary classification
+    ]
+)
+
+# # updated hyperparams: (worse)
+# LENRI = Sequential(
+#     [
+#         Dense(
+#             64, input_shape=(8,), activation="leaky_relu"
+#         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+#         Dropout(0.3),  # Dropout for regularisation
+#         Dense(48, activation="leaky_relu"),  # Hidden layer
+#         Dropout(0.4),  # Dropout for regularisation
+#         Dense(8, activation="leaky_relu"),  # Another hidden layer
+#         Dropout(0.4), # Another dropout
+#         Dense(2, activation="softmax"),  # Output layer for binary classification
+#     ]
+# )
+# Compile LENRI
+LENRI.compile(
+    optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+)
+# K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
+
+# LENRI
+LENRI.summary()
+
+
 if train_LENRI:
-    # Define the LENRI model architecture
-    LENRI = Sequential(
-        [
-            Dense(
-                32, input_shape=(8,), activation="leaky_relu"
-            ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-            Dropout(0.2),  # Dropout for regularisation
-            Dense(16, activation="leaky_relu"),  # Hidden layer
-            Dropout(0.2),  # Dropout for regularisation
-            Dense(8, activation="leaky_relu"),  # Another hidden layer
-            Dense(2, activation="softmax"),  # Output layer for binary classification
-        ]
-    )
-
-    # # updated hyperparams: (worse)
-    # LENRI = Sequential(
-    #     [
-    #         Dense(
-    #             64, input_shape=(8,), activation="leaky_relu"
-    #         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-    #         Dropout(0.3),  # Dropout for regularisation
-    #         Dense(48, activation="leaky_relu"),  # Hidden layer
-    #         Dropout(0.4),  # Dropout for regularisation
-    #         Dense(8, activation="leaky_relu"),  # Another hidden layer
-    #         Dropout(0.4), # Another dropout
-    #         Dense(2, activation="softmax"),  # Output layer for binary classification
-    #     ]
-    # )
-    # Compile LENRI
-    LENRI.compile(
-        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
-    )
-    # K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
-
-    # LENRI
-    LENRI.summary()
-
     # Train LENRI
     history = LENRI.fit(
         X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
     )
 
-    # %%
+
     # Saving LENRI
-    # model_save_path = "old_models/LENRIv1.keras"
-    # LENRI.save(model_save_path)
+    model_save_path = "old_models/LENRIv1.keras"
+    LENRI.save(model_save_path)
 
     # Saving LENRI's training history
-    # history_save_path = "old_models/LENRIv1_history.pkl"
-    # with open(history_save_path, "wb") as file:
-    #     pickle.dump(history.history, file)
+    history_save_path = "old_models/LENRIv1_history.pkl"
+    with open(history_save_path, "wb") as file:
+        pickle.dump(history.history, file)
 
 else:
     # For loading the files:
@@ -130,11 +132,13 @@ else:
     history_save_path = "old_models/LENRIv1_history.pkl"
 
     # Load the saved model
-    LENRI_loaded = load_model(model_save_path)
+    LENRI = load_model(model_save_path)
+    # Recompile LENRI
+    LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
     # Load the training history
     with open(history_save_path, "rb") as file:
-        loaded_history = pickle.load(file)
+        history = pickle.load(file)
 # %%
 # LENRI Evaluation
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
@@ -143,26 +147,37 @@ print(f"Test Accuracy: {test_accuracy:.4f}")
 y_pred = np.argmax(LENRI.predict(X_test), axis=1)  # For multi-class classification
 y_pred_prob = LENRI.predict(X_test)[:, 1]  # Probability for class 1
 y_true = np.argmax(y_test, axis=1)  # Assuming y_test is one-hot encoded
-cm = confusion_matrix(y_true, y_pred)
+cm = confusion_matrix(y_true, y_pred).numpy()
 precision = precision_score(
     y_true, y_pred, average="weighted"
 )  # Use 'macro', 'micro', or 'weighted' as needed
 recall = recall_score(y_true, y_pred, average="weighted")
 f1 = f1_score(y_true, y_pred, average="weighted")
 
-
-pf.plot_model_performance(
-    "LENRI",
-    history.history["accuracy"],
-    history.history["loss"],
-    history.history["val_accuracy"],
-    history.history["val_loss"],
-    cm,
-    precision,
-    recall,
-    f1,
-)
-
+if train_LENRI:
+    pf.plot_model_performance(
+        "LENRI",
+        history.history["accuracy"],
+        history.history["loss"],
+        history.history["val_accuracy"],
+        history.history["val_loss"],
+        cm,
+        precision,
+        recall,
+        f1,
+    )
+else:
+    pf.plot_model_performance(
+        "LENRI",
+        history["accuracy"],
+        history["loss"],
+        history["val_accuracy"],
+        history["val_loss"],
+        cm,
+        precision,
+        recall,
+        f1,
+    )
 first_layer_weights = LENRI.layers[0].get_weights()[0]
 names = [i for i in data.columns[2:10]]
 
