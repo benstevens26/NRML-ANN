@@ -14,7 +14,7 @@ try:
     script_dir = os.path.dirname(os.path.realpath(__file__))
     index = script_dir.find("ANN-code")
     if index != -1:  # Ensure the substring exists
-        result = script_dir[:index + len("ANN-code")]
+        result = script_dir[: index + len("ANN-code")]
         config_path = os.path.join(result, "matplotlibrc.json")
     else:
         print("Something went wrong loading matplotlibrc.json")

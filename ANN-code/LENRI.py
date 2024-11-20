@@ -87,9 +87,7 @@ LENRI = Sequential(
 )
 
 # Compile LENRI
-LENRI.compile(
-    optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
-)
+LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 # K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
 
 # LENRI
@@ -101,7 +99,6 @@ if train_LENRI:
     history = LENRI.fit(
         X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
     )
-
 
     # # Saving LENRI
     # model_save_path = "old_models/LENRIv1.keras"
@@ -120,7 +117,9 @@ else:
     # Load the saved model
     LENRI = load_model(model_save_path)
     # Recompile LENRI
-    LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    LENRI.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
 
     # Load the training history
     with open(history_save_path, "rb") as file:

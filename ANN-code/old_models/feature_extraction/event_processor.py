@@ -260,7 +260,9 @@ def yield_events(base_dirs):
         An Event object for each .npy file found in the specified directories.
     """
     if type(base_dirs) is not list:
-        raise Exception("Please input an array of directories, even if it only contains one element.")
+        raise Exception(
+            "Please input an array of directories, even if it only contains one element."
+        )
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
             # Sort directories and files to ensure consistent order
@@ -276,7 +278,7 @@ def yield_events(base_dirs):
                 event = Event(file, image)
 
                 yield event
-                
+
 
 def load_event(event_name, cluster_path="../../../../MIGDAL/sim_ims"):
     # Determine if the event is in the "C" or "F" folder
