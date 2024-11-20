@@ -13,7 +13,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 
-train_LENRI = True  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
+train_LENRI = False  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
 
 # Data Preparation
 
@@ -46,14 +46,14 @@ test_ratio = 0.10
 
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=1 - train_ratio, random_state=1
+    X, y, test_size=1 - train_ratio, random_state=42
 )
 
 X_val, X_test, y_val, y_test = train_test_split(
     X_test,
     y_test,
     test_size=test_ratio / (test_ratio + validation_ratio),
-    random_state=1,
+    random_state=42,
 )
 
 
@@ -86,20 +86,6 @@ LENRI = Sequential(
     ]
 )
 
-# # updated hyperparams: (worse)
-# LENRI = Sequential(
-#     [
-#         Dense(
-#             64, input_shape=(8,), activation="leaky_relu"
-#         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-#         Dropout(0.3),  # Dropout for regularisation
-#         Dense(48, activation="leaky_relu"),  # Hidden layer
-#         Dropout(0.4),  # Dropout for regularisation
-#         Dense(8, activation="leaky_relu"),  # Another hidden layer
-#         Dropout(0.4), # Another dropout
-#         Dense(2, activation="softmax"),  # Output layer for binary classification
-#     ]
-# )
 # Compile LENRI
 LENRI.compile(
     optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
@@ -117,14 +103,14 @@ if train_LENRI:
     )
 
 
-    # Saving LENRI
-    model_save_path = "old_models/LENRIv1.keras"
-    LENRI.save(model_save_path)
+    # # Saving LENRI
+    # model_save_path = "old_models/LENRIv1.keras"
+    # LENRI.save(model_save_path)
 
-    # Saving LENRI's training history
-    history_save_path = "old_models/LENRIv1_history.pkl"
-    with open(history_save_path, "wb") as file:
-        pickle.dump(history.history, file)
+    # # Saving LENRI's training history
+    # history_save_path = "old_models/LENRIv1_history.pkl"
+    # with open(history_save_path, "wb") as file:
+    #     pickle.dump(history.history, file)
 
 else:
     # For loading the files:
