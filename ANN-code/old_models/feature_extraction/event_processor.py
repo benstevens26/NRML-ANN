@@ -5,6 +5,7 @@ import scipy.ndimage as nd
 from convert_sim_ims import *
 from event import Event
 from tqdm import tqdm
+import numpy as np
 
 
 def bin_event(event, N):
