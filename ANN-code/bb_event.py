@@ -5,6 +5,8 @@ This module contains the `Event` class, which endows a nuclear recoil image with
 import json
 import re
 import matplotlib.pyplot as plt
+import os
+import numpy as np
 
 
 with open("matplotlibrc.json", "r") as file:
@@ -85,5 +87,26 @@ class Event:
         plt.show()
 
 
+def load_events_bb(file_path):
+    """
+    load barebones events from folder
+    """
 
+    events = []
 
+    # Iterate over all .npy files in the directory
+    for filename in os.listdir(file_path):
+        if filename.endswith(".npy"):
+            # Construct full file path
+            full_path = os.path.join(file_path, filename)
+
+            # Load image data from .npy file
+            image = np.load(full_path)
+
+            # Instantiate Event object
+            event = Event(filename, image)
+
+            # Append to events list
+            events.append(event)
+
+    return events
