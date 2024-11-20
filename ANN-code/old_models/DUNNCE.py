@@ -1,8 +1,7 @@
+from feature_extraction.event_processor import extract_features
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
-
-from feature_extraction.event_processor import extract_features
 
 # import events
 events = []

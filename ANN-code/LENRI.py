@@ -1,19 +1,19 @@
 # %%
-import numpy as np
+import pickle
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from sklearn.metrics import f1_score, precision_score, recall_score
+import performance as pf  # This only works if LENRI.py is NOT in old_models folder
+from sklearn.metrics import auc, f1_score, precision_score, recall_score, roc_curve
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
-import performance as pf # This only works if LENRI.py is NOT in old_models folder
-from sklearn.metrics import roc_curve, auc
-import pickle
 
-train_LENRI = False # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
+train_LENRI = False  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
 
 # Data Preparation
 
@@ -96,18 +96,18 @@ if train_LENRI:
     #         Dense(48, activation="leaky_relu"),  # Hidden layer
     #         Dropout(0.4),  # Dropout for regularisation
     #         Dense(8, activation="leaky_relu"),  # Another hidden layer
-    #         Dropout(0.4), # Another dropout 
+    #         Dropout(0.4), # Another dropout
     #         Dense(2, activation="softmax"),  # Output layer for binary classification
     #     ]
     # )
     # Compile LENRI
-    LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    LENRI.compile(
+        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"]
+    )
     # K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
-
 
     # LENRI
     LENRI.summary()
-
 
     # Train LENRI
     history = LENRI.fit(

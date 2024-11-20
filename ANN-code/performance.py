@@ -7,8 +7,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
-from sklearn.metrics import roc_curve, auc
-
+from sklearn.metrics import auc, roc_curve
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
