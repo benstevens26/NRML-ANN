@@ -6,17 +6,18 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 import performance as pf
+from sklearn.metrics import roc_curve, auc
+import pickle
 import keras-tuner
 
-#%%
 # Data Preparation
 
 # Load CSV data
-data = pd.read_csv("../more_features_noisy.csv")  # Change to file path
+data = pd.read_csv("Data/more_features_noisy.csv")  # Change to file path
 
 # #Trying to match carbon and fluorine data amounts
 # carbon_events = data[data["name"].str.contains("C")]
@@ -33,7 +34,7 @@ def extract_species(name):
 
 data["species"] = data["name"].apply(extract_species)
 X = data.iloc[
-    :, 3:12  # CHANGE WHEN MORE FEATURES ADDED
+    :, 2:10  # CHANGE WHEN MORE FEATURES ADDED
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
 y = data["species"].values
 
@@ -74,7 +75,7 @@ y_val = to_categorical(y_val, num_classes=2)
 LENRI = Sequential(
     [
         Dense(
-            32, input_shape=(9,), activation="leaky_relu"
+            32, input_shape=(8,), activation="leaky_relu"
         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
         Dropout(0.2),  # Dropout for regularisation
         Dense(16, activation="leaky_relu"),  # Hidden layer
@@ -84,8 +85,23 @@ LENRI = Sequential(
     ]
 )
 
+# # updated hyperparams: (worse)
+# LENRI = Sequential(
+#     [
+#         Dense(
+#             64, input_shape=(8,), activation="leaky_relu"
+#         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+#         Dropout(0.3),  # Dropout for regularisation
+#         Dense(48, activation="leaky_relu"),  # Hidden layer
+#         Dropout(0.4),  # Dropout for regularisation
+#         Dense(8, activation="leaky_relu"),  # Another hidden layer
+#         Dropout(0.4), # Another dropout
+#         Dense(2, activation="softmax"),  # Output layer for binary classification
+#     ]
+# )
 # Compile LENRI
 LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+# K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
 
 
 # LENRI
@@ -99,12 +115,33 @@ history = LENRI.fit(
 )
 
 # %%
+# Saving LENRI
+model_save_path = "old_models/LENRIv1.keras"
+LENRI.save(model_save_path)
 
+# Saving LENRI's training history
+history_save_path = "old_models/LENRIv1_history.pkl"
+with open(history_save_path, "wb") as file:
+    pickle.dump(history.history, file)
+
+
+# # For loading the files:
+# model_save_path = "saved_models/LENRI_model.keras"
+# history_save_path = "saved_models/LENRI_history.pkl"
+
+# # Load the saved model
+# LENRI_loaded = load_model(model_save_path)
+
+# # Load the training history
+# with open(history_save_path, "rb") as file:
+#     loaded_history = pickle.load(file)
+# %%
 # LENRI Evaluation
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
 print(f"Test Loss: {test_loss:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
 y_pred = np.argmax(LENRI.predict(X_test), axis=1)  # For multi-class classification
+y_pred_prob = LENRI.predict(X_test)[:, 1]  # Probability for class 1
 y_true = np.argmax(y_test, axis=1)  # Assuming y_test is one-hot encoded
 cm = confusion_matrix(y_true, y_pred)
 precision = precision_score(
@@ -127,8 +164,7 @@ pf.plot_model_performance(
 )
 
 first_layer_weights = LENRI.layers[0].get_weights()[0]
-names = [i for i in data.columns[3:12]]
+names = [i for i in data.columns[2:10]]
 
 pf.weights_plotter(first_layer_weights, names)
-
-#%% hyperparameter tuning
+pf.roc_plotter(y_true, y_pred_prob)
