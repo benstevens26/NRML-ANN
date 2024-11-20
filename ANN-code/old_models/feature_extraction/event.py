@@ -10,8 +10,12 @@ import numpy as np
 import scipy.stats
 from numpy.linalg import svd
 from scipy.stats import skew, kurtosis
+import os
 
-with open("../../matplotlibrc.json", "r") as file:
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+config_path = os.path.join(script_dir, "matplotlibrc.json")
+with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
     custom_params = json.load(file)
 
 plt.rcParams.update(custom_params)
@@ -59,6 +63,7 @@ class Event:
         self.name = name
         self.image = image
         self.noise_index = None
+        self.error = False
 
         self.species = self.get_species_from_name()
         self.energy = self.get_energy_from_name()
@@ -209,11 +214,17 @@ class Event:
         last_non_zero_index = non_zero_indices[-1]
 
         # Calculate the midpoints of the first and last non-zero segments
-        midpoint_first = (
-            segment_distances[first_non_zero_index]
-            + segment_distances[first_non_zero_index + 1]
-        ) / 2
-
+        try:
+            midpoint_first = (
+                segment_distances[first_non_zero_index]
+                + segment_distances[first_non_zero_index + 1]
+            ) / 2
+        except:
+            print(
+                "Something has gone wrong with getting the midpoints of the non-zero segments. Is there only one non-zero segment?"
+            )
+            midpoint_first = segment_distances[first_non_zero_index]
+            self.error = True
         if last_non_zero_index < len(segment_distances) - 1:
             midpoint_last = (
                 segment_distances[last_non_zero_index]
