@@ -12,14 +12,21 @@ from numpy.linalg import svd
 from scipy.stats import skew, kurtosis
 import os
 
+try:
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    index = script_dir.find("ANN-code")
+    if index != -1:  # Ensure the substring exists
+        result = script_dir[:index + len("ANN-code")]
+        config_path = os.path.join(result, "matplotlibrc.json")
+    else:
+        print("Something went wrong loading matplotlibrc.json")
+        pass
+    with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
+        custom_params = json.load(file)
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-config_path = os.path.join(script_dir, "matplotlibrc.json")
-with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
-    custom_params = json.load(file)
-
-plt.rcParams.update(custom_params)
-
+    plt.rcParams.update(custom_params)
+except:
+    print("Something went wrong loading matplotlibrc.json")
 
 class Event:
     """
@@ -62,6 +69,7 @@ class Event:
         """
         self.name = name
         self.image = image
+        self.height, self.width = image.shape
         self.noise_index = None
         self.error = False
 
@@ -143,7 +151,7 @@ class Event:
         """
 
         image = self.image
-        height, width = image.shape
+        height, width = self.height, self.width
 
         # Create a grid of coordinates for each pixel
         x_coords, y_coords = np.meshgrid(np.arange(width), np.arange(height))
