@@ -9,10 +9,11 @@ from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
-import performance as pf
+import performance as pf # This only works if LENRI.py is NOT in old_models folder
 from sklearn.metrics import roc_curve, auc
 import pickle
 
+train_LENRI = False # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
 
 # Data Preparation
 
@@ -70,71 +71,70 @@ y_val = to_categorical(y_val, num_classes=2)
 
 
 # %%
+if train_LENRI:
+    # Define the LENRI model architecture
+    LENRI = Sequential(
+        [
+            Dense(
+                32, input_shape=(8,), activation="leaky_relu"
+            ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+            Dropout(0.2),  # Dropout for regularisation
+            Dense(16, activation="leaky_relu"),  # Hidden layer
+            Dropout(0.2),  # Dropout for regularisation
+            Dense(8, activation="leaky_relu"),  # Another hidden layer
+            Dense(2, activation="softmax"),  # Output layer for binary classification
+        ]
+    )
 
-# Define the LENRI model architecture
-LENRI = Sequential(
-    [
-        Dense(
-            32, input_shape=(8,), activation="leaky_relu"
-        ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-        Dropout(0.2),  # Dropout for regularisation
-        Dense(16, activation="leaky_relu"),  # Hidden layer
-        Dropout(0.2),  # Dropout for regularisation
-        Dense(8, activation="leaky_relu"),  # Another hidden layer
-        Dense(2, activation="softmax"),  # Output layer for binary classification
-    ]
-)
-
-# # updated hyperparams: (worse)
-# LENRI = Sequential(
-#     [
-#         Dense(
-#             64, input_shape=(8,), activation="leaky_relu"
-#         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
-#         Dropout(0.3),  # Dropout for regularisation
-#         Dense(48, activation="leaky_relu"),  # Hidden layer
-#         Dropout(0.4),  # Dropout for regularisation
-#         Dense(8, activation="leaky_relu"),  # Another hidden layer
-#         Dropout(0.4), # Another dropout 
-#         Dense(2, activation="softmax"),  # Output layer for binary classification
-#     ]
-# )
-# Compile LENRI
-LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
-# K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
-
-
-# LENRI
-LENRI.summary()
-
-# %%
-
-# Train LENRI
-history = LENRI.fit(
-    X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
-)
-
-# %%
-# Saving LENRI
-model_save_path = "old_models/LENRIv1.keras"
-LENRI.save(model_save_path)
-
-# Saving LENRI's training history
-history_save_path = "old_models/LENRIv1_history.pkl"
-with open(history_save_path, "wb") as file:
-    pickle.dump(history.history, file)
+    # # updated hyperparams: (worse)
+    # LENRI = Sequential(
+    #     [
+    #         Dense(
+    #             64, input_shape=(8,), activation="leaky_relu"
+    #         ),  # Input layer with 4 features. CHANGE WHEN MORE FEATURES ADDED
+    #         Dropout(0.3),  # Dropout for regularisation
+    #         Dense(48, activation="leaky_relu"),  # Hidden layer
+    #         Dropout(0.4),  # Dropout for regularisation
+    #         Dense(8, activation="leaky_relu"),  # Another hidden layer
+    #         Dropout(0.4), # Another dropout 
+    #         Dense(2, activation="softmax"),  # Output layer for binary classification
+    #     ]
+    # )
+    # Compile LENRI
+    LENRI.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+    # K.set_value(LENRI.optimizer.learning_rate, 0.03) # grid searched
 
 
-# # For loading the files:
-# model_save_path = "saved_models/LENRI_model.keras"
-# history_save_path = "saved_models/LENRI_history.pkl"
+    # LENRI
+    LENRI.summary()
 
-# # Load the saved model
-# LENRI_loaded = load_model(model_save_path)
 
-# # Load the training history
-# with open(history_save_path, "rb") as file:
-#     loaded_history = pickle.load(file)
+    # Train LENRI
+    history = LENRI.fit(
+        X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
+    )
+
+    # %%
+    # Saving LENRI
+    # model_save_path = "old_models/LENRIv1.keras"
+    # LENRI.save(model_save_path)
+
+    # Saving LENRI's training history
+    # history_save_path = "old_models/LENRIv1_history.pkl"
+    # with open(history_save_path, "wb") as file:
+    #     pickle.dump(history.history, file)
+
+else:
+    # For loading the files:
+    model_save_path = "old_models/LENRIv1.keras"
+    history_save_path = "old_models/LENRIv1_history.pkl"
+
+    # Load the saved model
+    LENRI_loaded = load_model(model_save_path)
+
+    # Load the training history
+    with open(history_save_path, "rb") as file:
+        loaded_history = pickle.load(file)
 # %%
 # LENRI Evaluation
 test_loss, test_accuracy = LENRI.evaluate(X_test, y_test)
