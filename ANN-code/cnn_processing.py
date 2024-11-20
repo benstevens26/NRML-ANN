@@ -18,8 +18,6 @@ def resize_pad_image_tf(event, target_size=(224, 224)):
 
     event.image = tf.image.resize_with_pad(event.image, target_size[0], target_size[1])
 
-    return
-
 
 def pad_image(event, target_size=(415, 559)):
 
@@ -47,5 +45,4 @@ def pad_image(event, target_size=(415, 559)):
 
     except:
         "Image could not fit inside target frame"
-
 
