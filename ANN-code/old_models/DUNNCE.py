@@ -2,7 +2,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 
-from event_processor import extract_features
+from feature_extraction.event_processor import extract_features
 
 # import events
 events = []
