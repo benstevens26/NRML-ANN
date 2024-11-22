@@ -1,6 +1,7 @@
 # single_model_visualizer.py
 
 import json
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,7 +9,6 @@ import pandas as pd
 import seaborn as sns
 from scipy.stats import zscore
 from sklearn.metrics import auc, roc_curve
-import os
 
 try:
     script_dir = os.path.dirname(os.path.realpath(__file__))

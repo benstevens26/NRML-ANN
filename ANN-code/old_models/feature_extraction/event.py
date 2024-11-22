@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 from numpy.linalg import svd
-from scipy.stats import skew, kurtosis
-import os
+from scipy.stats import kurtosis, skew
 
 try:
     script_dir = os.path.dirname(os.path.realpath(__file__))

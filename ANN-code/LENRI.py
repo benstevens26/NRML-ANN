@@ -13,8 +13,9 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
 
-train_LENRI = False  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
-
+train_LENRI = True  # Flip if you want to train LENRI from the data or if you want to load the saved LENRIv1.keras file
+save_LENRI = False  # Flip to save or not save LENRI
+model_name = "miniLENRI"
 # Data Preparation
 
 # Load CSV data
@@ -38,6 +39,24 @@ X = data.iloc[
     :, 2:10  # CHANGE WHEN MORE FEATURES ADDED
 ].values  # Select columns with feature data (assuming columns 1-4 are features)
 y = data["species"].values
+
+
+def even_set(X, y, num_C=9925):
+    """makes the data even. X should be a list of int(num_C) carbons followed by all fluorines"""
+    X_Cs = [i for i in X[:num_C]]
+    X_Fs = [i for i in X[num_C:]]
+    y_Cs = [i for i in y[:num_C]]
+    y_Fs = [i for i in y[num_C:]]
+
+    step = len(X_Fs) // num_C
+    for i in range(num_C):
+        X_Cs.append(X_Fs[i * step])
+        y_Cs.append(y_Fs[i * step])
+    return np.array(X_Cs), np.array(y_Cs)
+
+
+# X, y = even_set(X,y) # making the data evenly represented
+
 
 # Split into training and testing sets
 train_ratio = 0.75
@@ -99,15 +118,17 @@ if train_LENRI:
     history = LENRI.fit(
         X_train, y_train, epochs=30, batch_size=32, validation_data=(X_val, y_val)
     )
+    if save_LENRI:
+        # Change the model name
 
-    # # Saving LENRI
-    # model_save_path = "old_models/LENRIv1.keras"
-    # LENRI.save(model_save_path)
+        # Saving LENRI
+        model_save_path = f"old_models/{model_name}.keras"
+        LENRI.save(model_save_path)
 
-    # # Saving LENRI's training history
-    # history_save_path = "old_models/LENRIv1_history.pkl"
-    # with open(history_save_path, "wb") as file:
-    #     pickle.dump(history.history, file)
+        # Saving LENRI's training history
+        history_save_path = f"old_models/{model_name}_history.pkl"
+        with open(history_save_path, "wb") as file:
+            pickle.dump(history.history, file)
 
 else:
     # For loading the files:
