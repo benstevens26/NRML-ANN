@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 
 #%%
@@ -39,28 +39,42 @@ X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, r
 
 # Define CoNNCR
 
-input_shape = (224, 224, 1)  # Example shape, you can change it based on your data
+input_shape = (415, 559, 1)  # Example shape, you can change it based on your data
 
+# Define the model
 model = Sequential()
 
-model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+# Conv Block 1
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(415, 559, 1)))
+model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
+# Conv Block 2
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(BatchNormalization())
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
+# Conv Block 3
+model.add(Conv2D(128, (3, 3), activation='relu'))
+model.add(BatchNormalization())
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+# Flatten and Fully Connected Layers
 model.add(Flatten())
-
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
 
+# Output Layer
 model.add(Dense(2, activation='softmax'))
 
-model.compile(optimizer=Adam(learning_rate=0.001),
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+# Compile the model
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
+# Summary of the model
 model.summary()
+
 
 #%%
 
