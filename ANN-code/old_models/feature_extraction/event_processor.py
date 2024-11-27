@@ -166,7 +166,7 @@ def event_processor(
     events,
     chunk_size,
     output_csv,
-    dark_dir="../../../../MIGDAL/sim_ims/darks",
+    dark_dir="/vols/lz/MIGDAL/sim_ims/darks",
     binning=1,
     num_bisector_segments=15,
 ):
