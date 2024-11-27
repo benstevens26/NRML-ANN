@@ -5,10 +5,11 @@ contains methods for changing the event.image to be correct for use in the CNN m
 
 """
 
-import cv2
-import tensorflow as tf
 import random
+
+import cv2
 import numpy as np
+import tensorflow as tf
 
 
 def resize_pad_image_tf(event, target_size=(224, 224)):
@@ -39,10 +40,11 @@ def pad_image(event, target_size=(415, 559)):
         x_offset = random.randint(0, max_x_offset)
 
         # Insert the small image into the target frame at the random offset
-        target_frame[y_offset:y_offset + small_height, x_offset:x_offset + small_width] = small_image
+        target_frame[
+            y_offset : y_offset + small_height, x_offset : x_offset + small_width
+        ] = small_image
 
         event.image = target_frame
 
     except:
         "Image could not fit inside target frame"
-

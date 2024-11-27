@@ -3,15 +3,14 @@ This module contains the `Event` class, which endows a nuclear recoil image with
 """
 
 import json
+import os
 import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 from numpy.linalg import svd
-from scipy.stats import skew, kurtosis
-import os
-
+from scipy.stats import kurtosis, skew
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 config_path = os.path.join(script_dir, "matplotlibrc.json")

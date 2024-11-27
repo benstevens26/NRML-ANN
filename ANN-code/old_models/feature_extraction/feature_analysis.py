@@ -1,8 +1,9 @@
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 import json
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -93,4 +94,6 @@ def feature_analysis(path):
 # print(result.head())
 
 
-feature_analysis("/vols/lz/twatson/ANN/NR-ANN/ANN-code/Data/30_segs_2x2_binned_features.csv")
+feature_analysis(
+    "/vols/lz/twatson/ANN/NR-ANN/ANN-code/Data/30_segs_2x2_binned_features.csv"
+)

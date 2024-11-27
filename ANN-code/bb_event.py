@@ -3,11 +3,11 @@ This module contains the `Event` class, which endows a nuclear recoil image with
 """
 
 import json
-import re
-import matplotlib.pyplot as plt
 import os
-import numpy as np
+import re
 
+import matplotlib.pyplot as plt
+import numpy as np
 
 with open("matplotlibrc.json", "r") as file:
     custom_params = json.load(file)
@@ -15,7 +15,7 @@ with open("matplotlibrc.json", "r") as file:
 plt.rcParams.update(custom_params)
 
 
-class Event:
+class BB_Event:
     """
     Holds event attributes
     """
@@ -104,7 +104,7 @@ def load_events_bb(file_path):
             image = np.load(full_path)
 
             # Instantiate Event object
-            event = Event(filename, image)
+            event = BB_Event(filename, image)
 
             # Append to events list
             events.append(event)

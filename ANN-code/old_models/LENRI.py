@@ -1,17 +1,19 @@
-#%%
-import numpy as np
+# %%
+import pickle
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import auc, f1_score, precision_score, recall_score, roc_curve
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.utils import to_categorical
 from tensorflow.math import confusion_matrix
+
 import performance as pf
-from sklearn.metrics import roc_curve, auc
-import pickle
+
 # import keras-tuner
 
 # Data Preparation

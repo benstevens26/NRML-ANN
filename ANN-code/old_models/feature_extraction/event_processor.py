@@ -1,11 +1,12 @@
 import csv
 import os
 
+import numpy as np
 import scipy.ndimage as nd
-from convert_sim_ims import *
 from event import Event
 from tqdm import tqdm
-import numpy as np
+
+from convert_sim_ims import *
 
 
 def bin_event(event, N, parse_image=False):
