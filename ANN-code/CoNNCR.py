@@ -82,7 +82,7 @@ model.summary()
 # where X_train and X_val are the image datasets and y_train, y_val are the labels
 
 # Training the model
-history = model.fit(X_train, y_train,
+CoNNCR = model.fit(X_train, y_train,
                     batch_size=32,
                     epochs=20,
                     validation_data=(X_val, y_val),
