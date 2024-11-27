@@ -31,9 +31,21 @@ from tensorflow.keras.optimizers import Adam
 #%%
 
 # Split into 70% train, 15% validation, 15% test
+train_ratio = 0.70
+validation_ratio = 0.15
+test_ratio = 0.15
 
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42, stratify=y_temp)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=1 - train_ratio, random_state=42
+)
+
+X_val, X_test, y_val, y_test = train_test_split(
+    X_test,
+    y_test,
+    test_size=test_ratio / (test_ratio + validation_ratio),
+    random_state=42,
+)
 
 #%%
 
