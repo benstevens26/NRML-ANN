@@ -33,8 +33,6 @@ remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size)  # Next 15%
 test_dataset = remaining.skip(val_size)  # Final 15%
 
-
-
 # Define the model
 CoNNCR = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(415, 559, 1)),
