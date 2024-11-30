@@ -4,6 +4,7 @@ import os
 import random
 import scipy.ndimage as nd
 from convert_sim_ims import convert_im, get_dark_sample
+import pickle
 
 
 def bin_image(image, N):
@@ -151,7 +152,7 @@ test_dataset = test_dataset.take(test_size)
 
 
 # Define the model
-model = tf.keras.Sequential([
+CoNNCR = tf.keras.Sequential([
     tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(415, 559, 1)),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -163,12 +164,15 @@ model = tf.keras.Sequential([
 ])
 
 # Compile the model
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+CoNNCR.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model
-model.fit(train_dataset, validation_data=val_dataset, epochs=20)
+CoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=20)
 
 # Save the trained model
-model.save('final_model.h5')
+CoNNCR.save('CoNNCR.keras')
 
-
+# Save model training history
+history_save_path = "CoNNCR_history.pkl"
+with open(history_save_path, "wb") as file:
+    pickle.dump(CoNNCR.history, file)
