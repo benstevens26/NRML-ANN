@@ -1,13 +1,14 @@
 import datetime
+import glob
+import os
+import random
 
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
-import os
-import glob
-from bb_event import *
 from tensorflow.keras.layers import *
-import random
+
+from bb_event import *
 
 
 def load_all_bb_events(base_dirs: list):
@@ -97,20 +98,20 @@ def load_image_subset(
 
     for i in range(len(event_dirs)):
         image = np.load(event_dirs[i])
-        image_3C = np.stack([image, image, image], axis=-1)
-        event_dirs[i] = BB_Event(event_dirs[i], image_3C)
+        image = image * 255 / np.max(image)
+        image = np.stack([image, image, image], axis=-1)
+        image = preprocess_input(image)
+        event_dirs[i] = BB_Event(event_dirs[i], image)
 
     return event_dirs
+
 
 events = load_image_subset(frac=0.001)
 # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
 num_categories = 2  # Change to 3 if argon included
 
-
-# Making input data into 3 channels
-for i in range(len(data)):
-    data[i]
-
+X = [event.image for event in events]
+y = [event.get_species_from_name() for event in events]
 
 ## Loading VGG16 model
 base_model = VGG16(weights="imagenet", include_top=False, input_shape=(415, 559, 3))
@@ -142,7 +143,7 @@ tb_callback = tf.keras.callbacks.TensorBoard(log_dir)
 
 
 # Setup checkpoint callback
-os.makedirs(os.path.join(log_dir, "ckpt"))
+os.makedirs(os.path.join(log_dir, "ckpt"), exist_ok=True)
 ckpt_path = os.path.join(log_dir, "ckpt", "epoch-{epoch:02d}.keras")
 
 
