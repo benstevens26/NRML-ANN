@@ -9,7 +9,8 @@ import cv2
 import tensorflow as tf
 import random
 import numpy as np
-
+from bb_event import Event
+import os
 
 def resize_pad_image_tf(event, target_size=(224, 224)):
     """
@@ -75,3 +76,27 @@ def pad_image_2(image, target_size=(415, 559)):
     except:
         "Image could not fit inside target frame"
 
+
+def load_events_bb(file_path):
+    """
+    load events from folder
+    """
+
+    events = []
+
+    # Iterate over all .npy files in the directory
+    for filename in os.listdir(file_path):
+        if filename.endswith(".npy"):
+            # Construct full file path
+            full_path = os.path.join(file_path, filename)
+
+            # Load image data from .npy file
+            image = np.load(full_path)
+
+            # Instantiate Event object
+            event = Event(filename, image)
+
+            # Append to events list
+            events.append(event)
+
+    return events
