@@ -10,13 +10,17 @@ from cnn_processing import bin_image, smooth_operator, noise_adder, pad_image, p
 
 # Define base directories and batch size
 
-# base_dirs = ['/vols/lz/MIGDAL/sim_ims/C', '/vols/lz/MIGDAL/sim_ims/F']  # List your data directories here
-base_dirs = ['Data/C', 'Data/F']  # List your data directories here
+print(tf.config.list_physical_devices())
+
+exit()
+
+base_dirs = ['/vols/lz/MIGDAL/sim_ims/C', '/vols/lz/MIGDAL/sim_ims/F']  # List your data directories here
+# base_dirs = ['Data/C', 'Data/F']  # List your data directories here
 batch_size = 32
 dark_list_number = 0
 binning = 1
-# dark_dir="/vols/lz/MIGDAL/sim_ims/darks"
-dark_dir="Data/darks"
+dark_dir="/vols/lz/MIGDAL/sim_ims/darks"
+# dark_dir="Data/darks"
 m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
 example_dark_list_unbinned = np.load(
     f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
@@ -64,9 +68,6 @@ CoNNCR = tf.keras.Sequential([
 CoNNCR.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 print(CoNNCR.summary())
-print(tf.config.list_physical_devices())
-
-exit()
 
 # Train the model
 CoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=20)
