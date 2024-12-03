@@ -34,10 +34,12 @@ test_dataset = remaining.skip(val_size)  # Final 15%
 # Define the model
 miniCoNNCR = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(415, 559, 1)),
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+    tf.keras.layers.Conv2D(16, (3, 3), activation='relu'),  # Reduce filters
     tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),  # Reduce filters
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.GlobalAveragePooling2D(),  # Replaces Flatten
+    tf.keras.layers.Dense(32, activation='relu'),  # Reduce neurons
     tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(2, activation='softmax')
 ])
@@ -45,22 +47,28 @@ miniCoNNCR = tf.keras.Sequential([
 # Compile the model
 miniCoNNCR.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-# Train the model
-miniCoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=20)
+print(miniCoNNCR.summary())
+exit()
+# # Train the model
+# miniCoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=20)
+#
+# # Save the trained model
+# miniCoNNCR.save('miniCoNNCR.keras')
+#
+# # Save model training history
+# history_save_path = "miniCoNNCR_history.pkl"
+# with open(history_save_path, "wb") as file:
+#     pickle.dump(miniCoNNCR.history, file)
 
-# Save the trained model
-miniCoNNCR.save('miniCoNNCR.keras')
 
-# Save model training history
-history_save_path = "miniCoNNCR_history.pkl"
-with open(history_save_path, "wb") as file:
-    pickle.dump(miniCoNNCR.history, file)
-
-
-#%%
 from tensorflow.keras.models import load_model
+import pickle
+from tensorflow.math import confusion_matrix
+from sklearn.metrics import f1_score, precision_score, recall_score
+import performance as pf
 
 model_save_path = 'miniCoNNCR.keras'
+history_save_path = 'miniCoNNCR_history.pkl'
 
 LENRI = load_model(model_save_path)
 
@@ -86,10 +94,10 @@ f1 = f1_score(y_true, y_pred, average="weighted")
 
 pf.plot_model_performance(
     "LENRI",
-    history.history["accuracy"],
-    history.history["loss"],
-    history.history["val_accuracy"],
-    history.history["val_loss"],
+    LENRI.history["accuracy"],
+    LENRI.history["loss"],
+    LENRI.history["val_accuracy"],
+    LENRI.history["val_loss"],
     cm,
     precision,
     recall,
@@ -97,9 +105,9 @@ pf.plot_model_performance(
 )
 
 first_layer_weights = LENRI.layers[0].get_weights()[0]
-names = [i for i in data.columns[2:10]]
+# names = [i for i in data.columns[2:10]]
 
-pf.weights_plotter(first_layer_weights, names)
+# pf.weights_plotter(first_layer_weights, names)
 pf.roc_plotter(y_true, y_pred_prob)
 
 

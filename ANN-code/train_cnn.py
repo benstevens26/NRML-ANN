@@ -10,10 +10,6 @@ from cnn_processing import bin_image, smooth_operator, noise_adder, pad_image, p
 
 # Define base directories and batch size
 
-print(tf.config.list_physical_devices())
-
-exit()
-
 base_dirs = ['/vols/lz/MIGDAL/sim_ims/C', '/vols/lz/MIGDAL/sim_ims/F']  # List your data directories here
 # base_dirs = ['Data/C', 'Data/F']  # List your data directories here
 batch_size = 32
