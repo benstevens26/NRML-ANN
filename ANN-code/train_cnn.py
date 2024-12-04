@@ -5,8 +5,8 @@ import random
 import scipy.ndimage as nd
 from convert_sim_ims import convert_im, get_dark_sample
 import pickle
-
 from cnn_processing import bin_image, smooth_operator, noise_adder, pad_image, parse_function, load_data
+import json
 
 # Define base directories and batch size
 
@@ -35,43 +35,30 @@ remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size)  # Next 15%
 test_dataset = remaining.skip(val_size)  # Final 15%
 
-# Define the model
-# CoNNCR = tf.keras.Sequential([
-#     tf.keras.layers.Input(shape=(415, 559, 1)),
-#     tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
-#     tf.keras.layers.MaxPooling2D((2, 2)),
-#     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-#     tf.keras.layers.MaxPooling2D((2, 2)),
-#     tf.keras.layers.Flatten(),
-#     tf.keras.layers.Dense(128, activation='relu'),
-#     tf.keras.layers.Dropout(0.5),
-#     tf.keras.layers.Dense(2, activation='softmax')
-# ])
 
 CoNNCR = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(415, 559, 1)),
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+    tf.keras.layers.Conv2D(16, (3, 3), activation='relu'),  # Reduce filter count
     tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),  # Reduce filter count
     tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.GlobalAveragePooling2D(),
-    tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Flatten(),  # Use Flatten for simplicity
+    tf.keras.layers.Dense(32, activation='relu'),  # Reduce dense layer size
+    tf.keras.layers.Dropout(0.5),  # Retain dropout
     tf.keras.layers.Dense(2, activation='softmax')
 ])
 
 # Compile the model
 CoNNCR.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-print(CoNNCR.summary())
-
 # Train the model
-CoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=20)
+CoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=10)
 
 # Save the trained model
 CoNNCR.save('CoNNCR.keras')
 
 # Save model training history
-history_save_path = "CoNNCR_history.pkl"
-with open(history_save_path, "wb") as file:
-    pickle.dump(CoNNCR.history, file)
+
+history_dict = CoNNCR.history.history
+with open("CoNNCR_history.json", "w") as file:
+    json.dump(history_dict, file)
