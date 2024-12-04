@@ -7,6 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import *
+from cnn_processing import parse_function, load_data
 
 from bb_event import *
 
@@ -104,6 +105,10 @@ def load_image_subset(
         event_dirs[i] = BB_Event(event_dirs[i], image)
 
     return event_dirs
+
+
+
+data = load_data("/vols/lz/MIGDAL/sim_ims",32,)
 
 
 events = load_image_subset(frac=0.001)
