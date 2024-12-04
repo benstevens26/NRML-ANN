@@ -175,9 +175,9 @@ X_val, X_test, y_val, y_test = train_test_split(
 
 
 ## Preprocessing input
-X_train = preprocess_input(X_train)
-X_test = preprocess_input(X_test)
-X_val = preprocess_input(X_val)
+X_train = preprocess_input(np.array(X_train))
+X_test = preprocess_input(np.array(X_test))
+X_val = preprocess_input(np.array(X_val))
 
 
 epochs = 10
