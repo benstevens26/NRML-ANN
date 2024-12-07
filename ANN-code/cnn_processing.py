@@ -9,11 +9,13 @@ import cv2
 import tensorflow as tf
 import random
 import numpy as np
-from bb_event import Event
+from bb_event import BB_Event
 import os
 import random
 import scipy.ndimage as nd
 from convert_sim_ims import convert_im, get_dark_sample
+from tensorflow.keras.applications.vgg16 import preprocess_input
+
 
 def resize_pad_image_tf(event, target_size=(224, 224)):
     """
@@ -97,7 +99,7 @@ def load_events_bb(file_path):
             image = np.load(full_path)
 
             # Instantiate Event object
-            event = Event(filename, image)
+            event = BB_Event(filename, image)
 
             # Append to events list
             events.append(event)
@@ -114,11 +116,14 @@ def bin_image(image, N):
 
     trimmed_image = image[:new_height, :new_width]
 
-    binned_image = trimmed_image.reshape(new_height // N, N, new_width // N, N).sum(
-        axis=(1, 3)
-    )
 
-    return binned_image
+    if N > 1:
+        binned_image = trimmed_image.reshape(new_height // N, N, new_width // N, N).sum(
+           axis=(1, 3)
+        )        
+        return binned_image
+    else:
+        return trimmed_image
 
 def smooth_operator(image, smoothing_sigma=5):
 
@@ -167,7 +172,7 @@ def pad_image(image, target_size=(415, 559)):
 
 # Function to load a single file and preprocess it
 # def parse_function(file_path, binning=1, dark_dir="/vols/lz/MIGDAL/sim_ims/darks"):
-def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
+def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1,channels=1):
 
     file_path_str = file_path.numpy().decode('utf-8')
 
@@ -193,12 +198,19 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
 
     # Set shape explicitly for TensorFlow to know
     image = image.astype(np.float32)
-    image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
+    if channels==3:
+        image = np.array(image) * 255 / np.max(image)
+        image = np.stack([image]*channels, axis=-1)
+        image = preprocess_input(image)
+    else:
+        image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
+        
+
 
     return image, label
 
 # Dataset Preparation Function Using `tf.data`
-def load_data(base_dirs, batch_size, example_dark_list, m_dark):
+def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Get all the .npy files from base_dirs
     file_list = []
     for base_dir in base_dirs:
@@ -215,13 +227,13 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark):
     example_dark_tensor = tf.convert_to_tensor(example_dark_list, dtype=tf.float32)
     # Apply the parsing function
     dataset = dataset.map(lambda file_path: tf.py_function(func=parse_function,
-                                                           inp=[file_path, m_dark_tensor, example_dark_tensor],
+                                                           inp=[file_path, m_dark_tensor, example_dark_tensor, channels],
                                                            Tout=(tf.float32, tf.int32)),
                           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     # Set output shapes explicitly to avoid unknown rank issues
     dataset = dataset.map(lambda image, label: (
-        tf.ensure_shape(image, (415, 559, 1)),
+        tf.ensure_shape(image, (415, 559, channels)),
         tf.ensure_shape(label, ())
     ))
 

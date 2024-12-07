@@ -7,7 +7,7 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import *
-from cnn_processing import parse_function, load_data
+from cnn_processing import load_data
 
 from bb_event import *
 
@@ -107,16 +107,40 @@ def load_image_subset(
     return event_dirs
 
 
+# Define base directories and batch size
 
-data = load_data("/vols/lz/MIGDAL/sim_ims",32,)
+base_dirs = ['/vols/lz/MIGDAL/sim_ims/C/300-320keV', '/vols/lz/MIGDAL/sim_ims/F/300-320keV']  # List your data directories here
+# base_dirs = ['Data/C', 'Data/F']  # List your data directories here
+batch_size = 32
+dark_list_number = 0
+binning = 1
+dark_dir="/vols/lz/MIGDAL/sim_ims/darks"
+# dark_dir="Data/darks"
+m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
+example_dark_list_unbinned = np.load(
+    f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
+)
+
+# Load the dataset
+full_dataset = load_data(base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3)
+
+dataset_size = len(full_dataset)
+train_size = int(0.7 * dataset_size)
+val_size = int(0.15 * dataset_size)
+test_size = dataset_size - train_size - val_size  # Ensure all data is used
+
+train_dataset = full_dataset.take(train_size)  # First 70%
+remaining = full_dataset.skip(train_size)  # Remaining 30%
+val_dataset = remaining.take(val_size)  # Next 15%
+test_dataset = remaining.skip(val_size)  # Final 15%
 
 
-events = load_image_subset(frac=0.001)
-# data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
+# events = load_image_subset(frac=0.001)
+# # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
 num_categories = 2  # Change to 3 if argon included
 
-X = [event.image for event in events]
-y = [event.get_species_from_name() for event in events]
+# X = [event.image for event in events]
+# y = [event.get_species_from_name() for event in events]
 
 ## Loading VGG16 model
 base_model = VGG16(weights="imagenet", include_top=False, input_shape=(415, 559, 3))
@@ -138,8 +162,9 @@ if freeze:
 opt = tf.keras.optimizers.Adam(
     learning_rate=1e-6, decay=0
 )  # Default values from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
-loss = "binary_crossentropy" if num_categories == 2 else "categorical_crossentropy"
+loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
+# "binary_crossentropy" if num_categories == 2 else
 model.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
 
 # Setup TensorBoard callback
@@ -161,28 +186,28 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 )
 
 
-# Split into 70% train, 15% validation, 15% test
-train_ratio = 0.70
-validation_ratio = 0.15
-test_ratio = 0.15
+# # Split into 70% train, 15% validation, 15% test
+# train_ratio = 0.70
+# validation_ratio = 0.15
+# test_ratio = 0.15
 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=1 - train_ratio, random_state=42
-)
+# X_train, X_test, y_train, y_test = train_test_split(
+#     X, y, test_size=1 - train_ratio, random_state=42
+# )
 
-X_val, X_test, y_val, y_test = train_test_split(
-    X_test,
-    y_test,
-    test_size=test_ratio / (test_ratio + validation_ratio),
-    random_state=42,
-)
+# X_val, X_test, y_val, y_test = train_test_split(
+#     X_test,
+#     y_test,
+#     test_size=test_ratio / (test_ratio + validation_ratio),
+#     random_state=42,
+# )
 
 
 ## Preprocessing input
-X_train = preprocess_input(np.array(X_train))
-X_test = preprocess_input(np.array(X_test))
-X_val = preprocess_input(np.array(X_val))
+# X_train = preprocess_input(np.array(X_train))
+# X_test = preprocess_input(np.array(X_test))
+# X_val = preprocess_input(np.array(X_val))
 
 
 epochs = 10
@@ -190,12 +215,12 @@ batch_size = 32  # No clue if this is applicable. Again just guessing based on t
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
+
 history = model.fit(
-    X_train,
-    y_train,
+    train_dataset,
     epochs=epochs,
     batch_size=batch_size,
-    validation_data=(X_val, y_val),
+    validation_data=val_dataset,
     verbose=1,
     class_weight=None,  # look into changing this, might be good to
     callbacks=[tb_callback, ckpt_callback],
@@ -214,5 +239,5 @@ with open(info_filename, "w") as file:
     file.write("Training Start: {}".format(train_start_time))
     file.write("Training End: {}\n".format(train_end_time))
     file.write("Arguments:\n")
-    for arg in sys.argv:
-        file.write("\t{}\n".format(arg))
+    # for arg in sys.argv:
+    #     file.write("\t{}\n".format(arg))
