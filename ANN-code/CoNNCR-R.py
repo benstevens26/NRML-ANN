@@ -151,6 +151,9 @@ net = tf.keras.layers.Dropout(0.5)(net)
 preds = tf.keras.layers.Dense(num_categories, activation=tf.nn.softmax)(net)
 model = tf.keras.Model(base_model.input, preds)
 
+# Ensure input dtype is tf.float32
+model.build(input_shape=(None, 415, 559, 3))
+model.layers[0].input_dtype = tf.float32
 
 freeze = False
 # Freeze convolutional layers if needed

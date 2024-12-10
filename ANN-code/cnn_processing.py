@@ -172,7 +172,7 @@ def pad_image(image, target_size=(415, 559)):
 
 # Function to load a single file and preprocess it
 # def parse_function(file_path, binning=1, dark_dir="/vols/lz/MIGDAL/sim_ims/darks"):
-def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1,channels=1):
+def parse_function(file_path, m_dark, example_dark_list_unbinned, channels=1, binning=1):
 
     file_path_str = file_path.numpy().decode('utf-8')
 
@@ -191,13 +191,12 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1,chan
         example_dark_list = example_dark_list_unbinned
 
     image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
-
     image = smooth_operator(image)
-    # Pad the image
     image = pad_image(image)
 
     # Set shape explicitly for TensorFlow to know
-    image = image.astype(np.float32)
+    image = np.float32(image)
+    label = np.int32(label)
     if channels==3:
         image = np.array(image) * 255 / np.max(image)
         image = np.stack([image]*channels, axis=-1)
@@ -205,8 +204,8 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1,chan
     else:
         image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
         
-
-
+    # label = np.int32(label)
+    # image = np.float32(image)
     return image, label
 
 # Dataset Preparation Function Using `tf.data`
@@ -218,7 +217,10 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
             files = [f for f in files if f.endswith(".npy")]
             file_list.extend([os.path.join(root, file) for file in files])
 
-    random.shuffle(file_list)
+
+    file_list.sort()
+    np.random.seed(77)
+    np.random.shuffle(file_list)
 
     # Create a TensorFlow dataset from the list of file paths
     dataset = tf.data.Dataset.from_tensor_slices(file_list)
