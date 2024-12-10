@@ -223,7 +223,7 @@ history = model.fit(
     validation_data=val_dataset,
     verbose=1,
     class_weight=None,  # look into changing this, might be good to
-    callbacks=[tb_callback, ckpt_callback],
+    callbacks=[tb_callback, ckpt_callback]
 )
 
 train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")

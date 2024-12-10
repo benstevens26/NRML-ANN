@@ -107,7 +107,7 @@ def load_events_bb(file_path):
     return events
 
 
-def bin_image(image, N):
+def bin_image(image, N: int):
 
     height, width = image.shape
 
