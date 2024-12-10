@@ -206,7 +206,9 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark):
             files = [f for f in files if f.endswith(".npy")]
             file_list.extend([os.path.join(root, file) for file in files])
 
-    random.shuffle(file_list)
+    file_list.sort()
+    np.random.seed(77)
+    np.random.shuffle(file_list)
 
     # Create a TensorFlow dataset from the list of file paths
     dataset = tf.data.Dataset.from_tensor_slices(file_list)
