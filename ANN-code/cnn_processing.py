@@ -198,7 +198,7 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
     return image, label
 
 # Dataset Preparation Function Using `tf.data`
-def load_data(base_dirs, batch_size, example_dark_list, m_dark):
+def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
     # Get all the .npy files from base_dirs
     file_list = []
     for base_dir in base_dirs:
@@ -209,6 +209,13 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark):
     file_list.sort()
     np.random.seed(77)
     np.random.shuffle(file_list)
+
+    if data_frac < 1.0:
+        fraction_to_remove = 1 - data_frac
+        num_to_remove = int(len(file_list) * fraction_to_remove)
+        indices_to_remove = set(random.sample(range(len(file_list)), num_to_remove))
+        filtered_list = [x for i, x in enumerate(file_list) if i not in indices_to_remove]
+
 
     # Create a TensorFlow dataset from the list of file paths
     dataset = tf.data.Dataset.from_tensor_slices(file_list)
@@ -228,7 +235,6 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark):
     ))
 
     # Shuffle, batch, and prefetch the data for training
-    dataset = dataset.shuffle(buffer_size=100)  # Shuffle the dataset to ensure randomness
     dataset = dataset.batch(batch_size)
     # dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
