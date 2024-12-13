@@ -23,7 +23,7 @@ example_dark_list_unbinned = np.load(
 )
 
 # Load the dataset
-full_dataset = load_data(base_dirs, batch_size, example_dark_list_unbinned, m_dark, data_frac=0.1)
+full_dataset = load_data(base_dirs, batch_size, example_dark_list_unbinned, m_dark, data_frac=1.0)
 
 dataset_size = len(full_dataset)
 print("using "+str(dataset_size)+" images")
@@ -36,20 +36,21 @@ remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size)  # Next 15%
 test_dataset = remaining.skip(val_size)  # Final 15%
 
-
-miniCoNNCR = tf.keras.Sequential([
+CoNNCRv1 = tf.keras.Sequential([
     # Input layer
     tf.keras.layers.Input(shape=(415, 559, 1)),
 
     # Convolutional layers
-    tf.keras.layers.Conv2D(16, (3, 3), activation='relu'),  # Increased filters
+    tf.keras.layers.Conv2D(16, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D((2, 2)),
 
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),  # Increased filters
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D((2, 2)),
 
-    # Add a third convolutional layer for more capacity
     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+
+    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D((2, 2)),
 
     # Global Average Pooling
@@ -62,19 +63,19 @@ miniCoNNCR = tf.keras.Sequential([
 ])
 
 # Compile the model
-miniCoNNCR.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+CoNNCRv1.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-print(miniCoNNCR.summary())
+print(CoNNCRv1.summary())
 
 # Train the model
-miniCoNNCR = miniCoNNCR.fit(train_dataset, validation_data=val_dataset, epochs=10)
+CoNNCRv1 = CoNNCRv1.fit(train_dataset, validation_data=val_dataset, epochs=10)
 
 # Save the trained model
-miniCoNNCR.save('miniCoNNCR.keras')
+CoNNCRv1.save('CoNNCRv1.keras')
 
 # Save model training history
 
-history_dict = miniCoNNCR.history
-with open("miniCoNNCR_history.json", "w") as file:
+history_dict = CoNNCRv1.history
+with open("CoNNCRv1_history.json", "w") as file:
     json.dump(history_dict, file)
 
