@@ -18,7 +18,16 @@ import numpy as np
 
 class Event:
     """
-    Holds event attributes
+    A class to represent an event and hold its attributes.
+
+    Attributes:
+    ----------
+    name : str
+        The filename of the event.
+    image : np.ndarray
+        2D array representing the image data of the event.
+    species : str
+        The species ('C' for carbon or 'F' for fluorine) extracted from the filename.
     """
 
     def __init__(self, name, image):
@@ -28,9 +37,9 @@ class Event:
         Parameters:
         ----------
         name : str
-            The filename of the event
+            The filename of the event.
         image : np.ndarray
-            2D array representing the image data of the event. Could be raw or processed.
+            2D array representing the image data of the event, either raw or processed.
         """
 
         self.name = name
@@ -41,11 +50,21 @@ class Event:
         """
         Extract the energy in keV from the filename.
 
+        Parameters:
+        ----------
+        None
+
         Returns:
         -------
         float
-            The energy in keV.
+            The energy in keV extracted from the filename.
+
+        Raises:
+        -------
+        ValueError
+            If the energy cannot be determined from the filename.
         """
+
         match = re.search(r"(\d+\.?\d*)keV", self.name)
         if match:
             return float(match.group(1))
@@ -56,10 +75,19 @@ class Event:
         """
         Extract the species (C for carbon or F for fluorine) from the filename.
 
+        Parameters:
+        ----------
+        None
+
         Returns:
         -------
         str
-            The species (either 'C' or 'F').
+            The species (either 'C' or 'F') extracted from the filename.
+
+        Raises:
+        -------
+        ValueError
+            If the species cannot be determined from the filename.
         """
 
         if "C" in self.name:
@@ -73,6 +101,14 @@ class Event:
     def plot_image(self):
         """
         Display the event image.
+
+        Parameters:
+        ----------
+        None
+
+        Returns:
+        -------
+        None
         """
 
         image = self.image
@@ -90,7 +126,17 @@ class Event:
 
 def load_events_bb(file_path):
     """
-    Load barebones events from folder
+    Load barebones events from a folder, processing .npy files into Event objects.
+
+    Parameters:
+    ----------
+    file_path : str
+        Path to the folder containing .npy files.
+
+    Returns:
+    -------
+    events : list of Event
+        A list of Event objects created from the .npy files in the specified folder.
     """
 
     events = []
