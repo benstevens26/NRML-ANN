@@ -37,33 +37,6 @@ def resize_pad_image(image, target_size=(224, 224)):
     return resized_image
 
 
-def pad_image(event, target_size=(415, 559)):
-    small_image = event.image
-
-    try:
-        small_height, small_width = small_image.shape[:2]
-        target_height, target_width = target_size
-
-        # Create an empty frame filled with zeros (black) of size (415, 559)
-        target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
-
-        # Calculate maximum offsets so the small image fits inside the target frame
-        max_y_offset = target_height - small_height
-        max_x_offset = target_width - small_width
-
-        # Generate random offsets within the allowable range
-        y_offset = random.randint(0, max_y_offset)
-        x_offset = random.randint(0, max_x_offset)
-
-        # Insert the small image into the target frame at the random offset
-        target_frame[y_offset:y_offset + small_height, x_offset:x_offset + small_width] = small_image
-
-        event.image = target_frame
-
-    except:
-        "Image could not fit inside target frame"
-
-
 def pad_image_2(image, target_size=(415, 559)):
     small_image = image
 
@@ -132,12 +105,44 @@ def bin_image(image, N):
 
 
 def smooth_operator(image, smoothing_sigma=5):
+    """
+    Apply Gaussian smoothing to an image.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to be smoothed.
+    smoothing_sigma : int or float, optional
+        The standard deviation (sigma) for the Gaussian kernel. Default is 5.
+
+    Returns:
+    -------
+    np.ndarray
+        The smoothed image.
+    """
     image = nd.gaussian_filter(image, sigma=smoothing_sigma)
 
     return image
 
 
 def noise_adder(image, m_dark=None, example_dark_list=None):
+    """
+    Add noise to an image using the master dark frame and an example dark frame.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to which noise will be added.
+    m_dark : np.ndarray, optional
+        The master dark frame used for noise generation. Default is None.
+    example_dark_list : list of np.ndarray, optional
+        A list of example dark frames for sampling noise. Default is None.
+
+    Returns:
+    -------
+    np.ndarray
+        The image with added noise. If `m_dark` or `example_dark_list` is None, the original image is returned with a warning.
+    """
     if m_dark is None or example_dark_list is None:
         print("WARNING: Noise isn't being added.")
         return image
@@ -154,6 +159,21 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
 
 
 def pad_image(image, target_size=(415, 559)):
+    """
+    Pad an image to a target size by embedding it in a larger frame with random offsets.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to be padded.
+    target_size : tuple of int, optional
+        The target size for the padded image, specified as (height, width). Default is (415, 559).
+
+    Returns:
+    -------
+    np.ndarray
+        The padded image with the specified target size, where the original image is randomly offset within the frame.
+    """
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
 
