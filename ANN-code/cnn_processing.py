@@ -15,16 +15,29 @@ import random
 import scipy.ndimage as nd
 from convert_sim_ims import convert_im, get_dark_sample
 
-def resize_pad_image_tf(event, target_size=(224, 224)):
-    """
-    Rescales the image (with padding) using tensorflow for CNN input
-    """
 
-    event.image = tf.image.resize_with_pad(event.image, target_size[0], target_size[1])
+def resize_pad_image(image, target_size=(224, 224)):
+    """
+    Uses tensorflow method to resize the image with padding to target size.
+
+    Parameters
+    ----------
+    image: numpy.ndarray
+        Input image
+    target_size: tuple of int
+        Target dimensions of image
+
+    Returns
+    -------
+    resized_image: numpy.ndarray
+        Resized image
+    """
+    resized_image = tf.image.resize_with_pad(image, target_size[0], target_size[1])
+
+    return resized_image
 
 
 def pad_image(event, target_size=(415, 559)):
-
     small_image = event.image
 
     try:
@@ -51,9 +64,7 @@ def pad_image(event, target_size=(415, 559)):
         "Image could not fit inside target frame"
 
 
-
 def pad_image_2(image, target_size=(415, 559)):
-
     small_image = image
 
     try:
@@ -106,7 +117,6 @@ def load_events_bb(file_path):
 
 
 def bin_image(image, N):
-
     height, width = image.shape
 
     new_height = (height // N) * N
@@ -120,15 +130,14 @@ def bin_image(image, N):
 
     return binned_image
 
-def smooth_operator(image, smoothing_sigma=5):
 
+def smooth_operator(image, smoothing_sigma=5):
     image = nd.gaussian_filter(image, sigma=smoothing_sigma)
 
     return image
 
 
 def noise_adder(image, m_dark=None, example_dark_list=None):
-
     if m_dark is None or example_dark_list is None:
         print("WARNING: Noise isn't being added.")
         return image
@@ -138,14 +147,13 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
         get_dark_sample(
             m_dark,
             [len(image[0]), len(image)],
-            example_dark_list[np.random.randint(0, len(example_dark_list)-1)],
+            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
         ),
     )
     return image
 
 
 def pad_image(image, target_size=(415, 559)):
-
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
 
@@ -165,10 +173,10 @@ def pad_image(image, target_size=(415, 559)):
 
     return target_frame
 
+
 # Function to load a single file and preprocess it
 # def parse_function(file_path, binning=1, dark_dir="/vols/lz/MIGDAL/sim_ims/darks"):
 def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
-
     file_path_str = file_path.numpy().decode('utf-8')
 
     # Load the image data from the .npy file
@@ -197,6 +205,7 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
 
     return image, label
 
+
 # Dataset Preparation Function Using `tf.data`
 def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
     # Get all the .npy files from base_dirs
@@ -215,7 +224,6 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
         num_to_remove = int(len(file_list) * fraction_to_remove)
         indices_to_remove = set(random.sample(range(len(file_list)), num_to_remove))
         filtered_list = [x for i, x in enumerate(file_list) if i not in indices_to_remove]
-
 
     # Create a TensorFlow dataset from the list of file paths
     dataset = tf.data.Dataset.from_tensor_slices(file_list)
