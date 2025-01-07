@@ -206,9 +206,29 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
     return image, label
 
 
-# Dataset Preparation Function Using `tf.data`
 def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
-    # Get all the .npy files from base_dirs
+    """
+    Load and preprocess data from directories into a TensorFlow dataset.
+
+    Parameters:
+    ----------
+    base_dirs : list of str
+        List of base directories containing .npy files.
+    batch_size : int
+        The batch size for the TensorFlow dataset.
+    example_dark_list : list
+        A list of example dark frames used for image processing.
+    m_dark : list or np.ndarray
+        Master dark frame for image.
+    data_frac : float, optional
+        Fraction of data to use (default is 1.0, meaning all data is used).
+
+    Returns:
+    -------
+    dataset : tf.data.Dataset
+        A TensorFlow dataset containing preprocessed image-label pairs.
+    """
+
     file_list = []
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
@@ -216,6 +236,8 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
             file_list.extend([os.path.join(root, file) for file in files])
 
     file_list.sort()
+
+    # perform a reproducible (seeded) shuffle to the directories to ensure randomness
     np.random.seed(77)
     np.random.shuffle(file_list)
 
@@ -225,25 +247,24 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, data_frac=1.0):
         indices_to_remove = set(random.sample(range(len(file_list)), num_to_remove))
         filtered_list = [x for i, x in enumerate(file_list) if i not in indices_to_remove]
 
-    # Create a TensorFlow dataset from the list of file paths
+    # create a tensorflow dataset from the list of directories
     dataset = tf.data.Dataset.from_tensor_slices(file_list)
 
     m_dark_tensor = tf.convert_to_tensor(m_dark, dtype=tf.float32)
     example_dark_tensor = tf.convert_to_tensor(example_dark_list, dtype=tf.float32)
-    # Apply the parsing function
+    # apply the parsing function to convert the raw file path, master dark and example dark into data
     dataset = dataset.map(lambda file_path: tf.py_function(func=parse_function,
                                                            inp=[file_path, m_dark_tensor, example_dark_tensor],
                                                            Tout=(tf.float32, tf.int32)),
                           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-    # Set output shapes explicitly to avoid unknown rank issues
+    # set output shapes to avoid rank issues
     dataset = dataset.map(lambda image, label: (
         tf.ensure_shape(image, (415, 559, 1)),
         tf.ensure_shape(label, ())
     ))
 
-    # Shuffle, batch, and prefetch the data for training
+    # batch the dataset into chosen size
     dataset = dataset.batch(batch_size)
-    # dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return dataset
