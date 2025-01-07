@@ -38,6 +38,26 @@ def resize_pad_image(image, target_size=(224, 224)):
 
 
 def pad_image_2(image, target_size=(415, 559)):
+    """
+    Pad an image to a target size by embedding it in a larger frame with random offsets.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to be padded.
+    target_size : tuple of int, optional
+        The target size for the padded image, specified as (height, width). Default is (415, 559).
+
+    Returns:
+    -------
+    np.ndarray
+        The padded image with the specified target size, where the original image is randomly offset within the frame.
+
+    Raises:
+    -------
+    Exception
+        If the image cannot fit inside the target frame.
+    """
     small_image = image
 
     try:
@@ -66,9 +86,18 @@ def pad_image_2(image, target_size=(415, 559)):
 
 def load_events_bb(file_path):
     """
-    load events from folder
-    """
+    Load events from a folder, creating barebones Event objects for each .npy file.
 
+    Parameters:
+    ----------
+    file_path : str
+        Path to the folder containing .npy files.
+
+    Returns:
+    -------
+    list of Event
+        A list of Event objects created from the .npy files in the specified folder.
+    """
     events = []
 
     # Iterate over all .npy files in the directory
@@ -89,15 +118,30 @@ def load_events_bb(file_path):
     return events
 
 
-def bin_image(image, N):
+def bin_image(image, n):
+    """
+    Bin an image by reducing its resolution using a block summation method.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image to be binned.
+    n : int
+        The binning factor. Each NxN block in the original image is summed to form one pixel in the binned image.
+
+    Returns:
+    -------
+    np.ndarray
+        The binned image with reduced resolution.
+    """
     height, width = image.shape
 
-    new_height = (height // N) * N
-    new_width = (width // N) * N
+    new_height = (height // n) * n
+    new_width = (width // n) * n
 
     trimmed_image = image[:new_height, :new_width]
 
-    binned_image = trimmed_image.reshape(new_height // N, N, new_width // N, N).sum(
+    binned_image = trimmed_image.reshape(new_height // n, n, new_width // n, n).sum(
         axis=(1, 3)
     )
 
