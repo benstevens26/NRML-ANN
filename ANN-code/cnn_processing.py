@@ -174,9 +174,28 @@ def pad_image(image, target_size=(415, 559)):
     return target_frame
 
 
-# Function to load a single file and preprocess it
-# def parse_function(file_path, binning=1, dark_dir="/vols/lz/MIGDAL/sim_ims/darks"):
 def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
+    """
+    Parse a file into a preprocessed image tensor and corresponding label.
+
+    Parameters:
+    ----------
+    file_path : tf.Tensor
+        Tensor containing the file path to the .npy file.
+    m_dark : np.ndarray
+       master dark frame used for preprocessing.
+    example_dark_list_unbinned : list of np.ndarray
+        List of unbinned example dark frames for noise addition.
+    binning : int, optional
+        Factor by which the images are binned (default is 1, meaning no binning).
+
+    Returns:
+    -------
+    image : np.ndarray
+        A preprocessed 3D tensor representing the image, with shape (415, 559, 1).
+    label : int
+        The label extracted from the file name: 0 for 'C' (carbon), 1 for 'F' (fluorine).
+    """
     file_path_str = file_path.numpy().decode('utf-8')
 
     # Load the image data from the .npy file
@@ -193,15 +212,13 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, binning=1):
     else:
         example_dark_list = example_dark_list_unbinned
 
+    # processing steps
     image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
-
     image = smooth_operator(image)
-    # Pad the image
     image = pad_image(image)
 
-    # Set shape explicitly for TensorFlow to know
     image = image.astype(np.float32)
-    image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
+    image = np.expand_dims(image, axis=-1)  # shape becomes (415, 559, 1) for grayscale
 
     return image, label
 
