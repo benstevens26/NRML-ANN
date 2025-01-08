@@ -12,12 +12,12 @@ import scipy.stats
 from numpy.linalg import svd
 from scipy.stats import kurtosis, skew
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-config_path = os.path.join(script_dir, "matplotlibrc.json")
-with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
-    custom_params = json.load(file)
+# script_dir = os.path.dirname(os.path.realpath(__file__))
+# config_path = os.path.join(script_dir, "matplotlibrc.json")
+# with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
+#     custom_params = json.load(file)
 
-plt.rcParams.update(custom_params)
+# plt.rcParams.update(custom_params)
 
 
 class Event:

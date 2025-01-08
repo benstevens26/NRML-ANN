@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-with open("matplotlibrc.json", "r") as file:
-    custom_params = json.load(file)
+# with open("matplotlibrc.json", "r") as file:
+#     custom_params = json.load(file)
 
-plt.rcParams.update(custom_params)
+# plt.rcParams.update(custom_params)
 model_name = "LENRI"
 
 

@@ -9,10 +9,10 @@ import seaborn as sns
 from scipy.stats import zscore
 from sklearn.metrics import auc, roc_curve
 
-with open("matplotlibrc.json", "r") as file:
-    custom_params = json.load(file)
+# with open("matplotlibrc.json", "r") as file:
+#     custom_params = json.load(file)
 
-plt.rcParams.update(custom_params)
+# plt.rcParams.update(custom_params)
 
 
 def plot_model_performance(
