@@ -193,17 +193,58 @@ def parse_function(file_path, m_dark, example_dark_list_unbinned, channels=1, bi
     image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
     image = smooth_operator(image)
     image = pad_image(image)
-
+    # print(image.shape)
     # Set shape explicitly for TensorFlow to know
     image = np.float32(image)
-    label = np.int32(label)
-    if channels==3:
-        image = np.array(image) * 255 / np.max(image)
-        image = np.stack([image]*channels, axis=-1)
+    # label = np.int32(label)
+    # if channels == 3:
+    # # Ensure float type and normalize
+    #     image = image.astype(np.float32)
+    #     max_val = np.max(image)
+    #     if max_val > 0:  # Avoid division by zero
+    #         image /= max_val
+    #     image = np.stack([image]*channels, axis=-1)
+    #     # image = preprocess_input(image)
+
+    # else:
+    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
+    
+    
+    if channels == 3:
+        # Ensure the image is a 2D array
+        if image.ndim == 3:
+            if image.shape[-1] == 1:  # Handle (height, width, 1)
+                image = np.squeeze(image, axis=-1)
+            else:
+                raise ValueError(f"Unexpected shape {image.shape} for single-channel image.")
+        elif image.ndim != 2:
+            raise ValueError(f"Unexpected image shape: {image.shape}. Expected 2D array.")
+
+        # Ensure the type is float32
+        image = image.astype(np.float32)
+
+        # Normalize to range [0, 255] if needed
+        max_val = np.max(image)
+        if max_val > 0:  # Avoid division by zero
+            image = image * (255.0 / max_val)
+
+        # Create 3 channels by stacking
+        image = np.repeat(image[:, :, np.newaxis], 3, axis=-1)  # Shape becomes (height, width, 3)
+
+        # Apply VGG16 preprocessing
         image = preprocess_input(image)
     else:
-        image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
-        
+        # Expand dimensions for single-channel images
+        if image.ndim == 2:
+            image = np.expand_dims(image, axis=-1)  # Shape becomes (height, width, 1)
+        elif image.ndim != 3 or image.shape[-1] != 1:
+            raise ValueError(f"Unexpected shape {image.shape} for grayscale image.")
+
+    
+    
+    # print(image.shape)
+    # print(type(label))
+    
     # label = np.int32(label)
     # image = np.float32(image)
     return image, label
