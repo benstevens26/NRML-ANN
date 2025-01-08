@@ -134,7 +134,6 @@ remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size)  # Next 15%
 test_dataset = remaining.skip(val_size)  # Final 15%
 
-
 # events = load_image_subset(frac=0.001)
 # # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
 num_categories = 2  # Change to 3 if argon included
@@ -214,7 +213,9 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 
 
 epochs = 10
-batch_size = 32  # No clue if this is applicable. Again just guessing based on the code I'm "inspired by"
+
+train_dataset = train_dataset.batch(batch_size) # make it into batches
+
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 

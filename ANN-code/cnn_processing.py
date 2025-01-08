@@ -281,8 +281,8 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     ))
 
     # Shuffle, batch, and prefetch the data for training
-    dataset = dataset.shuffle(buffer_size=100)  # Shuffle the dataset to ensure randomness
-    dataset = dataset.batch(batch_size)
+    # dataset = dataset.shuffle(buffer_size=100)  # Shuffle the dataset to ensure randomness
+    # dataset = dataset.batch(batch_size)
     # dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return dataset
