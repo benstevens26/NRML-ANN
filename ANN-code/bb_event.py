@@ -9,11 +9,6 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 
-with open("matplotlibrc.json", "r") as file:
-    custom_params = json.load(file)
-
-plt.rcParams.update(custom_params)
-
 
 class BB_Event:
     """
