@@ -151,7 +151,7 @@ num_categories = 2  # Change to 3 if argon included
 # y = [event.get_species_from_name() for event in events]
 
 ## Loading VGG16 model
-base_model = VGG16(weights="imagenet", include_top=False, input_shape=(415, 559, 3))
+base_model = VGG16(weights="imagenet", include_top=False, input_shape=(572, 768, 3))
 net = base_model.output
 net = tf.keras.layers.Flatten()(net)
 net = tf.keras.layers.Dense(256, activation=tf.nn.relu)(net)
@@ -160,7 +160,7 @@ preds = tf.keras.layers.Dense(num_categories, activation=tf.nn.softmax)(net)
 model = tf.keras.Model(base_model.input, preds)
 
 # Ensure input dtype is tf.float32
-# model.build(input_shape=(None, 415, 559, 3))
+# model.build(input_shape=(None, 572, 768, 3))
 # model.layers[0].input_dtype = tf.float32
 
 freeze = False
