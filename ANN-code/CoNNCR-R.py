@@ -129,7 +129,7 @@ train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used
 
-train_dataset = full_dataset.take(train_size)  # First 70%
+train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
 remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size)  # Next 15%
 test_dataset = remaining.skip(val_size)  # Final 15%
@@ -214,11 +214,18 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 
 epochs = 10
 
+print("Before batching dataset")
+print(train_dataset)
+
 train_dataset = train_dataset.batch(batch_size) # make it into batches
 
+("After batching dataset")
+print(train_dataset)
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
+print("After loading dataset")
+print(train_dataset)
 
 history = model.fit(
     train_dataset,
