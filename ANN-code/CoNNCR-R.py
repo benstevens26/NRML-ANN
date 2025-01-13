@@ -131,8 +131,8 @@ test_size = dataset_size - train_size - val_size  # Ensure all data is used
 
 train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
 remaining = full_dataset.skip(train_size)  # Remaining 30%
-val_dataset = remaining.take(val_size)  # Next 15%
-test_dataset = remaining.skip(val_size)  # Final 15%
+val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
+test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
 
 # events = load_image_subset(frac=0.001)
 # # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
@@ -213,14 +213,6 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 
 
 epochs = 10
-
-print("Before batching dataset")
-print(train_dataset)
-
-train_dataset = train_dataset.batch(batch_size) # make it into batches
-
-("After batching dataset")
-print(train_dataset)
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
