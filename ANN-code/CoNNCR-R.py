@@ -109,12 +109,19 @@ def load_image_subset(
 
 # Define base directories and batch size
 
-base_dirs = ['/vols/lz/MIGDAL/sim_ims/C/300-320keV', '/vols/lz/MIGDAL/sim_ims/F/300-320keV']  # List your data directories here
+base_dirs = [
+    "/vols/lz/tmarley/GEM_ITO/run/im0",
+    "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im2",
+    "/vols/lz/tmarley/GEM_ITO/run/im3",
+    "/vols/lz/tmarley/GEM_ITO/run/im4",
+]  # List your data directories here
 # base_dirs = ['Data/C', 'Data/F']  # List your data directories here
 batch_size = 32
 dark_list_number = 0
 binning = 1
-dark_dir="/vols/lz/MIGDAL/sim_ims/darks"
+dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
 # dark_dir="Data/darks"
 m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
 example_dark_list_unbinned = np.load(
@@ -122,7 +129,9 @@ example_dark_list_unbinned = np.load(
 )
 
 # Load the dataset
-full_dataset = load_data(base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3)
+full_dataset = load_data(
+    base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
+)
 
 dataset_size = len(full_dataset)
 train_size = int(0.7 * dataset_size)
@@ -226,7 +235,7 @@ history = model.fit(
     validation_data=val_dataset,
     verbose=1,
     class_weight=None,  # look into changing this, might be good to
-    callbacks=[tb_callback, ckpt_callback]
+    callbacks=[tb_callback, ckpt_callback],
 )
 
 train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
