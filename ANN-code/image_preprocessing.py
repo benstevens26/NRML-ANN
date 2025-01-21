@@ -5,8 +5,9 @@ Module that contains standalone functions for image preprocessing.
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from convert_sim_ims import convert_im, get_dark_sample
+import matplotlib.pyplot as plt
 
-def gaussian_smoothing(image, smoothing_sigma=5):
+def gaussian_smoothing(image, smoothing_sigma=3.5):
     """
     Apply Gaussian smoothing to an event image.
 
@@ -15,7 +16,7 @@ def gaussian_smoothing(image, smoothing_sigma=5):
     image : np.ndarray
         The image to smooth.
     smoothing_sigma : float, optional
-        The standard deviation for Gaussian kernel, controlling the smoothing level (default is 5).
+        The standard deviation for Gaussian kernel, controlling the smoothing level (default is 3.5).
 
     Returns
     -------
@@ -24,6 +25,46 @@ def gaussian_smoothing(image, smoothing_sigma=5):
     
     """
     return gaussian_filter(image, sigma=smoothing_sigma)
+
+def smoothing_widget(image, smoothing_sigma):
+    """
+    Apply Gaussian smoothing to the image and display the result.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        Input 2D array representing the image.
+    smoothing_sigma : float
+        Standard deviation for Gaussian kernel.
+    """
+    # Apply Gaussian smoothing
+    smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
+    
+    # Calculate total intensities
+    original_intensity = np.sum(image)
+    smoothed_intensity = np.sum(smoothed_image)
+    
+    # Plot the original and smoothed images
+    plt.figure(figsize=(10, 10))
+    
+    # Original image
+    plt.subplot(2, 1, 1)
+    plt.imshow(image, cmap='viridis', origin='lower')
+    plt.title("Original Image")
+    plt.colorbar(label="Intensity")
+    plt.grid(False)
+    plt.xlabel(f"Total Intensity: {original_intensity:.2f}")
+    
+    # Smoothed image
+    plt.subplot(2, 1, 2)
+    plt.imshow(smoothed_image, cmap='viridis', origin='lower')
+    plt.title(f"Smoothed Image (σ={smoothing_sigma})")
+    plt.colorbar(label="Intensity")
+    plt.grid(False)
+    plt.xlabel(f"Total Intensity: {smoothed_intensity:.2f}")
+    
+    plt.tight_layout()
+    plt.show()
 
 
 def noise_adder(image, m_dark=None, example_dark_list=None, noise_index=None):
