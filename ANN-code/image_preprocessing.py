@@ -7,6 +7,7 @@ from scipy.ndimage import gaussian_filter
 from convert_sim_ims import convert_im, get_dark_sample
 import matplotlib.pyplot as plt
 
+
 def gaussian_smoothing(image, smoothing_sigma=3.5):
     """
     Apply Gaussian smoothing to an event image.
@@ -22,9 +23,10 @@ def gaussian_smoothing(image, smoothing_sigma=3.5):
     -------
     np.ndarray
         The smoothed image.
-    
+
     """
     return gaussian_filter(image, sigma=smoothing_sigma)
+
 
 def smoothing_widget(image, smoothing_sigma):
     """
@@ -39,30 +41,30 @@ def smoothing_widget(image, smoothing_sigma):
     """
     # Apply Gaussian smoothing
     smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
-    
+
     # Calculate total intensities
     original_intensity = np.sum(image)
     smoothed_intensity = np.sum(smoothed_image)
-    
+
     # Plot the original and smoothed images
     plt.figure(figsize=(10, 10))
-    
+
     # Original image
     plt.subplot(2, 1, 1)
-    plt.imshow(image, cmap='viridis', origin='lower')
+    plt.imshow(image, cmap="viridis", origin="lower")
     plt.title("Original Image")
     plt.colorbar(label="Intensity")
     plt.grid(False)
     plt.xlabel(f"Total Intensity: {original_intensity:.2f}")
-    
+
     # Smoothed image
     plt.subplot(2, 1, 2)
-    plt.imshow(smoothed_image, cmap='viridis', origin='lower')
+    plt.imshow(smoothed_image, cmap="viridis", origin="lower")
     plt.title(f"Smoothed Image (σ={smoothing_sigma})")
     plt.colorbar(label="Intensity")
     plt.grid(False)
     plt.xlabel(f"Total Intensity: {smoothed_intensity:.2f}")
-    
+
     plt.tight_layout()
     plt.show()
 
@@ -81,7 +83,7 @@ def noise_adder(image, m_dark=None, example_dark_list=None, noise_index=None):
         List of example dark images from which a random sample is selected for noise addition.
     noise_index : int, optional
         The index of the example dark to use for noise addition (if you want to specify it).
-    
+
 
     Returns
     -------
@@ -94,7 +96,8 @@ def noise_adder(image, m_dark=None, example_dark_list=None, noise_index=None):
 
     im_dims = [len(image[0]), len(image)]
 
-    noised_image = convert_im(image,
+    noised_image = convert_im(
+        image,
         get_dark_sample(
             m_dark,
             im_dims,
