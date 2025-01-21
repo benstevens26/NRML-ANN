@@ -4,6 +4,7 @@ Module that contains standalone functions for image preprocessing.
 
 from scipy.ndimage import gaussian_filter
 
+
 def gaussian_smoothing(image, smoothing_sigma=5):
     """
     Apply Gaussian smoothing to an event image.
@@ -19,6 +20,6 @@ def gaussian_smoothing(image, smoothing_sigma=5):
     -------
     np.ndarray
         The smoothed image.
-    
+
     """
     return gaussian_filter(image, sigma=smoothing_sigma)
