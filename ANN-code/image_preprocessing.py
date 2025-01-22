@@ -105,3 +105,38 @@ def noise_adder(image, m_dark=None, example_dark_list=None, noise_index=None):
         ),
     )
     return noised_image
+
+
+def image_threshold_widget(image, threshold_percentile):
+    """
+    Apply a threshold to the image based on the given percentile
+    and display the original and thresholded images.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        The input image array to process.
+    threshold_percentile : float
+        The percentile used to calculate the threshold value.
+    """
+    threshold = np.percentile(image, threshold_percentile)
+    
+
+    thresholded_image = image > threshold
+
+    plt.figure(figsize=(10, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.imshow(image, cmap='viridis', origin='lower')
+    plt.title("Original Image")
+    plt.colorbar(label="Intensity")
+    plt.grid(False)
+    
+    plt.subplot(1, 2, 2)
+    plt.imshow(thresholded_image, cmap='gray', origin='lower')
+    plt.title(f"Thresholded Image\n(Threshold: {threshold:.2f})")
+    plt.colorbar(label="Binary Mask")
+    plt.grid(False)
+    
+    plt.tight_layout()
+    plt.show()
