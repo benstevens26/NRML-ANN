@@ -122,7 +122,7 @@ def image_threshold_widget(image, threshold_percentile):
     threshold = np.percentile(image, threshold_percentile)
     
 
-    thresholded_image = image > threshold
+    thresholded_image = np.where(image > threshold, image, 0)
 
     plt.figure(figsize=(10, 5))
     
