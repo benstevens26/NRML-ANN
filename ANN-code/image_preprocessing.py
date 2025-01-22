@@ -120,7 +120,8 @@ def image_threshold_widget(image, threshold_percentile):
         The percentile used to calculate the threshold value.
     """
     threshold = np.percentile(image, threshold_percentile)
-    
+    original_intensity = np.sum(image)
+    thresholded_intensity = np.sum(thresholded_image)
 
     thresholded_image = np.where(image > threshold, image, 0)
 
@@ -131,12 +132,14 @@ def image_threshold_widget(image, threshold_percentile):
     plt.title("Original Image")
     plt.colorbar(label="Intensity")
     plt.grid(False)
+    plt.xlabel(f"Total Intensity: {original_intensity:.2f}")
     
     plt.subplot(1, 2, 2)
     plt.imshow(thresholded_image, cmap='gray', origin='lower')
     plt.title(f"Thresholded Image\n(Threshold: {threshold:.2f})")
     plt.colorbar(label="Binary Mask")
     plt.grid(False)
-    
+    plt.xlabel(f"Thresholded Intensity: {thresholded_intensity:.2f}")
+
     plt.tight_layout()
     plt.show()
