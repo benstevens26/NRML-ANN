@@ -3,6 +3,7 @@ Module that contains standalone functions for feature extraction from Event imag
 """
 
 import numpy as np
+from scipy.ndimage import center_of_mass
 
 
 def extract_energy_deposition(image):
@@ -45,13 +46,39 @@ def extract_axis(image, batch=False):
 
     Parameters:
         image (numpy.ndarray): 2D array representing the image.
-        
+        batch (bool): If True, the function will expect a batch of images
 
     Returns:
         principal_axis (numpy.ndarray): Unit vector indicating the direction of the principal axis.
         centroid (tuple): The coordinates of the image centroid.
+
     """
-    from scipy.ndimage import center_of_mass
+    
+    if batch:
+        results = []
+        image_batch = image
+        for image in image_batch:
+            centroid = center_of_mass(image)
+
+            y, x = np.nonzero(image)  
+            centered_x = x - centroid[1]
+            centered_y = y - centroid[0]
+            intensities = image[y, x]
+
+            weighted_x = centered_x * intensities
+            weighted_y = centered_y * intensities
+            cov_matrix = np.cov(np.stack([weighted_x, weighted_y]))
+
+            eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+            principal_axis = eigenvectors[:, np.argmax(eigenvalues)]
+
+            results.append({
+                'principal_axis': principal_axis,
+                'centroid': centroid
+            })
+
+        return results
+
 
     # find centroid
     centroid = center_of_mass(image)
