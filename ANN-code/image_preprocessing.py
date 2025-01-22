@@ -120,10 +120,10 @@ def image_threshold_widget(image, threshold_percentile):
         The percentile used to calculate the threshold value.
     """
     threshold = np.percentile(image, threshold_percentile)
+    thresholded_image = np.where(image > threshold, image, 0)
+
     original_intensity = np.sum(image)
     thresholded_intensity = np.sum(thresholded_image)
-
-    thresholded_image = np.where(image > threshold, image, 0)
 
     plt.figure(figsize=(10, 5))
     
