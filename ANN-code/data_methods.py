@@ -29,6 +29,8 @@ def create_file_paths(base_dirs):
 
                 file_paths.append(os.path.join(dir, filename))
 
-    return np.random.shuffle(file_paths)
+    np.random.shuffle(file_paths)
+
+    return file_paths
 
     
