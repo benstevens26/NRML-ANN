@@ -1,4 +1,6 @@
-# single_model_visualizer.py
+"""
+Module for visualizing model performance metrics.
+"""
 
 import json
 
