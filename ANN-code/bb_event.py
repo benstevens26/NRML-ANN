@@ -1,5 +1,5 @@
 """
-This module contains the `Event` class, which endows a nuclear recoil image with attributes.
+This module contains the barebones `Event` class, which endows a nuclear recoil image with attributes.
 """
 
 import json
@@ -8,13 +8,6 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
-
-# script_dir = os.path.dirname(os.path.realpath(__file__))
-# config_path = os.path.join(script_dir, "matplotlibrc.json")
-# with open(config_path, "r") as file:  # For reading the matplotlibrc.json file
-#     custom_params = json.load(file)
-
-# plt.rcParams.update(custom_params)
 
 class Event:
     """
