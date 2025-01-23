@@ -26,7 +26,7 @@ def resize_pad_image_tf(event, target_size=(224, 224)):
     event.image = tf.image.resize_with_pad(event.image, target_size[0], target_size[1])
 
 
-def pad_image(event, target_size=(768, 768)):
+def pad_image(event, target_size=(768, 572)):
 
     small_image = event.image
 
@@ -34,7 +34,7 @@ def pad_image(event, target_size=(768, 768)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (768, 768)
+        # Create an empty frame filled with zeros (black) of size (768, 572)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -56,7 +56,7 @@ def pad_image(event, target_size=(768, 768)):
         "Image could not fit inside target frame"
 
 
-def pad_image_2(image, target_size=(768, 768)):
+def pad_image_2(image, target_size=(768, 572)):
 
     small_image = image
 
@@ -64,7 +64,7 @@ def pad_image_2(image, target_size=(768, 768)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (768, 768)
+        # Create an empty frame filled with zeros (black) of size (768, 572)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -153,12 +153,12 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
     return image
 
 
-def pad_image(image, target_size=(768, 768)):
+def pad_image(image, target_size=(768, 572)):
 
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
 
-    # Create an empty frame filled with zeros (black) of size (768, 768)
+    # Create an empty frame filled with zeros (black) of size (768, 572)
     target_frame = np.zeros((target_height, target_width), dtype=image.dtype)
 
     # Calculate maximum offsets so the small image fits inside the target frame
@@ -216,7 +216,7 @@ def parse_function(
     #     # image = preprocess_input(image)
 
     # else:
-    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (768, 768, 1)
+    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (768, 572, 1)
 
     if channels == 3:
         # Ensure the image is a 2D array
@@ -293,7 +293,7 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Set output shapes explicitly to avoid unknown rank issues
     dataset = dataset.map(
         lambda image, label: (
-            tf.ensure_shape(image, (768, 768, channels)),
+            tf.ensure_shape(image, (768, 572, channels)),
             tf.ensure_shape(label, ()),
         )
     )

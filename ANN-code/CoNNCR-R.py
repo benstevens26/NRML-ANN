@@ -1,9 +1,14 @@
-import datetime
-import glob
 import os
-import random
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+for gpu in physical_devices:
+    tf.config.experimental.set_memory_growth(gpu, True)
+import datetime
+import glob
+import random
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.activations import softmax
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
@@ -12,7 +17,6 @@ from tensorflow.keras.layers import *
 from bb_event import *
 from cnn_processing import load_data
 
-os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 
 def load_all_bb_events(base_dirs: list):
@@ -115,10 +119,34 @@ print("TensorFlow version:", tf.__version__)
 print("Num GPUs Available:", len(tf.config.list_physical_devices("GPU")))
 print("GPU Device Name:", tf.test.gpu_device_name())
 print("==========================================")
+# List available GPUs
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+# Check if TensorFlow is using the GPU
+if tf.test.gpu_device_name():
+    print("Default GPU Device: ", tf.test.gpu_device_name())
+else:
+    print("GPU not detected.")
+print("==========================================")
+
+
+
+gpus = tf.config.list_physical_devices('GPU')
+print(gpus)
+if gpus:
+    try:
+        # Set memory growth to prevent TensorFlow from allocating all GPU memory at once
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        print(f"Using GPU: {gpus[0].name}")
+    except RuntimeError as e:
+        print(f"Error while setting memory growth: {e}")
+
+
 
 
 # Define base directories and batch size
-with tf.device("/device:GPU:0"):
+with tf.device(gpus[0].name):
     base_dirs = [
         "/vols/lz/tmarley/GEM_ITO/run/im0",
         "/vols/lz/tmarley/GEM_ITO/run/im1/C",
@@ -161,7 +189,7 @@ with tf.device("/device:GPU:0"):
     # y = [event.get_species_from_name() for event in events]
 
     ## Loading VGG16 model
-    base_model = VGG16(weights="imagenet", include_top=False, input_shape=(768, 768, 3))
+    base_model = VGG16(weights="imagenet", include_top=False, input_shape=(768, 572, 3))
     net = base_model.output
     net = tf.keras.layers.Flatten()(net)
     net = tf.keras.layers.Dense(256, activation=tf.nn.relu)(net)
@@ -174,7 +202,7 @@ with tf.device("/device:GPU:0"):
     # )
 
     # Ensure input dtype is tf.float32
-    # model.build(input_shape=(None, 768, 768, 3))
+    # model.build(input_shape=(None, 768, 572, 3))
     # model.layers[0].input_dtype = tf.float32
 
     freeze = False
@@ -228,7 +256,7 @@ with tf.device("/device:GPU:0"):
     # X_test = preprocess_input(np.array(X_test))
     # X_val = preprocess_input(np.array(X_val))
 
-    epochs = 6
+    epochs = 10
 
     train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
