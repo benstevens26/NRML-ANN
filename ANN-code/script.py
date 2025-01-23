@@ -19,8 +19,9 @@ im_dirs = [
 
 max_x = 0
 max_y = 0
-biggest_image_x = None
-biggest_image_y = None
+x_dimensions = []
+y_dimensions = []
+
 
 for dir in im_dirs:
     for filename in tqdm(os.listdir(dir)):
@@ -31,14 +32,20 @@ for dir in im_dirs:
 
             y, x = image.shape
 
-            if x > max_x:
-                max_x = x
-                biggest_image_x = full_path
-                
-            if y > max_y:
-                max_y = y
-                biggest_image_y = full_path
+            x_dimensions.append((x, full_path))
+            y_dimensions.append((y, full_path))
 
-print(max_x, max_y)
-print("the biggest x image",biggest_image_x)
-print("the biggest y image",biggest_image_y)
+
+x_dimensions.sort(key=lambda item: item[0], reverse=True)
+y_dimensions.sort(key=lambda item: item[0], reverse=True)
+
+top_x = x_dimensions[:30]
+top_y = y_dimensions[:30]
+
+print("Top 30 images with the largest x dimensions:")
+for x_size, path in top_x:
+    print(f"Size: {x_size}, Filename: {path}")
+
+print("\nTop 30 images with the largest y dimensions:")
+for y_size, path in top_y:
+    print(f"Size: {y_size}, Filename: {path}")
