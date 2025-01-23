@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import *
 from cnn_processing import load_data
+from tensorflow.keras.activations import softmax
+
 
 from bb_event import *
 
@@ -106,154 +108,164 @@ def load_image_subset(
 
     return event_dirs
 
+print("==========================================")
+print("TensorFlow version:", tf.__version__)
+print("Num GPUs Available:", len(tf.config.list_physical_devices('GPU')))
+print("GPU Device Name:", tf.test.gpu_device_name())
+print("==========================================")
+
 
 # Define base directories and batch size
+with tf.device('/device:GPU:0'):
+    base_dirs = [
+        "/vols/lz/tmarley/GEM_ITO/run/im0",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im2",
+        "/vols/lz/tmarley/GEM_ITO/run/im3",
+        "/vols/lz/tmarley/GEM_ITO/run/im4",
+    ]  # List your data directories here
+    # base_dirs = ['Data/C', 'Data/F']  # List your data directories here
+    batch_size = 32
+    dark_list_number = 0
+    binning = 1
+    dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
+    # dark_dir="Data/darks"
+    m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
+    example_dark_list_unbinned = np.load(
+        f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
+    )
 
-base_dirs = [
-    "/vols/lz/tmarley/GEM_ITO/run/im0",
-    "/vols/lz/tmarley/GEM_ITO/run/im1/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im1/F",
-    "/vols/lz/tmarley/GEM_ITO/run/im2",
-    "/vols/lz/tmarley/GEM_ITO/run/im3",
-    "/vols/lz/tmarley/GEM_ITO/run/im4",
-]  # List your data directories here
-# base_dirs = ['Data/C', 'Data/F']  # List your data directories here
-batch_size = 32
-dark_list_number = 0
-binning = 1
-dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
-# dark_dir="Data/darks"
-m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
-example_dark_list_unbinned = np.load(
-    f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
-)
+    # Load the dataset
+    full_dataset = load_data(
+        base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
+    )
 
-# Load the dataset
-full_dataset = load_data(
-    base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
-)
+    dataset_size = len(full_dataset)
+    train_size = int(0.7 * dataset_size)
+    val_size = int(0.15 * dataset_size)
+    test_size = dataset_size - train_size - val_size  # Ensure all data is used
 
-dataset_size = len(full_dataset)
-train_size = int(0.7 * dataset_size)
-val_size = int(0.15 * dataset_size)
-test_size = dataset_size - train_size - val_size  # Ensure all data is used
+    train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
+    remaining = full_dataset.skip(train_size)  # Remaining 30%
+    val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
+    test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
 
-train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
-remaining = full_dataset.skip(train_size)  # Remaining 30%
-val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
-test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
+    # events = load_image_subset(frac=0.001)
+    # # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
+    num_categories = 2  # Change to 3 if argon included
 
-# events = load_image_subset(frac=0.001)
-# # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
-num_categories = 2  # Change to 3 if argon included
+    # X = [event.image for event in events]
+    # y = [event.get_species_from_name() for event in events]
 
-# X = [event.image for event in events]
-# y = [event.get_species_from_name() for event in events]
+    ## Loading VGG16 model
+    base_model = VGG16(weights="imagenet", include_top=False, input_shape=(768, 768, 3))
+    net = base_model.output
+    net = tf.keras.layers.Flatten()(net)
+    net = tf.keras.layers.Dense(256, activation=tf.nn.relu)(net)
+    net = tf.keras.layers.Dropout(0.5)(net)
+    preds = tf.keras.layers.Dense(num_categories, activation=tf.nn.softmax)(net)
+    # model = tf.keras.Model(base_model.input, preds)
+    model = tf.keras.models.load_model(
+        "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/CNN_checkpoints/epoch-04.keras",
+        custom_objects={"softmax_v2": softmax}  # Map softmax_v2 to softmax
+    )
 
-## Loading VGG16 model
-base_model = VGG16(weights="imagenet", include_top=False, input_shape=(572, 768, 3))
-net = base_model.output
-net = tf.keras.layers.Flatten()(net)
-net = tf.keras.layers.Dense(256, activation=tf.nn.relu)(net)
-net = tf.keras.layers.Dropout(0.5)(net)
-preds = tf.keras.layers.Dense(num_categories, activation=tf.nn.softmax)(net)
-model = tf.keras.Model(base_model.input, preds)
+    # Ensure input dtype is tf.float32
+    # model.build(input_shape=(None, 768, 768, 3))
+    # model.layers[0].input_dtype = tf.float32
 
-# Ensure input dtype is tf.float32
-# model.build(input_shape=(None, 572, 768, 3))
-# model.layers[0].input_dtype = tf.float32
-
-freeze = False
-# Freeze convolutional layers if needed
-if freeze:
-    for layer in model.layers[:-4]:
-        layer.trainable = False
-
-
-opt = tf.keras.optimizers.Adam(
-    learning_rate=1e-6, decay=0
-)  # Default values from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
-loss = tf.keras.losses.SparseCategoricalCrossentropy()
-
-# "binary_crossentropy" if num_categories == 2 else
-model.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
-
-# Setup TensorBoard callback
-log_dir = "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs"
-tb_callback = tf.keras.callbacks.TensorBoard(log_dir)
+    freeze = False
+    # Freeze convolutional layers if needed
+    if freeze:
+        for layer in model.layers[:-4]:
+            layer.trainable = False
 
 
-# Setup checkpoint callback
-os.makedirs(os.path.join(log_dir, "ckpt"), exist_ok=True)
-ckpt_path = os.path.join(log_dir, "ckpt", "epoch-{epoch:02d}.keras")
+    opt = tf.keras.optimizers.Adam(
+        learning_rate=1e-6, decay=0
+    )  # Default values from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
+    loss = tf.keras.losses.SparseCategoricalCrossentropy()
+
+    # "binary_crossentropy" if num_categories == 2 else
+    model.compile(loss=loss, optimizer=opt, metrics=["accuracy"])
+
+    # Setup TensorBoard callback
+    log_dir = "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs"
+    tb_callback = tf.keras.callbacks.TensorBoard(log_dir)
 
 
-ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-    ckpt_path,
-    save_weights_only=False,
-    # period=1,
-    save_best_only=False,
-    monitor="val_loss",
-)
+    # Setup checkpoint callback
+    os.makedirs(os.path.join(log_dir, "ckpt"), exist_ok=True)
+    ckpt_path = os.path.join(log_dir, "ckpt", "epoch-{epoch:02d}.keras")
 
 
-# # Split into 70% train, 15% validation, 15% test
-# train_ratio = 0.70
-# validation_ratio = 0.15
-# test_ratio = 0.15
+    ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
+        ckpt_path,
+        save_weights_only=False,
+        # period=1,
+        save_best_only=False,
+        monitor="val_loss",
+    )
 
 
-# X_train, X_test, y_train, y_test = train_test_split(
-#     X, y, test_size=1 - train_ratio, random_state=42
-# )
-
-# X_val, X_test, y_val, y_test = train_test_split(
-#     X_test,
-#     y_test,
-#     test_size=test_ratio / (test_ratio + validation_ratio),
-#     random_state=42,
-# )
+    # # Split into 70% train, 15% validation, 15% test
+    # train_ratio = 0.70
+    # validation_ratio = 0.15
+    # test_ratio = 0.15
 
 
-## Preprocessing input
-# X_train = preprocess_input(np.array(X_train))
-# X_test = preprocess_input(np.array(X_test))
-# X_val = preprocess_input(np.array(X_val))
+    # X_train, X_test, y_train, y_test = train_test_split(
+    #     X, y, test_size=1 - train_ratio, random_state=42
+    # )
+
+    # X_val, X_test, y_val, y_test = train_test_split(
+    #     X_test,
+    #     y_test,
+    #     test_size=test_ratio / (test_ratio + validation_ratio),
+    #     random_state=42,
+    # )
 
 
-epochs = 10
+    ## Preprocessing input
+    # X_train = preprocess_input(np.array(X_train))
+    # X_test = preprocess_input(np.array(X_test))
+    # X_val = preprocess_input(np.array(X_val))
 
-train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
-print("After loading dataset")
-print(train_dataset)
+    epochs = 6
 
-history = model.fit(
-    train_dataset,
-    epochs=epochs,
-    batch_size=batch_size,
-    validation_data=val_dataset,
-    verbose=1,
-    class_weight=None,  # look into changing this, might be good to
-    callbacks=[tb_callback, ckpt_callback],
-)
+    train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
-train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
+    print("After loading dataset")
+    print(train_dataset)
 
-history_filename = os.path.join(log_dir, "history.json")
+    history = model.fit(
+        train_dataset,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_data=val_dataset,
+        verbose=1,
+        class_weight=None,  # look into changing this, might be good to
+        callbacks=[tb_callback, ckpt_callback],
+    )
 
-model_save_path = "CoNNCR-R.keras"
-model.save(model_save_path)
+    train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
-info_filename = os.path.join(log_dir, "info.txt")
+    history_filename = os.path.join(log_dir, "history.json")
 
-with open(history_filename, "w") as file:
-    json.dump(history.history, file)
+    model_save_path = "CoNNCR-R.keras"
+    model.save(model_save_path)
 
-with open(info_filename, "w") as file:
-    file.write("***Training Info***\n")
-    file.write("Training Start: {}".format(train_start_time))
-    file.write("Training End: {}\n".format(train_end_time))
-    file.write("Arguments:\n")
-    # for arg in sys.argv:
-    #     file.write("\t{}\n".format(arg))
+    info_filename = os.path.join(log_dir, "info.txt")
+
+    with open(history_filename, "w") as file:
+        json.dump(history.history, file)
+
+    with open(info_filename, "w") as file:
+        file.write("***Training Info***\n")
+        file.write("Training Start: {}".format(train_start_time))
+        file.write("Training End: {}\n".format(train_end_time))
+        file.write("Arguments:\n")
+        # for arg in sys.argv:
+        #     file.write("\t{}\n".format(arg))
