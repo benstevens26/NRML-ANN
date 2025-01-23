@@ -126,16 +126,16 @@ def image_threshold_widget(image, threshold_percentile):
     thresholded_intensity = np.sum(thresholded_image)
 
     plt.figure(figsize=(10, 5))
-    
+
     plt.subplot(1, 2, 1)
-    plt.imshow(image, cmap='viridis', origin='lower')
+    plt.imshow(image, cmap="viridis", origin="lower")
     plt.title("Original Image")
     plt.colorbar(label="Intensity")
     plt.grid(False)
     plt.xlabel(f"Total Intensity: {original_intensity:.2f}")
-    
+
     plt.subplot(1, 2, 2)
-    plt.imshow(thresholded_image, cmap='gray', origin='lower')
+    plt.imshow(thresholded_image, cmap="gray", origin="lower")
     plt.title(f"Thresholded Image\n(Threshold: {threshold:.2f})")
     plt.colorbar(label="Binary Mask")
     plt.grid(False)

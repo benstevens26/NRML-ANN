@@ -5,6 +5,7 @@ Module that contains standalone functions for imaging analysis.
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def plot_axis(image, axis, centroid):
     """
     Plots an image with the principal axis overlaid.
@@ -41,4 +42,3 @@ def plot_axis(image, axis, centroid):
     plt.title("Image with Principal Axis")
     plt.legend()
     plt.show()
-

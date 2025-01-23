@@ -66,7 +66,9 @@ def extract_axis(image, method="eigen"):
         centered_x = x_coords - mean_x
         centered_y = y_coords - mean_y
 
-        weighted_coords = np.stack([centered_x * intensities, centered_y * intensities], axis=0)
+        weighted_coords = np.stack(
+            [centered_x * intensities, centered_y * intensities], axis=0
+        )
         cov_matrix = np.cov(weighted_coords)
 
         eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
