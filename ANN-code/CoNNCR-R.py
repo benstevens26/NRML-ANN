@@ -5,13 +5,14 @@ import random
 
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from tensorflow.keras.activations import softmax
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.keras.layers import *
-from cnn_processing import load_data
-from tensorflow.keras.activations import softmax
-
 
 from bb_event import *
+from cnn_processing import load_data
+
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 
 def load_all_bb_events(base_dirs: list):
@@ -108,15 +109,16 @@ def load_image_subset(
 
     return event_dirs
 
+
 print("==========================================")
 print("TensorFlow version:", tf.__version__)
-print("Num GPUs Available:", len(tf.config.list_physical_devices('GPU')))
+print("Num GPUs Available:", len(tf.config.list_physical_devices("GPU")))
 print("GPU Device Name:", tf.test.gpu_device_name())
 print("==========================================")
 
 
 # Define base directories and batch size
-with tf.device('/device:GPU:0'):
+with tf.device("/device:GPU:0"):
     base_dirs = [
         "/vols/lz/tmarley/GEM_ITO/run/im0",
         "/vols/lz/tmarley/GEM_ITO/run/im1/C",
@@ -126,7 +128,7 @@ with tf.device('/device:GPU:0'):
         "/vols/lz/tmarley/GEM_ITO/run/im4",
     ]  # List your data directories here
     # base_dirs = ['Data/C', 'Data/F']  # List your data directories here
-    batch_size = 32
+    batch_size = 16
     dark_list_number = 0
     binning = 1
     dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
@@ -181,7 +183,6 @@ with tf.device('/device:GPU:0'):
         for layer in model.layers[:-4]:
             layer.trainable = False
 
-
     opt = tf.keras.optimizers.Adam(
         learning_rate=1e-6, decay=0
     )  # Default values from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
@@ -194,11 +195,9 @@ with tf.device('/device:GPU:0'):
     log_dir = "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs"
     tb_callback = tf.keras.callbacks.TensorBoard(log_dir)
 
-
     # Setup checkpoint callback
     os.makedirs(os.path.join(log_dir, "ckpt"), exist_ok=True)
     ckpt_path = os.path.join(log_dir, "ckpt", "epoch-{epoch:02d}.keras")
-
 
     ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
         ckpt_path,
@@ -208,12 +207,10 @@ with tf.device('/device:GPU:0'):
         monitor="val_loss",
     )
 
-
     # # Split into 70% train, 15% validation, 15% test
     # train_ratio = 0.70
     # validation_ratio = 0.15
     # test_ratio = 0.15
-
 
     # X_train, X_test, y_train, y_test = train_test_split(
     #     X, y, test_size=1 - train_ratio, random_state=42
@@ -226,12 +223,10 @@ with tf.device('/device:GPU:0'):
     #     random_state=42,
     # )
 
-
     ## Preprocessing input
     # X_train = preprocess_input(np.array(X_train))
     # X_test = preprocess_input(np.array(X_test))
     # X_val = preprocess_input(np.array(X_val))
-
 
     epochs = 6
 

@@ -5,16 +5,17 @@ contains methods for changing the event.image to be correct for use in the CNN m
 
 """
 
-import cv2
-import tensorflow as tf
-import random
-import numpy as np
-from bb_event import BB_Event
 import os
 import random
+
+import cv2
+import numpy as np
 import scipy.ndimage as nd
-from convert_sim_ims import convert_im, get_dark_sample
+import tensorflow as tf
 from tensorflow.keras.applications.vgg16 import preprocess_input
+
+from bb_event import BB_Event
+from convert_sim_ims import convert_im, get_dark_sample
 
 
 def resize_pad_image_tf(event, target_size=(224, 224)):
