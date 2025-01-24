@@ -5,6 +5,7 @@ Module that contains standalone functions for feature extraction from Event imag
 import numpy as np
 from scipy.ndimage import center_of_mass
 from scipy.linalg import svd
+from scipy.interpolate import splprep, splev
 
 
 def extract_energy_deposition(image):
@@ -112,3 +113,32 @@ def extract_axis(image, method="eigen"):
         mean_y = np.mean(y_flat)
 
         return principal_axis, (mean_x, mean_y)
+
+
+def extract_spline(image, smoothing=0.5, resolution=500):
+    """
+    Performs spline interpolation to calculate the principal axis of an image.
+    
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        smoothing (float): Smoothing factor for the spline fitting. Default is 0.5.
+        resolution (int): Number of points to interpolate along the spline. Default is 500.
+    
+    Returns:
+        tuple: x_spline, y_spline - Coordinates of the interpolated spline points.
+    """
+    # Extract non-zero intensity points
+    y_coords, x_coords = np.nonzero(image)
+    intensities = image[y_coords, x_coords]
+
+    # Weight points by intensity
+    weights = intensities / intensities.max()
+
+    # Fit a spline through the weighted points
+    tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)
+
+    # Interpolate the spline
+    u_fine = np.linspace(0, 1, resolution)
+    x_spline, y_spline = splev(u_fine, tck)
+
+    return x_spline, y_spline
