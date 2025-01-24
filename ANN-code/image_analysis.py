@@ -54,3 +54,37 @@ def plot_axis(image, principal_axis, centroid):
     plt.show()
 
 
+def plot_intensity_contour(image, grid_x, grid_y, grid_z):
+    """
+    Plots the original image with the grid interpolation overlayed.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the original image.
+        grid_x (numpy.ndarray): X-coordinates of the interpolated grid.
+        grid_y (numpy.ndarray): Y-coordinates of the interpolated grid.
+        grid_z (numpy.ndarray): Interpolated intensity values from the grid.
+    """
+    plt.figure(figsize=(12, 6))
+
+    # Plot the original image
+    plt.subplot(1, 2, 1)
+    plt.imshow(image, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
+    plt.colorbar(label='Intensity')
+    plt.title('Original Image')
+
+    # Plot the interpolated spline
+    plt.subplot(1, 2, 2)
+    plt.imshow(grid_z, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
+    plt.colorbar(label='Interpolated Intensity')
+    plt.contour(grid_x, grid_y, grid_z, levels=10, colors='red', linewidths=0.5)
+    plt.title('Grid Interpolation')
+
+    # Add common labels
+    plt.suptitle('Image with Grid Interpolation', fontsize=16)
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.tight_layout()
+
+    plt.show()
+
+
