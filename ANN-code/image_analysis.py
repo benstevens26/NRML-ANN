@@ -38,7 +38,6 @@ def plot_axis(image, principal_axis, centroid):
 
     # Plot the image
     plt.imshow(image, cmap='viridis', origin='lower', extent=(0, width, 0, height))
-    plt.colorbar(label='Intensity')
 
     # Overlay the principal axis
     plt.plot([x_start, x_end], [y_start, y_end], color='red', linestyle='--', linewidth=2, label='Principal Axis')
