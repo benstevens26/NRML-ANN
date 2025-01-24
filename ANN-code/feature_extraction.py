@@ -115,7 +115,6 @@ def extract_axis(image, method="eigen"):
         return principal_axis, (mean_x, mean_y)
 
 
-
 def extract_intensity_contour(image, resolution=500):
     """
     Performs grid interpolation on a nuclear recoil image to produce intensity contours.
