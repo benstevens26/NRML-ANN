@@ -126,6 +126,9 @@ def extract_intensity_contour(image, resolution=500):
     Returns:
         tuple: grid_x, grid_y, grid_z - Interpolated grid coordinates and intensity values.
     """
+
+    intensities = intensities[intensities > np.percentile(intensities, 50)]
+
     # Extract non-zero intensity points
     y_coords, x_coords = np.nonzero(image)
     intensities = image[y_coords, x_coords]
