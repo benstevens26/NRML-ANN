@@ -12,8 +12,8 @@ im_dirs = [
     "/vols/lz/tmarley/GEM_ITO/run/im1/F",
     "/vols/lz/tmarley/GEM_ITO/run/im2",
     "/vols/lz/tmarley/GEM_ITO/run/im3",
-    "/vols/lz/tmarley/GEM_ITO/run/im4"
-    ]
+    "/vols/lz/tmarley/GEM_ITO/run/im4",
+]
 
 # im_dirs = ["ANN-code/Data/im0"]
 
