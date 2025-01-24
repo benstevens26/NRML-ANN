@@ -2,7 +2,6 @@
 SSH SCRIPT
 """
 
-
 import numpy as np
 import os
 from tqdm import tqdm
@@ -19,7 +18,7 @@ im_dirs = [
     "/vols/lz/tmarley/GEM_ITO/run/im3/F",
     "/vols/lz/tmarley/GEM_ITO/run/im4/C",
     "/vols/lz/tmarley/GEM_ITO/run/im4/F",
-    ]
+]
 
 # Lists to store suspicious filenames
 suspicious_y_images = []

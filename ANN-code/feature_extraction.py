@@ -8,6 +8,7 @@ from scipy.linalg import svd
 from scipy.interpolate import griddata
 from scipy.interpolate import splprep, splev
 
+
 def extract_energy_deposition(image):
     """
     Extract the total energy deposition from image
@@ -145,7 +146,7 @@ def extract_intensity_contour(image, resolution=500):
         points=(x_coords, y_coords),
         values=intensities,
         xi=(grid_x, grid_y),
-        method='cubic',
+        method="cubic",
         fill_value=0,
     )
 
@@ -176,9 +177,13 @@ def extract_spline(image, smoothing=0.5, resolution=500):
 
     # Debugging: Ensure inputs are valid
     if len(x_coords) < 4 or len(y_coords) < 4:
-        raise ValueError("Insufficient points for spline fitting. At least 4 points are required.")
+        raise ValueError(
+            "Insufficient points for spline fitting. At least 4 points are required."
+        )
     if len(x_coords) != len(y_coords) or len(x_coords) != len(weights):
-        raise ValueError(f"Input dimensions mismatch: x_coords({len(x_coords)}), y_coords({len(y_coords)}), weights({len(weights)})")
+        raise ValueError(
+            f"Input dimensions mismatch: x_coords({len(x_coords)}), y_coords({len(y_coords)}), weights({len(weights)})"
+        )
 
     # Fit a spline through the weighted points
     tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)

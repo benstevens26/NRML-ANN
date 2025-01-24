@@ -117,16 +117,28 @@ def plot_spline(image, x_spline, y_spline):
     plt.figure(figsize=(8, 8))
 
     # Plot the original image
-    plt.imshow(image, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
-    plt.colorbar(label='Intensity')
+    plt.imshow(
+        image,
+        cmap="viridis",
+        origin="lower",
+        extent=(0, image.shape[1], 0, image.shape[0]),
+    )
+    plt.colorbar(label="Intensity")
 
     # Overlay the spline principal axis
-    plt.plot(x_spline, y_spline, color='red', linestyle='--', linewidth=2, label='Principal Axis Spline')
+    plt.plot(
+        x_spline,
+        y_spline,
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label="Principal Axis Spline",
+    )
 
     # Add labels and legend
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Image with Principal Axis Spline')
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Image with Principal Axis Spline")
     plt.legend()
 
     plt.show()
