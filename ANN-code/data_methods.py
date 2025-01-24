@@ -1,9 +1,11 @@
 """
 Module for data management
 """
+
 from tqdm import tqdm
 import os
 import numpy as np
+
 
 def create_file_paths(base_dirs):
     """
@@ -18,7 +20,7 @@ def create_file_paths(base_dirs):
     -------
     file_paths : list
         A (randomised) list of file paths to the .npy files in the specified directories.
-    
+
     """
 
     file_paths = []
@@ -32,5 +34,3 @@ def create_file_paths(base_dirs):
     np.random.shuffle(file_paths)
 
     return file_paths
-
-    

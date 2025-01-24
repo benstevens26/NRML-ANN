@@ -9,7 +9,7 @@ import numpy as np
 def plot_axis(image, principal_axis, centroid):
     """
     Plots the image with the principal axis overlayed.
-    
+
     Parameters:
         image (numpy.ndarray): 2D array representing the image.
         principal_axis (numpy.ndarray): Array containing the principal axis vector [x, y].
@@ -26,7 +26,7 @@ def plot_axis(image, principal_axis, centroid):
         scale = width / (2 * abs(dx))
     else:
         scale = height / (2 * abs(dy))
-    
+
     x_start = mean_x - dx * scale
     x_end = mean_x + dx * scale
     y_start = mean_y - dy * scale
@@ -37,18 +37,25 @@ def plot_axis(image, principal_axis, centroid):
     y_start, y_end = np.clip([y_start, y_end], 0, height)
 
     # Plot the image
-    plt.imshow(image, cmap='viridis', origin='lower', extent=(0, width, 0, height))
+    plt.imshow(image, cmap="viridis", origin="lower", extent=(0, width, 0, height))
 
     # Overlay the principal axis
-    plt.plot([x_start, x_end], [y_start, y_end], color='red', linestyle='--', linewidth=2, label='Principal Axis')
+    plt.plot(
+        [x_start, x_end],
+        [y_start, y_end],
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label="Principal Axis",
+    )
 
     # Mark the centroid
-    plt.scatter(mean_x, mean_y, color='blue', label='Centroid')
+    plt.scatter(mean_x, mean_y, color="blue", label="Centroid")
 
     # Add labels and legend
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Image with Principal Axis')
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Image with Principal Axis")
     plt.legend()
 
     plt.show()
@@ -68,23 +75,31 @@ def plot_intensity_contour(image, grid_x, grid_y, grid_z):
 
     # Plot the original image
     plt.subplot(1, 2, 1)
-    plt.imshow(image, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
-    plt.colorbar(label='Intensity')
-    plt.title('Original Image')
+    plt.imshow(
+        image,
+        cmap="viridis",
+        origin="lower",
+        extent=(0, image.shape[1], 0, image.shape[0]),
+    )
+    plt.colorbar(label="Intensity")
+    plt.title("Original Image")
 
     # Plot the interpolated spline
     plt.subplot(1, 2, 2)
-    plt.imshow(grid_z, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
-    plt.colorbar(label='Interpolated Intensity')
-    plt.contour(grid_x, grid_y, grid_z, levels=10, colors='red', linewidths=0.5)
-    plt.title('Grid Interpolation')
+    plt.imshow(
+        grid_z,
+        cmap="viridis",
+        origin="lower",
+        extent=(0, image.shape[1], 0, image.shape[0]),
+    )
+    plt.colorbar(label="Interpolated Intensity")
+    plt.contour(grid_x, grid_y, grid_z, levels=10, colors="red", linewidths=0.5)
+    plt.title("Grid Interpolation")
 
     # Add common labels
-    plt.suptitle('Image with Grid Interpolation', fontsize=16)
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
+    plt.suptitle("Image with Grid Interpolation", fontsize=16)
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
     plt.tight_layout()
 
     plt.show()
-
-
