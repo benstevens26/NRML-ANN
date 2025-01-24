@@ -69,7 +69,7 @@ def smoothing_widget(image, smoothing_sigma):
     plt.show()
 
 
-def noise_adder(image, m_dark=None, example_dark_list=None, noise_index=None):
+def noise_adder(image, m_dark, example_dark_list, noise_index=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
 
