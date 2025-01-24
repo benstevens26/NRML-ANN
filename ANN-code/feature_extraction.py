@@ -6,7 +6,7 @@ import numpy as np
 from scipy.ndimage import center_of_mass
 from scipy.linalg import svd
 from scipy.interpolate import griddata
-
+from scipy.interpolate import splprep, splev
 
 def extract_energy_deposition(image):
     """
@@ -150,3 +150,35 @@ def extract_intensity_contour(image, resolution=500):
     )
 
     return grid_x, grid_y, grid_z
+
+
+def extract_spline(image, smoothing=0.5, resolution=500):
+    """
+    Extracts the recoil principal axis as a 1D cubic spline.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        smoothing (float): Smoothing factor for the spline fitting. Default is 0.5.
+        resolution (int): Number of points to interpolate along the spline.
+
+    Returns:
+        tuple: x_spline, y_spline - Coordinates of the spline points.
+    """
+    # Extract non-zero intensity points
+    y_coords, x_coords = np.nonzero(image)
+    intensities = image[y_coords, x_coords]
+
+    if len(x_coords) == 0 or len(y_coords) == 0:
+        raise ValueError("The input image contains no non-zero intensities.")
+
+    # Weight points by intensity
+    weights = intensities / intensities.max()
+
+    # Fit a spline through the weighted points
+    tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)
+
+    # Interpolate the spline
+    u_fine = np.linspace(0, 1, resolution)
+    x_spline, y_spline = splev(u_fine, tck)
+
+    return x_spline, y_spline
