@@ -103,3 +103,30 @@ def plot_intensity_contour(image, grid_x, grid_y, grid_z):
     plt.tight_layout()
 
     plt.show()
+
+
+def plot_spline(image, x_spline, y_spline):
+    """
+    Plots the original image with the principal axis spline overlayed.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        x_spline (numpy.ndarray): Interpolated x-coordinates of the spline.
+        y_spline (numpy.ndarray): Interpolated y-coordinates of the spline.
+    """
+    plt.figure(figsize=(8, 8))
+
+    # Plot the original image
+    plt.imshow(image, cmap='viridis', origin='lower', extent=(0, image.shape[1], 0, image.shape[0]))
+    plt.colorbar(label='Intensity')
+
+    # Overlay the spline principal axis
+    plt.plot(x_spline, y_spline, color='red', linestyle='--', linewidth=2, label='Principal Axis Spline')
+
+    # Add labels and legend
+    plt.xlabel('X-axis')
+    plt.ylabel('Y-axis')
+    plt.title('Image with Principal Axis Spline')
+    plt.legend()
+
+    plt.show()
