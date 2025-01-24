@@ -43,7 +43,7 @@ def extract_max_pixel_intensity(image):
 
 def extract_axis(image, method="eigen"):
     """
-    Efficiently extracts the principal axis of a recoil image using eigen decomposition.
+    Extracts the principal axis of a recoil image.
 
     Parameters:
         image (numpy.ndarray): 2D array representing the image.
