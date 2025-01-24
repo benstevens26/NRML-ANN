@@ -5,7 +5,7 @@ Module that contains standalone functions for feature extraction from Event imag
 import numpy as np
 from scipy.ndimage import center_of_mass
 from scipy.linalg import svd
-from scipy.interpolate import splprep, splev
+from scipy.interpolate import griddata
 
 
 def extract_energy_deposition(image):
@@ -115,30 +115,38 @@ def extract_axis(image, method="eigen"):
         return principal_axis, (mean_x, mean_y)
 
 
-def extract_spline(image, smoothing=0.5, resolution=500):
+
+def extract_intensity_contour(image, resolution=500):
     """
-    Performs spline interpolation to calculate the principal axis of an image.
-    
+    Performs grid interpolation on a nuclear recoil image to produce intensity contours.
+
     Parameters:
         image (numpy.ndarray): 2D array representing the image.
-        smoothing (float): Smoothing factor for the spline fitting. Default is 0.5.
-        resolution (int): Number of points to interpolate along the spline. Default is 500.
-    
+        resolution (int): Number of interpolation points along each axis.
+
     Returns:
-        tuple: x_spline, y_spline - Coordinates of the interpolated spline points.
+        tuple: grid_x, grid_y, grid_z - Interpolated grid coordinates and intensity values.
     """
     # Extract non-zero intensity points
     y_coords, x_coords = np.nonzero(image)
     intensities = image[y_coords, x_coords]
 
-    # Weight points by intensity
-    weights = intensities / intensities.max()
+    if len(x_coords) == 0 or len(y_coords) == 0:
+        raise ValueError("The input image contains no non-zero intensities.")
 
-    # Fit a spline through the weighted points
-    tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)
+    # Define a high-resolution grid
+    grid_x, grid_y = np.meshgrid(
+        np.linspace(0, image.shape[1] - 1, resolution),
+        np.linspace(0, image.shape[0] - 1, resolution),
+    )
 
-    # Interpolate the spline
-    u_fine = np.linspace(0, 1, resolution)
-    x_spline, y_spline = splev(u_fine, tck)
+    # Perform cubic interpolation
+    grid_z = griddata(
+        points=(x_coords, y_coords),
+        values=intensities,
+        xi=(grid_x, grid_y),
+        method='cubic',
+        fill_value=0,
+    )
 
-    return x_spline, y_spline
+    return grid_x, grid_y, grid_z
