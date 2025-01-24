@@ -174,6 +174,12 @@ def extract_spline(image, smoothing=0.5, resolution=500):
     # Weight points by intensity
     weights = intensities / intensities.max()
 
+    # Debugging: Ensure inputs are valid
+    if len(x_coords) < 4 or len(y_coords) < 4:
+        raise ValueError("Insufficient points for spline fitting. At least 4 points are required.")
+    if len(x_coords) != len(y_coords) or len(x_coords) != len(weights):
+        raise ValueError(f"Input dimensions mismatch: x_coords({len(x_coords)}), y_coords({len(y_coords)}), weights({len(weights)})")
+
     # Fit a spline through the weighted points
     tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)
 
