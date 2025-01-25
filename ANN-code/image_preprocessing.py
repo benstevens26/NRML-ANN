@@ -160,12 +160,16 @@ def uncropped_check(image: np.ndarray, search_fraction: float) -> bool:
     max_y, max_x = image.shape
 
     # Determine a threshold intensity to avoid floating point errors
-    threshold = np.percentile(image[image > 0], 1)  # Smallest 1% of non-zero intensities
+    non_zero_values = image[image > 0]
+    if non_zero_values.size == 0:
+        return False  # No non-zero pixels, so cannot determine uncropped status
+
+    threshold = np.percentile(non_zero_values, 1)  # Smallest 1% of non-zero intensities
 
     # Find the largest x and y coordinates with intensity greater than the threshold
     nonzero_indices = np.argwhere(image > threshold)
     if nonzero_indices.size == 0:
-        return False
+        return False  # No valid indices after applying threshold
 
     max_nonzero_y = nonzero_indices[:, 0].max() + 1  # Add 1 to account for indexing
     max_nonzero_x = nonzero_indices[:, 1].max() + 1
