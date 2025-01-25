@@ -192,7 +192,9 @@ def uncropped_check(
         bounding_box = extract_bounding_box(image)
 
         # calculate the area of the bounding box
-        box_area = (bounding_box[2] - bounding_box[0]) * (bounding_box[3] - bounding_box[1])
+        box_area = (bounding_box[2] - bounding_box[0]) * (
+            bounding_box[3] - bounding_box[1]
+        )
 
         # calculate the area of the image
         image_area = max_y * max_x

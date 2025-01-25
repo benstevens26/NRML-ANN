@@ -40,18 +40,21 @@ for im_dir in im_dirs:
                 min_dim_error.append(im_file)
                 continue
 
-            if uncropped_check(image, search_fraction=0.8, method='max_comparison'):
+            if uncropped_check(image, search_fraction=0.8, method="max_comparison"):
                 uncropped_error.append(im_file)
                 continue
 
-            if uncropped_check(zero_edges(image, 5), search_fraction=0.6, method='area_comparison'):
+            if uncropped_check(
+                zero_edges(image, 5), search_fraction=0.6, method="area_comparison"
+            ):
                 uncropped_error.append(im_file)
-                
 
-print("Number of images that violate the minimum dimension criteria: ", len(min_dim_error))
+
+print(
+    "Number of images that violate the minimum dimension criteria: ", len(min_dim_error)
+)
 print("Number of images that violate the uncropped criteria: ", len(uncropped_error))
 
 # save the min_dim_error and uncropped_error lists as csv files
 np.savetxt("min_dim_error.csv", min_dim_error, delimiter=",", fmt="%s")
 np.savetxt("uncropped_error.csv", uncropped_error, delimiter=",", fmt="%s")
-

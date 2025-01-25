@@ -183,8 +183,6 @@ def plot_binary_image(image: np.ndarray):
     """
     binary_image = (image > 0).astype(int)
     plt.figure(figsize=(8, 8))
-    plt.imshow(binary_image, cmap='gray')
+    plt.imshow(binary_image, cmap="gray")
     plt.title("Non-zero Intensities (Binary Representation)")
     plt.show()
-
-
