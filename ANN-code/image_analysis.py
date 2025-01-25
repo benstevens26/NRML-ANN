@@ -159,10 +159,16 @@ def plot_bounding_box(image: np.ndarray, bounding_box: tuple):
     min_y, min_x, max_y, max_x = bounding_box
 
     plt.figure(figsize=(8, 8))
-    plt.imshow(image, cmap='viridis')
+    plt.imshow(image, cmap="viridis")
     plt.gca().add_patch(
-        plt.Rectangle((min_x, min_y), max_x - min_x + 1, max_y - min_y + 1,
-                      edgecolor='red', facecolor='none', linewidth=2)
+        plt.Rectangle(
+            (min_x, min_y),
+            max_x - min_x + 1,
+            max_y - min_y + 1,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=2,
+        )
     )
     plt.title("Image with Bounding Box")
     plt.show()

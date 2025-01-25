@@ -145,7 +145,9 @@ def image_threshold_widget(image, threshold_percentile):
     plt.show()
 
 
-def uncropped_check(image: np.ndarray, search_fraction: float, method: str = 'max_comparison') -> bool:
+def uncropped_check(
+    image: np.ndarray, search_fraction: float, method: str = "max_comparison"
+) -> bool:
     """
     Check if an image is uncropped using different methods based on a search fraction.
 
@@ -160,13 +162,15 @@ def uncropped_check(image: np.ndarray, search_fraction: float, method: str = 'ma
     # Get the dimensions of the image
     max_y, max_x = image.shape
 
-    if method == 'max_comparison':
+    if method == "max_comparison":
         # Determine a threshold intensity to avoid floating point errors
         non_zero_values = image[image > 0]
         if non_zero_values.size == 0:
             return False  # No non-zero pixels, so cannot determine uncropped status
 
-        threshold = np.percentile(non_zero_values, 1)  # Smallest 1% of non-zero intensities
+        threshold = np.percentile(
+            non_zero_values, 1
+        )  # Smallest 1% of non-zero intensities
 
         # Find the largest x and y coordinates with intensity greater than the threshold
         nonzero_indices = np.argwhere(image > threshold)
@@ -182,7 +186,7 @@ def uncropped_check(image: np.ndarray, search_fraction: float, method: str = 'ma
 
         return uncropped_x or uncropped_y
 
-    elif method == 'area_comparison':
+    elif method == "area_comparison":
         # Find the indices of non-zero pixels
         nonzero_indices = np.argwhere(image > 0)
         if nonzero_indices.size == 0:
@@ -203,7 +207,9 @@ def uncropped_check(image: np.ndarray, search_fraction: float, method: str = 'ma
         return uncropped_x or uncropped_y
 
     else:
-        raise ValueError("Invalid method. Choose 'max_comparison' or 'area_comparison'.")
+        raise ValueError(
+            "Invalid method. Choose 'max_comparison' or 'area_comparison'."
+        )
 
 
 def dim_check(image: np.ndarray, min_dim: int) -> bool:
