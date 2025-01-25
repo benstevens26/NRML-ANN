@@ -5,6 +5,7 @@ Module that contains standalone functions for image preprocessing.
 import numpy as np
 from scipy.ndimage import gaussian_filter
 from convert_sim_ims import convert_im, get_dark_sample
+from feature_extraction import extract_bounding_box
 import matplotlib.pyplot as plt
 
 
@@ -153,7 +154,7 @@ def uncropped_check(
 
     Parameters:
     image (np.ndarray): The input image as a 2D numpy array.
-    search_fraction (float): Fraction of the image size to use as the threshold for cropping.
+    search_fraction (float): Depends on the method used. For 'max_comparison', it is the fraction of the image dimensions.
     method (str): The method to use for the check. Options are 'max_comparison' or 'area_comparison'.
 
     Returns:
@@ -187,24 +188,17 @@ def uncropped_check(
         return uncropped_x or uncropped_y
 
     elif method == "area_comparison":
-        # Find the indices of non-zero pixels
-        nonzero_indices = np.argwhere(image > 0)
-        if nonzero_indices.size == 0:
-            return False  # No non-zero pixels, so cannot determine bounding box
+        # extract the bounding box
+        bounding_box = extract_bounding_box(image)
 
-        # Calculate the bounding box
-        min_y, min_x = nonzero_indices.min(axis=0)
-        max_y_bbox, max_x_bbox = nonzero_indices.max(axis=0)
+        # calculate the area of the bounding box
+        box_area = (bounding_box[2] - bounding_box[0]) * (bounding_box[3] - bounding_box[1])
 
-        # Calculate the bounding box dimensions
-        bbox_height = max_y_bbox - min_y + 1
-        bbox_width = max_x_bbox - min_x + 1
+        # calculate the area of the image
+        image_area = max_y * max_x
 
-        # Compare bounding box dimensions with thresholds
-        uncropped_y = bbox_height < search_fraction * max_y
-        uncropped_x = bbox_width < search_fraction * max_x
-
-        return uncropped_x or uncropped_y
+        # return True if the box area is less than the search fraction of the image area
+        return box_area / image_area < search_fraction
 
     else:
         raise ValueError(
