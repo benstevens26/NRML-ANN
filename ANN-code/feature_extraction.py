@@ -197,7 +197,7 @@ def extract_spline(image, smoothing=0.5, resolution=500):
 
 def extract_bounding_box(image: np.ndarray) -> tuple:
     """
-    Extract the bounding box coordinates and dimensions from an image.
+    Extract the bounding box coordinates and dimensions from an image using the 50th percentile threshold.
 
     Parameters:
     image (np.ndarray): The input image as a 2D numpy array.
@@ -205,10 +205,13 @@ def extract_bounding_box(image: np.ndarray) -> tuple:
     Returns:
     tuple: (min_y, min_x, max_y, max_x) representing the bounding box.
     """
-    # Find the indices of non-zero pixels
-    nonzero_indices = np.argwhere(image > 0)
+    # Determine the 50th percentile intensity threshold
+    threshold = np.percentile(image, 50)
+
+    # Find the indices of pixels above the threshold
+    nonzero_indices = np.argwhere(image > threshold)
     if nonzero_indices.size == 0:
-        return None  # No non-zero pixels, so no bounding box
+        return None  # No pixels above the threshold, so no bounding box
 
     # Calculate the bounding box
     min_y, min_x = nonzero_indices.min(axis=0)
