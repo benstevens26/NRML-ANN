@@ -142,3 +142,27 @@ def plot_spline(image, x_spline, y_spline):
     plt.legend()
 
     plt.show()
+
+
+def plot_bounding_box(image: np.ndarray, bounding_box: tuple):
+    """
+    Plot the image with the bounding box overlayed.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+    bounding_box (tuple): The bounding box coordinates (min_y, min_x, max_y, max_x).
+    """
+    if bounding_box is None:
+        print("No bounding box to plot.")
+        return
+
+    min_y, min_x, max_y, max_x = bounding_box
+
+    plt.figure(figsize=(8, 8))
+    plt.imshow(image, cmap='viridis')
+    plt.gca().add_patch(
+        plt.Rectangle((min_x, min_y), max_x - min_x + 1, max_y - min_y + 1,
+                      edgecolor='red', facecolor='none', linewidth=2)
+    )
+    plt.title("Image with Bounding Box")
+    plt.show()
