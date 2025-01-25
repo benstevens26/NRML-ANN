@@ -172,3 +172,19 @@ def plot_bounding_box(image: np.ndarray, bounding_box: tuple):
     )
     plt.title("Image with Bounding Box")
     plt.show()
+
+
+def plot_binary_image(image: np.ndarray):
+    """
+    Plot an image where all non-zero intensities are set to 1.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+    """
+    binary_image = (image > 0).astype(int)
+    plt.figure(figsize=(8, 8))
+    plt.imshow(binary_image, cmap='gray')
+    plt.title("Non-zero Intensities (Binary Representation)")
+    plt.show()
+
+
