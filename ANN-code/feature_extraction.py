@@ -193,3 +193,25 @@ def extract_spline(image, smoothing=0.5, resolution=500):
     x_spline, y_spline = splev(u_fine, tck)
 
     return x_spline, y_spline
+
+
+def extract_bounding_box(image: np.ndarray) -> tuple:
+    """
+    Extract the bounding box coordinates and dimensions from an image.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+
+    Returns:
+    tuple: (min_y, min_x, max_y, max_x) representing the bounding box.
+    """
+    # Find the indices of non-zero pixels
+    nonzero_indices = np.argwhere(image > 0)
+    if nonzero_indices.size == 0:
+        return None  # No non-zero pixels, so no bounding box
+
+    # Calculate the bounding box
+    min_y, min_x = nonzero_indices.min(axis=0)
+    max_y, max_x = nonzero_indices.max(axis=0)
+
+    return min_y, min_x, max_y, max_x
