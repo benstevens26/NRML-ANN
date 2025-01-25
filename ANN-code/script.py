@@ -6,7 +6,7 @@ import os
 import sys
 from tqdm import tqdm
 import numpy as np
-from image_preprocessing import uncropped_check, dim_check
+from image_preprocessing import uncropped_check, dim_check, zero_edges
 
 # image directories
 im_dirs = [
@@ -44,7 +44,7 @@ for im_dir in im_dirs:
                 uncropped_error.append(im_file)
                 continue
 
-            if uncropped_check(image, search_fraction=0.5, method='area_comparison'):
+            if uncropped_check(zero_edges(image, 5), search_fraction=0.6, method='area_comparison'):
                 uncropped_error.append(im_file)
                 
 
