@@ -143,3 +143,35 @@ def image_threshold_widget(image, threshold_percentile):
 
     plt.tight_layout()
     plt.show()
+
+
+def uncropped_check(image: np.ndarray, search_fraction: float) -> bool:
+    """
+    Check if an image is uncropped along the x or y axes based on a search fraction.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+    search_fraction (float): Fraction of the image size to use as the threshold for cropping.
+
+    Returns:
+    bool: True if the image is uncropped along either x or y axis, otherwise False.
+    """
+    # Get the dimensions of the image
+    max_y, max_x = image.shape
+
+    # Determine a threshold intensity to avoid floating point errors
+    threshold = np.percentile(image[image > 0], 1)  # Smallest 1% of non-zero intensities
+
+    # Find the largest x and y coordinates with intensity greater than the threshold
+    nonzero_indices = np.argwhere(image > threshold)
+    if nonzero_indices.size == 0:
+        return False
+
+    max_nonzero_y = nonzero_indices[:, 0].max() + 1  # Add 1 to account for indexing
+    max_nonzero_x = nonzero_indices[:, 1].max() + 1
+
+    # Compare max_nonzero_x and max_nonzero_y with thresholds
+    uncropped_x = max_nonzero_x < search_fraction * max_x
+    uncropped_y = max_nonzero_y < search_fraction * max_y
+
+    return uncropped_x or uncropped_y
