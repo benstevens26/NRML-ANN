@@ -145,13 +145,14 @@ def image_threshold_widget(image, threshold_percentile):
     plt.show()
 
 
-def uncropped_check(image: np.ndarray, search_fraction: float) -> bool:
+def uncropped_check(image: np.ndarray, search_fraction: float, method='max_comparison') -> bool:
     """
     Check if an image is uncropped along the x or y axes based on a search fraction.
 
     Parameters:
     image (np.ndarray): The input image as a 2D numpy array.
     search_fraction (float): Fraction of the image size to use as the threshold for cropping.
+    method (str): Method to use for uncropped check. Options are 'max_comparison' and 'area_comparison'.
 
     Returns:
     bool: True if the image is uncropped along either x or y axis, otherwise False.
@@ -179,3 +180,18 @@ def uncropped_check(image: np.ndarray, search_fraction: float) -> bool:
     uncropped_y = max_nonzero_y < search_fraction * max_y
 
     return uncropped_x or uncropped_y
+
+
+def dim_check(image: np.ndarray, min_dim: int) -> bool:
+    """
+    Check if an image has dimensions larger than a minimum value.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+    min_dim (int): Minimum dimension in either x or y direction.
+
+    Returns:
+    bool: True if the either x or y dimension is less than the minimum value, otherwise False.
+    """
+    y_dim, x_dim = image.shape
+    return y_dim < min_dim or x_dim < min_dim
