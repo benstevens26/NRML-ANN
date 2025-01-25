@@ -225,3 +225,26 @@ def dim_check(image: np.ndarray, min_dim: int) -> bool:
     """
     y_dim, x_dim = image.shape
     return y_dim < min_dim or x_dim < min_dim
+
+
+def zero_edges(image: np.ndarray, edge_width: int = 1) -> np.ndarray:
+    """
+    Zero the intensities in the specified number of pixels from each edge of the image.
+
+    Parameters:
+    image (np.ndarray): The input image as a 2D numpy array.
+    edge_width (int): The width of the edges to zero out.
+
+    Returns:
+    np.ndarray: The image with edges zeroed.
+    """
+    # Copy the image to avoid modifying the original
+    image_zeroed = image.copy()
+
+    # Zero out the edges
+    image_zeroed[:edge_width, :] = 0  # Top edge
+    image_zeroed[-edge_width:, :] = 0  # Bottom edge
+    image_zeroed[:, :edge_width] = 0  # Left edge
+    image_zeroed[:, -edge_width:] = 0  # Right edge
+
+    return image_zeroed
