@@ -2,11 +2,13 @@
 SSH SCRIPT
 """
 
-import numpy as np
 import os
+import sys
 from tqdm import tqdm
+import numpy as np
+from image_preprocessing import uncropped_check, dim_check
 
-# Directories to check
+# image directories
 im_dirs = [
     "/vols/lz/tmarley/GEM_ITO/run/im0/C",
     "/vols/lz/tmarley/GEM_ITO/run/im0/F",
@@ -20,41 +22,33 @@ im_dirs = [
     "/vols/lz/tmarley/GEM_ITO/run/im4/F",
 ]
 
-# Lists to store suspicious filenames
-suspicious_y_images = []
-suspicious_x_images = []
+min_dim_error = []
+uncropped_error = []
 
-# Loop through directories
-for dir in im_dirs:
-    for filename in tqdm(os.listdir(dir)):
-        if filename.endswith(".npy"):
-            full_path = os.path.join(dir, filename)
-            image = np.load(full_path)
+search_fraction = 0.8
+min_dim = 20
 
-            # Get image dimensions
-            y_length, x_length = image.shape
+for im_dir in im_dirs:
+    for file in tqdm(os.listdir(im_dir)):
+        if file.endswith(".npy"):
+            im_file = os.path.join(im_dir, file)
+            image = np.load(im_file)
 
-            # Find the highest (max y) and widest (max x) non-zero points
-            nonzero_y_coords, nonzero_x_coords = np.nonzero(image)
-            max_nonzero_y = nonzero_y_coords.max() if nonzero_y_coords.size > 0 else -1
-            max_nonzero_x = nonzero_x_coords.max() if nonzero_x_coords.size > 0 else -1
+            if dim_check(image, min_dim):
+                min_dim_error.append(im_file)
+                continue
 
-            # Check cropping criteria for y-axis
-            if max_nonzero_y < 0.8 * y_length:
-                suspicious_y_images.append(full_path)
+            if uncropped_check(image, search_fraction, method='max_comparison'):
+                uncropped_error.append(im_file)
+                continue
 
-            # Check cropping criteria for x-axis
-            if max_nonzero_x < 0.8 * x_length:
-                suspicious_x_images.append(full_path)
+            if uncropped_check(image, search_fraction, method='area_comparison'):
+                uncropped_error.append(im_file)
+                
 
-# Save the results to files
-with open("suspicious_y_images.txt", "w") as f_y:
-    for item in suspicious_y_images:
-        f_y.write(f"{item}\n")
+print("Number of images that violate the minimum dimension criteria: ", len(min_dim_error))
+print("Number of images that violate the uncropped criteria: ", len(uncropped_error))
 
-with open("suspicious_x_images.txt", "w") as f_x:
-    for item in suspicious_x_images:
-        f_x.write(f"{item}\n")
-
-print("Suspicious y-axis images saved to 'suspicious_y_images.txt'")
-print("Suspicious x-axis images saved to 'suspicious_x_images.txt'")
+# save the min_dim_error and uncropped_error lists as csv files
+np.savetxt("min_dim_error.csv", min_dim_error, delimiter=",", fmt="%s")
+np.savetxt("uncropped_error.csv", uncropped_error, delimiter=",", fmt="%s")
