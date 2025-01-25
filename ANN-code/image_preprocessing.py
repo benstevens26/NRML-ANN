@@ -145,41 +145,65 @@ def image_threshold_widget(image, threshold_percentile):
     plt.show()
 
 
-def uncropped_check(image: np.ndarray, search_fraction: float, method='max_comparison') -> bool:
+def uncropped_check(image: np.ndarray, search_fraction: float, method: str = 'max_comparison') -> bool:
     """
-    Check if an image is uncropped along the x or y axes based on a search fraction.
+    Check if an image is uncropped using different methods based on a search fraction.
 
     Parameters:
     image (np.ndarray): The input image as a 2D numpy array.
     search_fraction (float): Fraction of the image size to use as the threshold for cropping.
-    method (str): Method to use for uncropped check. Options are 'max_comparison' and 'area_comparison'.
+    method (str): The method to use for the check. Options are 'max_comparison' or 'area_comparison'.
 
     Returns:
-    bool: True if the image is uncropped along either x or y axis, otherwise False.
+    bool: True if the image is uncropped based on the selected method, otherwise False.
     """
     # Get the dimensions of the image
     max_y, max_x = image.shape
 
-    # Determine a threshold intensity to avoid floating point errors
-    non_zero_values = image[image > 0]
-    if non_zero_values.size == 0:
-        return False  # No non-zero pixels, so cannot determine uncropped status
+    if method == 'max_comparison':
+        # Determine a threshold intensity to avoid floating point errors
+        non_zero_values = image[image > 0]
+        if non_zero_values.size == 0:
+            return False  # No non-zero pixels, so cannot determine uncropped status
 
-    threshold = np.percentile(non_zero_values, 1)  # Smallest 1% of non-zero intensities
+        threshold = np.percentile(non_zero_values, 1)  # Smallest 1% of non-zero intensities
 
-    # Find the largest x and y coordinates with intensity greater than the threshold
-    nonzero_indices = np.argwhere(image > threshold)
-    if nonzero_indices.size == 0:
-        return False  # No valid indices after applying threshold
+        # Find the largest x and y coordinates with intensity greater than the threshold
+        nonzero_indices = np.argwhere(image > threshold)
+        if nonzero_indices.size == 0:
+            return False  # No valid indices after applying threshold
 
-    max_nonzero_y = nonzero_indices[:, 0].max() + 1  # Add 1 to account for indexing
-    max_nonzero_x = nonzero_indices[:, 1].max() + 1
+        max_nonzero_y = nonzero_indices[:, 0].max() + 1  # Add 1 to account for indexing
+        max_nonzero_x = nonzero_indices[:, 1].max() + 1
 
-    # Compare max_nonzero_x and max_nonzero_y with thresholds
-    uncropped_x = max_nonzero_x < search_fraction * max_x
-    uncropped_y = max_nonzero_y < search_fraction * max_y
+        # Compare max_nonzero_x and max_nonzero_y with thresholds
+        uncropped_x = max_nonzero_x < search_fraction * max_x
+        uncropped_y = max_nonzero_y < search_fraction * max_y
 
-    return uncropped_x or uncropped_y
+        return uncropped_x or uncropped_y
+
+    elif method == 'area_comparison':
+        # Find the indices of non-zero pixels
+        nonzero_indices = np.argwhere(image > 0)
+        if nonzero_indices.size == 0:
+            return False  # No non-zero pixels, so cannot determine bounding box
+
+        # Calculate the bounding box
+        min_y, min_x = nonzero_indices.min(axis=0)
+        max_y_bbox, max_x_bbox = nonzero_indices.max(axis=0)
+
+        # Calculate the bounding box dimensions
+        bbox_height = max_y_bbox - min_y + 1
+        bbox_width = max_x_bbox - min_x + 1
+
+        # Compare bounding box dimensions with thresholds
+        uncropped_y = bbox_height < search_fraction * max_y
+        uncropped_x = bbox_width < search_fraction * max_x
+
+        return uncropped_x or uncropped_y
+
+    else:
+        raise ValueError("Invalid method. Choose 'max_comparison' or 'area_comparison'.")
 
 
 def dim_check(image: np.ndarray, min_dim: int) -> bool:
