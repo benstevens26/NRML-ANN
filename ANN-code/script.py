@@ -29,8 +29,8 @@ uncropped_error = []
 
 # ssearch criteria
 min_dim = 10
-max_comparison_search_fraction = 0.8
-area_comparison_search_fraction = 0.6
+max_comparison_search_fraction = 0.90
+area_comparison_search_fraction = 0.63
 
 for im_dir in im_dirs:
     for file in tqdm(os.listdir(im_dir)):
