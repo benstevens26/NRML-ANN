@@ -28,7 +28,9 @@ min_dim_error = []
 uncropped_error = []
 
 # ssearch criteria
-min_dim = 20
+min_dim = 10
+max_comparison_search_fraction = 0.8
+area_comparison_search_fraction = 0.6
 
 for im_dir in im_dirs:
     for file in tqdm(os.listdir(im_dir)):
@@ -40,13 +42,12 @@ for im_dir in im_dirs:
                 min_dim_error.append(im_file)
                 continue
 
-            if uncropped_check(image, search_fraction=0.8, method="max_comparison"):
+            if uncropped_check(zero_edges(image, 2), max_comparison_search_fraction, method="max_comparison"):
                 uncropped_error.append(im_file)
                 continue
 
             if uncropped_check(
-                zero_edges(image, 5), search_fraction=0.6, method="area_comparison"
-            ):
+                zero_edges(image, 2), area_comparison_search_fraction, method="area_comparison"):
                 uncropped_error.append(im_file)
 
 
