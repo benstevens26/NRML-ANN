@@ -9,9 +9,11 @@ from feature_extraction import extract_bounding_box
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from ipywidgets import interact, FloatSlider
+from IPython.display import display
 from image_analysis import plot_axis
-from feature_extraction import extract_axis
+from feature_extraction import extract_axis, extract_intensity_profile
 from image_analysis import plot_3d
+
 
 
 def gaussian_smoothing(image, smoothing_sigma=3.5):
@@ -439,3 +441,51 @@ def combined_widget(image: np.ndarray, axis=False):
             smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
             threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
         )
+
+
+def intensity_profile_widget(image: np.ndarray):
+    """
+    Creates an interactive widget to explore how the extracted intensity profile depends on Gaussian smoothing.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the unsmoothed image.
+
+    Returns:
+        None
+    """
+    smoothing_slider = widgets.FloatSlider(
+        value=0.0,
+        min=0.0,
+        max=10.0,
+        step=0.1,
+        description='Smoothing σ:',
+        continuous_update=False
+    )
+
+    def update_plot(smoothing_sigma):
+        smoothed_image = gaussian_smoothing(image, smoothing_sigma)
+
+        # Plot the smoothed image
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.imshow(smoothed_image, cmap='viridis', origin='lower')
+        plt.colorbar(label='Intensity')
+        plt.title(f"Smoothed Image (Smoothing σ={smoothing_sigma})")
+        plt.axis('off')
+
+        # Extract and plot the intensity profile
+        distances, intensities = extract_intensity_profile(smoothed_image, plot=False)
+        plt.subplot(1, 2, 2)
+        plt.plot(distances, intensities, label="Intensity")
+        plt.axvline(0, color='red', linestyle='--', label='Centroid')
+        plt.title("Intensity Along Principal Axis")
+        plt.xlabel("Distance Along Principal Axis")
+        plt.ylabel("Intensity")
+        plt.legend()
+        plt.grid()
+
+        plt.tight_layout()
+        plt.show()
+
+    interactive_plot = widgets.interactive(update_plot, smoothing_sigma=smoothing_slider)
+    display(interactive_plot)
