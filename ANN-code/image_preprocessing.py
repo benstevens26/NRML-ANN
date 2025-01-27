@@ -7,7 +7,9 @@ from scipy.ndimage import gaussian_filter
 from convert_sim_ims import convert_im, get_dark_sample
 from feature_extraction import extract_bounding_box
 import matplotlib.pyplot as plt
-
+from ipywidgets import interact, FloatSlider
+from image_analysis import plot_axis
+from feature_extraction import extract_axis
 
 def gaussian_smoothing(image, smoothing_sigma=3.5):
     """
@@ -244,3 +246,120 @@ def zero_edges(image: np.ndarray, edge_width: int = 1) -> np.ndarray:
     image_zeroed[:, -edge_width:] = 0  # Right edge
 
     return image_zeroed
+
+
+def combined_widget(image: np.ndarray, axis=False):
+    """
+    Creates an interactive widget to apply both Gaussian smoothing and thresholding
+    to an image with sliders for sigma and threshold percentile.
+
+    Parameters:
+    ----------
+    image : np.ndarray
+        Input 2D array representing the image.
+    """
+    if axis:
+
+        def process_image(smoothing_sigma: float, threshold_percentile: float):
+            """
+            Process the image with Gaussian smoothing and thresholding.
+
+            Parameters:
+            ----------
+            smoothing_sigma : float
+                Standard deviation for Gaussian kernel.
+            threshold_percentile : float
+                Percentile for thresholding the image.
+            """
+            # Apply Gaussian smoothing
+            smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
+
+            # Apply thresholding
+            threshold_value = np.percentile(smoothed_image, threshold_percentile)
+            thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
+
+            # Calculate principal axis and centroid for smoothed image
+            smoothed_axis, smoothed_centroid = extract_axis(smoothed_image)
+
+            # Calculate principal axis and centroid for thresholded image
+            thresholded_axis, thresholded_centroid = extract_axis(thresholded_image)
+
+            # Plot the original, smoothed, and thresholded images with principal axes
+            plt.figure(figsize=(15, 5))
+
+            # Original image
+            plt.subplot(1, 3, 1)
+            plt.imshow(image, cmap="viridis", origin="lower")
+            plt.title("Original Image")
+            plt.grid(False)
+
+            # Smoothed image with principal axis
+            plt.subplot(1, 3, 2)
+            plot_axis(smoothed_image, smoothed_axis, smoothed_centroid)
+            plt.title(f"Smoothed Image (σ={smoothing_sigma})")
+
+            # Thresholded image with principal axis
+            plt.subplot(1, 3, 3)
+            plot_axis(thresholded_image, thresholded_axis, thresholded_centroid)
+            plt.title(f"Thresholded Image\n(>{threshold_percentile}th Percentile)")
+
+            plt.tight_layout()
+            plt.show()
+
+        # Create interactive sliders for smoothing_sigma and threshold_percentile
+        interact(
+            process_image,
+            smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
+            threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
+        )
+    def process_image(smoothing_sigma: float, threshold_percentile: float):
+        """
+        Process the image with Gaussian smoothing and thresholding.
+
+        Parameters:
+        ----------
+        smoothing_sigma : float
+            Standard deviation for Gaussian kernel.
+        threshold_percentile : float
+            Percentile for thresholding the image.
+        """
+        # Apply Gaussian smoothing
+        smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
+
+        # Apply thresholding
+        threshold_value = np.percentile(smoothed_image, threshold_percentile)
+        thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
+
+        # Plot the original, smoothed, and thresholded images
+        plt.figure(figsize=(15, 5))
+
+        # Original image
+        plt.subplot(1, 3, 1)
+        plt.imshow(image, cmap="viridis", origin="lower")
+        plt.title("Original Image")
+        plt.colorbar(label="Intensity")
+        plt.grid(False)
+
+        # Smoothed image
+        plt.subplot(1, 3, 2)
+        plt.imshow(smoothed_image, cmap="viridis", origin="lower")
+        plt.title(f"Smoothed Image (σ={smoothing_sigma})")
+        plt.colorbar(label="Intensity")
+        plt.grid(False)
+
+        # Thresholded image
+        plt.subplot(1, 3, 3)
+        plt.imshow(thresholded_image, cmap="viridis", origin="lower")
+        plt.title(f"Thresholded Image\n(>{threshold_percentile}th Percentile)")
+        plt.colorbar(label="Intensity")
+        plt.grid(False)
+
+        plt.tight_layout()
+        plt.show()
+
+    # Create interactive sliders for smoothing_sigma and threshold_percentile
+    interact(
+        process_image,
+        smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
+        threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
+    )
