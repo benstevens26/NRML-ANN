@@ -8,6 +8,7 @@ from scipy.linalg import svd
 from scipy.interpolate import griddata
 from scipy.interpolate import splprep, splev
 from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 
 def extract_energy_deposition(image):
@@ -291,3 +292,65 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
 
     else:
         raise ValueError(f"Unsupported method: {method}")
+
+
+def extract_recoil_angle(principal_axis: np.ndarray) -> float:
+    """
+    Calculate the angle (relative to the +x axis) for a recoil image based on its principal axis.
+
+    Parameters
+    ----------
+    principal_axis : np.ndarray
+        A 2D vector representing the principal axis of the recoil track.
+
+    Returns
+    -------
+    float
+        The angle (in degrees) between the principal axis and the +x axis, measured between 0 and 90 degrees.
+    """
+    if principal_axis.shape != (2,):
+        raise ValueError("principal_axis must be a 2D vector with shape (2,).")
+
+    # Normalize the principal axis
+    norm = np.linalg.norm(principal_axis)
+    if norm == 0:
+        raise ValueError("principal_axis must not be a zero vector.")
+
+    normalized_axis = principal_axis / norm
+
+    # Calculate the absolute angle relative to the +x axis
+    angle_radians = np.arctan2(abs(normalized_axis[1]), abs(normalized_axis[0]))
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees
+
+
+def extract_length(image: np.ndarray, energy_percentile: float) -> float:
+    """
+    Calculates the length of the recoil track based on an energy threshold.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        energy_percentile (float): Percentile of intensity to use as the threshold.
+
+    Returns:
+        float: Length of the recoil in pixels.
+    """
+    # Extract intensity profile
+    distances, intensities = extract_intensity_profile(image, plot=False)
+
+    # Calculate the threshold intensity based on the percentile
+    threshold = np.percentile(intensities, energy_percentile)
+
+    # Find indices where intensity exceeds the threshold
+    above_threshold = np.where(np.array(intensities) >= threshold)[0]
+
+    if len(above_threshold) == 0:
+        return 0.0  # No recoil above the threshold
+
+    # Calculate the length of the recoil
+    min_t = distances[above_threshold[0]]
+    max_t = distances[above_threshold[-1]]
+    recoil_length = max_t - min_t
+
+    return recoil_length
