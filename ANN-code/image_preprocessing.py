@@ -7,9 +7,12 @@ from scipy.ndimage import gaussian_filter
 from convert_sim_ims import convert_im, get_dark_sample
 from feature_extraction import extract_bounding_box
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
 from ipywidgets import interact, FloatSlider
 from image_analysis import plot_axis
 from feature_extraction import extract_axis
+from image_analysis import plot_3d
+
 
 def gaussian_smoothing(image, smoothing_sigma=3.5):
     """
@@ -70,6 +73,34 @@ def smoothing_widget(image, smoothing_sigma):
 
     plt.tight_layout()
     plt.show()
+
+
+def smoothing_widget_3d(image: np.ndarray):
+    """
+    Creates an interactive widget to plot the 3D image with adjustable Gaussian smoothing.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+
+    Returns:
+        None
+    """
+    smoothing_slider = widgets.FloatSlider(
+        value=0.0,
+        min=0.0,
+        max=10.0,
+        step=0.1,
+        description='Smoothing σ:',
+        continuous_update=False
+    )
+
+    interactive_plot = widgets.interactive(
+        lambda sigma: plot_3d(gaussian_smoothing(image, sigma)),
+        sigma=smoothing_slider
+    )
+
+    display(interactive_plot)
+
 
 
 def noise_adder(image, m_dark, example_dark_list, noise_index=None):
