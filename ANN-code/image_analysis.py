@@ -4,6 +4,7 @@ Module that contains standalone functions for imaging analysis.
 
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def plot_axis(image, principal_axis, centroid):
@@ -185,4 +186,39 @@ def plot_binary_image(image: np.ndarray):
     plt.figure(figsize=(8, 8))
     plt.imshow(binary_image, cmap="gray")
     plt.title("Non-zero Intensities (Binary Representation)")
+    plt.show()
+
+
+def plot_3d(image: np.ndarray) -> None:
+    """
+    Plots a 3D graph where the z-height represents the intensity of the image.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image, where each element is the intensity.
+
+    Returns:
+        None
+    """
+    # Get the dimensions of the image
+    height, width = image.shape
+
+    # Create a grid of x, y coordinates
+    x = np.arange(width)
+    y = np.arange(height)
+    x, y = np.meshgrid(x, y)
+
+    # Create the figure and 3D axis
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot the surface with intensity as z-height
+    ax.plot_surface(x, y, image, cmap='viridis', edgecolor='none')
+
+    # Label the axes
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Intensity (Z-height)')
+    ax.set_title('3D Intensity Plot')
+
+    # Show the plot
     plt.show()
