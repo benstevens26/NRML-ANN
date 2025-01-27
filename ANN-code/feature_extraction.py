@@ -236,3 +236,58 @@ def extract_bounding_box(image: np.ndarray) -> tuple:
     max_y, max_x = nonzero_indices.max(axis=0)
 
     return min_y, min_x, max_y, max_x
+
+
+def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_profile', plot: bool = False):
+    """
+    Extracts an intensity profile along the principal axis of an image.
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        method (str): Method for extracting intensity profile. Default is 'thin_intensity_profile'.
+        plot (bool): Whether to plot the intensity profile. Default is False.
+
+    Returns:
+        tuple: distances (numpy.ndarray), intensities (list)
+    """
+    if method == 'thin_intensity_profile':
+        # Extract the principal axis and centroid
+        principal_axis, centroid = extract_axis(image)
+
+        # Define a line along the principal axis
+        centroid_x, centroid_y = centroid
+        line_points = []
+        y_coords, x_coords = np.nonzero(image)
+
+        for t in np.linspace(-image.shape[1], image.shape[1], 500):
+            line_x = centroid_x + t * principal_axis[0]
+            line_y = centroid_y + t * principal_axis[1]
+            line_points.append((line_x, line_y))
+
+        # Calculate intensity along the line
+        intensities = []
+        for point in line_points:
+            x, y = point
+            x = int(round(x))
+            y = int(round(y))
+            if 0 <= x < image.shape[1] and 0 <= y < image.shape[0]:
+                intensities.append(image[y, x])
+
+        # Normalize distances along the principal axis
+        distances = np.linspace(-image.shape[1] / 2, image.shape[1] / 2, len(intensities))
+
+        if plot:
+            plt.figure(figsize=(10, 6))
+            plt.plot(distances, intensities, label="Intensity")
+            plt.axvline(0, color='red', linestyle='--', label='Centroid')
+            plt.title("Intensity Along Principal Axis")
+            plt.xlabel("Distance Along Principal Axis")
+            plt.ylabel("Mean Intensity")
+            plt.legend()
+            plt.grid()
+            plt.show()
+
+        return distances, intensities
+
+    else:
+        raise ValueError(f"Unsupported method: {method}")
