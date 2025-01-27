@@ -154,7 +154,6 @@ def extract_intensity_contour(image, resolution=500):
     return grid_x, grid_y, grid_z
 
 
-
 def extract_spline(image, smoothing=0.5, resolution=500):
     """
     Extracts the recoil principal axis as a 1D cubic spline.
@@ -170,6 +169,8 @@ def extract_spline(image, smoothing=0.5, resolution=500):
     # Extract non-zero intensity points
     y_coords, x_coords = np.nonzero(image)
     intensities = image[y_coords, x_coords]
+
+    print(len(x_coords), len(y_coords), len(intensities))
 
     if len(x_coords) == 0 or len(y_coords) == 0:
         raise ValueError("The input image contains no non-zero intensities.")
@@ -188,6 +189,15 @@ def extract_spline(image, smoothing=0.5, resolution=500):
     sort_indices = np.argsort(projections)
     sorted_coords = coords[sort_indices]
     sorted_weights = weights[sort_indices]
+
+    # Remove duplicate points
+    _, unique_indices = np.unique(sorted_coords, axis=0, return_index=True)
+    sorted_coords = sorted_coords[unique_indices]
+    sorted_weights = sorted_weights[unique_indices]
+
+    # Check if we have enough points for spline fitting
+    if len(sorted_coords) < 4:
+        raise ValueError("Not enough points for spline fitting. At least 4 unique points are required.")
 
     # Fit a spline through the sorted, weighted points
     tck, _ = splprep(
