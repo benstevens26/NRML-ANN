@@ -168,3 +168,4 @@ figures
 .DS_Store
 notebooks/min_dim_list_true.csv
 notebooks/uncropped_list_true.csv
+notebooks/outputs
