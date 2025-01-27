@@ -7,6 +7,7 @@ from scipy.ndimage import center_of_mass
 from scipy.linalg import svd
 from scipy.interpolate import griddata
 from scipy.interpolate import splprep, splev
+from sklearn.decomposition import PCA
 
 
 def extract_energy_deposition(image):
@@ -153,6 +154,7 @@ def extract_intensity_contour(image, resolution=500):
     return grid_x, grid_y, grid_z
 
 
+
 def extract_spline(image, smoothing=0.5, resolution=500):
     """
     Extracts the recoil principal axis as a 1D cubic spline.
@@ -172,21 +174,27 @@ def extract_spline(image, smoothing=0.5, resolution=500):
     if len(x_coords) == 0 or len(y_coords) == 0:
         raise ValueError("The input image contains no non-zero intensities.")
 
-    # Weight points by intensity
+    # Normalize intensities to use as weights
     weights = intensities / intensities.max()
 
-    # Debugging: Ensure inputs are valid
-    if len(x_coords) < 4 or len(y_coords) < 4:
-        raise ValueError(
-            "Insufficient points for spline fitting. At least 4 points are required."
-        )
-    if len(x_coords) != len(y_coords) or len(x_coords) != len(weights):
-        raise ValueError(
-            f"Input dimensions mismatch: x_coords({len(x_coords)}), y_coords({len(y_coords)}), weights({len(weights)})"
-        )
+    # Perform PCA to find the principal axis
+    coords = np.column_stack((x_coords, y_coords))
+    pca = PCA(n_components=2)
+    pca.fit(coords)
 
-    # Fit a spline through the weighted points
-    tck, _ = splprep([x_coords, y_coords], w=weights, s=smoothing)
+    # Project points onto the principal axis and sort
+    principal_axis = pca.components_[0]
+    projections = coords @ principal_axis
+    sort_indices = np.argsort(projections)
+    sorted_coords = coords[sort_indices]
+    sorted_weights = weights[sort_indices]
+
+    # Fit a spline through the sorted, weighted points
+    tck, _ = splprep(
+        [sorted_coords[:, 0], sorted_coords[:, 1]],
+        w=sorted_weights,
+        s=smoothing,
+    )
 
     # Interpolate the spline
     u_fine = np.linspace(0, 1, resolution)
