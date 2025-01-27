@@ -166,3 +166,5 @@ ANN-code/Data
 ANN-code/test.py
 figures
 .DS_Store
+notebooks/min_dim_list_true.csv
+notebooks/uncropped_list_true.csv
