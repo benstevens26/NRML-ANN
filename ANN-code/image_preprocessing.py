@@ -248,6 +248,50 @@ def zero_edges(image: np.ndarray, edge_width: int = 1) -> np.ndarray:
     return image_zeroed
 
 
+def plot_axis_widget(image: np.ndarray, principal_axis: np.ndarray, centroid: tuple):
+    """
+    Plots the image with the principal axis overlayed (for widget use).
+
+    Parameters:
+        image (numpy.ndarray): 2D array representing the image.
+        principal_axis (numpy.ndarray): Array containing the principal axis vector [x, y].
+        centroid (tuple): Coordinates of the centroid (mean_x, mean_y).
+    """
+    height, width = image.shape
+    mean_x, mean_y = centroid
+
+    # Principal axis vector components
+    dx, dy = principal_axis
+
+    # Normalize the principal axis to scale across the image dimensions
+    if abs(dx) > abs(dy):
+        scale = width / (2 * abs(dx))
+    else:
+        scale = height / (2 * abs(dy))
+
+    x_start = mean_x - dx * scale
+    x_end = mean_x + dx * scale
+    y_start = mean_y - dy * scale
+    y_end = mean_y + dy * scale
+
+    # Clip the line to image boundaries
+    x_start, x_end = np.clip([x_start, x_end], 0, width)
+    y_start, y_end = np.clip([y_start, y_end], 0, height)
+
+    # Plot the image
+    plt.imshow(image, cmap="viridis", origin="lower", extent=(0, width, 0, height))
+
+    # Overlay the principal axis
+    plt.plot(
+        [x_start, x_end],
+        [y_start, y_end],
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label="Principal Axis",
+    )
+
+
 def combined_widget(image: np.ndarray, axis=False):
     """
     Creates an interactive widget to apply both Gaussian smoothing and thresholding
@@ -295,12 +339,12 @@ def combined_widget(image: np.ndarray, axis=False):
 
             # Smoothed image with principal axis
             plt.subplot(1, 3, 2)
-            plot_axis(smoothed_image, smoothed_axis, smoothed_centroid)
+            plot_axis_widget(smoothed_image, smoothed_axis, smoothed_centroid)
             plt.title(f"Smoothed Image (σ={smoothing_sigma})")
 
             # Thresholded image with principal axis
             plt.subplot(1, 3, 3)
-            plot_axis(thresholded_image, thresholded_axis, thresholded_centroid)
+            plot_axis_widget(thresholded_image, thresholded_axis, thresholded_centroid)
             plt.title(f"Thresholded Image\n(>{threshold_percentile}th Percentile)")
 
             plt.tight_layout()
@@ -312,54 +356,55 @@ def combined_widget(image: np.ndarray, axis=False):
             smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
             threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
         )
-    def process_image(smoothing_sigma: float, threshold_percentile: float):
-        """
-        Process the image with Gaussian smoothing and thresholding.
+    else:
+        def process_image(smoothing_sigma: float, threshold_percentile: float):
+            """
+            Process the image with Gaussian smoothing and thresholding.
 
-        Parameters:
-        ----------
-        smoothing_sigma : float
-            Standard deviation for Gaussian kernel.
-        threshold_percentile : float
-            Percentile for thresholding the image.
-        """
-        # Apply Gaussian smoothing
-        smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
+            Parameters:
+            ----------
+            smoothing_sigma : float
+                Standard deviation for Gaussian kernel.
+            threshold_percentile : float
+                Percentile for thresholding the image.
+            """
+            # Apply Gaussian smoothing
+            smoothed_image = gaussian_filter(image, sigma=smoothing_sigma)
 
-        # Apply thresholding
-        threshold_value = np.percentile(smoothed_image, threshold_percentile)
-        thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
+            # Apply thresholding
+            threshold_value = np.percentile(smoothed_image, threshold_percentile)
+            thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
 
-        # Plot the original, smoothed, and thresholded images
-        plt.figure(figsize=(15, 5))
+            # Plot the original, smoothed, and thresholded images
+            plt.figure(figsize=(15, 5))
 
-        # Original image
-        plt.subplot(1, 3, 1)
-        plt.imshow(image, cmap="viridis", origin="lower")
-        plt.title("Original Image")
-        plt.colorbar(label="Intensity")
-        plt.grid(False)
+            # Original image
+            plt.subplot(1, 3, 1)
+            plt.imshow(image, cmap="viridis", origin="lower")
+            plt.title("Original Image")
+            plt.colorbar(label="Intensity")
+            plt.grid(False)
 
-        # Smoothed image
-        plt.subplot(1, 3, 2)
-        plt.imshow(smoothed_image, cmap="viridis", origin="lower")
-        plt.title(f"Smoothed Image (σ={smoothing_sigma})")
-        plt.colorbar(label="Intensity")
-        plt.grid(False)
+            # Smoothed image
+            plt.subplot(1, 3, 2)
+            plt.imshow(smoothed_image, cmap="viridis", origin="lower")
+            plt.title(f"Smoothed Image (σ={smoothing_sigma})")
+            plt.colorbar(label="Intensity")
+            plt.grid(False)
 
-        # Thresholded image
-        plt.subplot(1, 3, 3)
-        plt.imshow(thresholded_image, cmap="viridis", origin="lower")
-        plt.title(f"Thresholded Image\n(>{threshold_percentile}th Percentile)")
-        plt.colorbar(label="Intensity")
-        plt.grid(False)
+            # Thresholded image
+            plt.subplot(1, 3, 3)
+            plt.imshow(thresholded_image, cmap="viridis", origin="lower")
+            plt.title(f"Thresholded Image\n(>{threshold_percentile}th Percentile)")
+            plt.colorbar(label="Intensity")
+            plt.grid(False)
 
-        plt.tight_layout()
-        plt.show()
+            plt.tight_layout()
+            plt.show()
 
-    # Create interactive sliders for smoothing_sigma and threshold_percentile
-    interact(
-        process_image,
-        smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
-        threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
-    )
+        # Create interactive sliders for smoothing_sigma and threshold_percentile
+        interact(
+            process_image,
+            smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
+            threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
+        )
