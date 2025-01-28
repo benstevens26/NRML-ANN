@@ -35,6 +35,6 @@ print("Number of file paths before removal: ", len(file_paths))
 print("Number of min dim errors: ", len(min_dim_errors))
 print("Number of uncropped errors: ", len(uncropped_errors))
 
-file_paths = [path for path in file_paths if path not in min_dim_errors or path not in uncropped_errors]
+file_paths = [path for path in file_paths if path not in min_dim_errors and path not in uncropped_errors]
 
 print("Number of file paths after removal: ", len(file_paths))
