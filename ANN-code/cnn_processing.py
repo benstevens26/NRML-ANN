@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import scipy.ndimage as nd
 import tensorflow as tf
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 
 from bb_event import BB_Event
 from convert_sim_ims import convert_im, get_dark_sample
@@ -186,7 +186,8 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
         get_dark_sample(
             m_dark,
             [len(image[0]), len(image)],
-            example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+            # example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
+            tf.random.shuffle(example_dark_list)[0], # Apparently tensorflow didn't like using numpy's randomiser. Not sure how to properly seed this randomisation beacuse it's tf not np. May need to come back here later
         ),
     )
     return image
@@ -221,9 +222,14 @@ def pad_image(image, target_size=(415, 559)):
 def parse_function(
     file_path, m_dark, example_dark_list_unbinned, channels=1, binning=1
 ):
-
-    file_path_str = file_path.numpy().decode("utf-8")
-
+    if type(file_path) == str:
+        file_path_str = file_path
+    else:
+        try:
+            file_path_str = file_path.numpy().decode("utf-8")
+        except Exception as e: 
+            print(f"HANDLED FILE PATH BADLY IN PARSE_FUNCTION {e}")
+        
     # Load the image data from the .npy file
     image = np.load(file_path_str)
 

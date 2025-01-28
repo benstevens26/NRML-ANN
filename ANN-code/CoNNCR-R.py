@@ -17,9 +17,11 @@ from tensorflow.keras.layers import * # type: ignore
 from bb_event import *
 from cnn_processing import load_data
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #1
-      -=+=-""")
+      -=+=-
+      """)
 
 # def load_all_bb_events(base_dirs: list):
 #     """
@@ -145,9 +147,11 @@ if gpus:
         print(f"Error while setting memory growth: {e}")
 # HOPEFULLY this means it will automatically use the gpu from this point?
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #2
-      -=+=-""")
+      -=+=-
+      """)
 
 # Define base directories and batch size
 # with tf.device(gpus[0].name):
@@ -167,7 +171,7 @@ print("""-=+=-
 base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
 
 
-batch_size = 32
+batch_size = 2
 dark_list_number = 0
 binning = 1
 dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
@@ -192,9 +196,11 @@ remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
 test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #3
-      -=+=-""")
+      -=+=-
+      """)
 
 # Supposedly these lines will optimise the loading 
 AUTOTUNE = tf.data.AUTOTUNE
@@ -202,9 +208,11 @@ AUTOTUNE = tf.data.AUTOTUNE
 train_dataset = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 val_dataset = val_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #4
-      -=+=-""")
+      -=+=-
+      """)
 
 # events = load_image_subset(frac=0.001)
 # # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
@@ -260,9 +268,11 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
     monitor="val_loss",
 )
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #5
-      -=+=-""")
+      -=+=-
+      """)
 
 # # Split into 70% train, 15% validation, 15% test
 # train_ratio = 0.70
@@ -293,23 +303,27 @@ print("After loading dataset")
 print(train_dataset)
 
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #6
-      -=+=-""")
+      -=+=-
+      """)
 
-history = model.fit(
-    train_dataset,
-    epochs=epochs,
-    batch_size=batch_size,
-    validation_data=val_dataset,
-    verbose=1,
-    class_weight=None,  # look into changing this, might be good to
-    callbacks=[tb_callback, ckpt_callback],
-)
+# history = model.fit(
+#     train_dataset,
+#     epochs=epochs,
+#     batch_size=batch_size,
+#     validation_data=val_dataset,
+#     verbose=1,
+#     class_weight=None,  # look into changing this, might be good to
+#     callbacks=[tb_callback, ckpt_callback],
+# )
 
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #7
-      -=+=-""")
+      -=+=-
+      """)
 
 train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
@@ -317,18 +331,39 @@ history_filename = os.path.join(log_dir, "history.json")
 
 model_save_path = "CoNNCR-R.keras"
 model.save(model_save_path)
-print("""-=+=-
+print("""
+      -=+=-
       Checkpoint #8
-      -=+=-""")
+      -=+=-
+      """)
 info_filename = os.path.join(log_dir, "info.txt")
 
-with open(history_filename, "w") as file:
-    json.dump(history.history, file)
+# with open(history_filename, "w") as file:
+#     json.dump(history.history, file)
 
-with open(info_filename, "w") as file:
-    file.write("***Training Info***\n")
-    file.write("Training Start: {}".format(train_start_time))
-    file.write("Training End: {}\n".format(train_end_time))
-    file.write("Arguments:\n")
-    # for arg in sys.argv:
-    #     file.write("\t{}\n".format(arg))
+# with open(info_filename, "w") as file:
+#     file.write("***Training Info***\n")
+#     file.write("Training Start: {}".format(train_start_time))
+#     file.write("Training End: {}\n".format(train_end_time))
+#     file.write("Arguments:\n")
+#     # for arg in sys.argv:
+#     #     file.write("\t{}\n".format(arg))
+from cnn_processing import parse_function
+
+# Mock data creation
+# example_tensor = tf.convert_to_tensor(np.random.rand(128, 128, 3), dtype=tf.float32)  # Adjust shape/dtype as per your actual data.
+
+# Test `parse_function`
+
+
+try:
+    output = parse_function("/vols/lz/MIGDAL/sim_ims/C/300-320keV/313.879keV_C_2.228cm_1141_gem_out.npy",m_dark,example_dark_list_unbinned,channels=3)
+    print("Parse function output:", output)
+except Exception as e:
+    print("Error in parse_function:", e)
+
+print("""
+      -=+=-
+      Checkpoint #11
+      -=+=-
+      """)
