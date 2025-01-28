@@ -38,3 +38,29 @@ print("Number of uncropped errors: ", len(uncropped_errors))
 file_paths = [path for path in file_paths if path not in min_dim_errors and path not in uncropped_errors]
 
 print("Number of file paths after removal: ", len(file_paths))
+
+# now find the max_y and max_x! and save the file path to this image.
+
+max_x = 0
+max_y = 0
+
+for path in tqdm(file_paths):
+
+
+    image = np.load(path)
+			
+    y, x = image.shape	
+				
+    if x > max_x:
+        max_x = x
+        max_x_path = path
+    
+    if y > max_y:
+        max_y = y
+        max_y_path = path
+
+
+print(max_x, max_y)
+
+print("max x file", max_x_path)
+print("max y file", max_y_path)
