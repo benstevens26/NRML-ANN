@@ -26,7 +26,7 @@ def resize_pad_image_tf(event, target_size=(224, 224)):
     event.image = tf.image.resize_with_pad(event.image, target_size[0], target_size[1])
 
 
-def pad_image(event, target_size=(768, 572)):
+def pad_image(event, target_size=(415, 559)):
 
     small_image = event.image
 
@@ -34,7 +34,7 @@ def pad_image(event, target_size=(768, 572)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (768, 572)
+        # Create an empty frame filled with zeros (black) of size (415, 559)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -56,7 +56,7 @@ def pad_image(event, target_size=(768, 572)):
         "Image could not fit inside target frame"
 
 
-def pad_image_2(image, target_size=(768, 572)):
+def pad_image_2(image, target_size=(415, 559)):
 
     small_image = image
 
@@ -64,7 +64,7 @@ def pad_image_2(image, target_size=(768, 572)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (768, 572)
+        # Create an empty frame filled with zeros (black) of size (415, 559)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -84,6 +84,45 @@ def pad_image_2(image, target_size=(768, 572)):
 
     except:
         "Image could not fit inside target frame"
+
+def pad_image_3(small_image, target_size=(559,415)):
+
+    # Convert the input numpy array to a TensorFlow tensor
+    small_image = tf.convert_to_tensor(small_image, dtype=tf.float32)
+
+ # Ensure the image has 3 dimensions (add a channel dimension if needed)
+    if len(small_image.shape) == 2:
+        small_image = tf.expand_dims(small_image, axis=-1)  # Add a channel dimension
+
+    # Get the dimensions of the small image
+    small_height, small_width = small_image.shape[:2]
+    target_height, target_width = target_size
+
+    # Calculate maximum offsets for random placement
+    max_y_offset = target_height - small_height
+    max_x_offset = target_width - small_width
+
+    # Generate random offsets within the allowable range
+    y_offset = random.randint(0, max_y_offset)
+    x_offset = random.randint(0, max_x_offset)
+
+    # Calculate the padding values
+    top_padding = y_offset
+    bottom_padding = max_y_offset - y_offset
+    left_padding = x_offset
+    right_padding = max_x_offset - x_offset
+
+    # Use tf.image.pad_to_bounding_box for padding
+    padded_image = tf.image.pad_to_bounding_box(
+        small_image,
+        offset_height=top_padding,
+        offset_width=left_padding,
+        target_height=target_height,
+        target_width=target_width,
+    )
+
+    # Update the event image
+    return padded_image.numpy()  # Convert back to numpy if needed
 
 
 def load_events_bb(file_path):
@@ -153,12 +192,12 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
     return image
 
 
-def pad_image(image, target_size=(768, 572)):
+def pad_image(image, target_size=(415, 559)):
 
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
 
-    # Create an empty frame filled with zeros (black) of size (768, 572)
+    # Create an empty frame filled with zeros (black) of size (415, 559)
     target_frame = np.zeros((target_height, target_width), dtype=image.dtype)
 
     # Calculate maximum offsets so the small image fits inside the target frame
@@ -216,7 +255,7 @@ def parse_function(
     #     # image = preprocess_input(image)
 
     # else:
-    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (768, 572, 1)
+    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
 
     if channels == 3:
         # Ensure the image is a 2D array
@@ -238,8 +277,9 @@ def parse_function(
         # Normalize to range [0, 255] if needed
         max_val = np.max(image)
         if max_val > 0:  # Avoid division by zero
-            image = image * (255.0 / max_val)
-
+            image = image / max_val
+        else:  
+            print("POTENTIAL ERROR: max value in image is 0 or less")
         # Create 3 channels by stacking
         image = np.repeat(
             image[:, :, np.newaxis], 3, axis=-1
@@ -293,7 +333,7 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Set output shapes explicitly to avoid unknown rank issues
     dataset = dataset.map(
         lambda image, label: (
-            tf.ensure_shape(image, (768, 572, channels)),
+            tf.ensure_shape(image, (415, 559, channels)),
             tf.ensure_shape(label, ()),
         )
     )
