@@ -9,7 +9,10 @@ from ipywidgets import interact, FloatSlider
 from IPython.display import display
 from scipy.ndimage import gaussian_filter
 
-from ..ANN_code.feature_extraction import extract_axis, extract_intensity_profile, extract_length
+import os
+print(os.getcwd())
+
+from feature_extraction import extract_axis, extract_intensity_profile, extract_length
 
 
 
