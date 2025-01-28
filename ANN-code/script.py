@@ -7,6 +7,7 @@ import sys
 from tqdm import tqdm
 import numpy as np
 from image_preprocessing import uncropped_check, dim_check, zero_edges
+from data_methods import create_file_paths
 
 # image directories
 im_dirs = [
@@ -23,39 +24,17 @@ im_dirs = [
 ]
 
 
-# check all images in the directory (end in .npy)
-min_dim_error = []
-uncropped_error = []
+file_paths = create_file_paths(im_dirs)
 
-# ssearch criteria
-min_dim = 10
-max_comparison_search_fraction = 0.90
-area_comparison_search_fraction = 0.63
+min_dim_errors = np.loadtxt("../notebooks/min_dim_list_true.csv", delimiter=",", dtype=str)
+uncropped_errors = np.loadtxt("../notebooks/uncropped_list_true.csv", delimiter=",", dtype=str)
 
-for im_dir in im_dirs:
-    for file in tqdm(os.listdir(im_dir)):
-        if file.endswith(".npy"):
-            im_file = os.path.join(im_dir, file)
-            image = np.load(im_file)
+# remove the file paths that are in the error lists
 
-            if dim_check(image, min_dim):
-                min_dim_error.append(im_file)
-                continue
+print("Number of file paths before removal: ", len(file_paths))
+print("Number of min dim errors: ", len(min_dim_errors))
+print("Number of uncropped errors: ", len(uncropped_errors))
 
-            if uncropped_check(zero_edges(image, 2), max_comparison_search_fraction, method="max_comparison"):
-                uncropped_error.append(im_file)
-                continue
+file_paths = [path for path in file_paths if path not in min_dim_errors or path not in uncropped_errors]
 
-            if uncropped_check(
-                zero_edges(image, 2), area_comparison_search_fraction, method="area_comparison"):
-                uncropped_error.append(im_file)
-
-
-print(
-    "Number of images that violate the minimum dimension criteria: ", len(min_dim_error)
-)
-print("Number of images that violate the uncropped criteria: ", len(uncropped_error))
-
-# save the min_dim_error and uncropped_error lists as csv files
-np.savetxt("min_dim_error.csv", min_dim_error, delimiter=",", fmt="%s")
-np.savetxt("uncropped_error.csv", uncropped_error, delimiter=",", fmt="%s")
+print("Number of file paths after removal: ", len(file_paths))
