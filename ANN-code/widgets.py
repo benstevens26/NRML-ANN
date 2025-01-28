@@ -8,11 +8,9 @@ import ipywidgets as widgets
 from ipywidgets import interact, FloatSlider
 from IPython.display import display
 from scipy.ndimage import gaussian_filter
-
-import os
-print(os.getcwd())
-
 from feature_extraction import extract_axis, extract_intensity_profile, extract_length
+from image_preprocessing import gaussian_smoothing
+from image_analysis import plot_3d
 
 
 
