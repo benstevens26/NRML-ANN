@@ -11,7 +11,7 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
 
-def extract_energy_deposition(image):
+def extract_sum_intensity(image):
     """
     Extract the total energy deposition from image
 
@@ -28,7 +28,7 @@ def extract_energy_deposition(image):
     return np.sum(image)
 
 
-def extract_max_pixel_intensity(image):
+def extract_max_intensity(image):
     """
     Extract the maximum pixel intensity from image
 
