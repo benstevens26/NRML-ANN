@@ -15,7 +15,7 @@ from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input # type: 
 from tensorflow.keras.layers import * # type: ignore
 
 from bb_event import *
-from cnn_processing import load_data
+from cnn_processing import load_data, load_data_yield
 
 print("""
       -=+=-
@@ -182,11 +182,32 @@ example_dark_list_unbinned = np.load(
 )
 
 # Load the dataset
-full_dataset = load_data(
-    base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
+# full_dataset = load_data(
+#     base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
+# )
+
+
+
+########################trying yielding####################
+
+
+m_dark_tensor = tf.convert_to_tensor(m_dark, dtype=tf.float32)
+example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.float32)
+
+
+full_dataset = tf.data.Dataset.from_generator(
+    load_data_yield,
+    args=[base_dirs, batch_size, example_dark_tensor, m_dark_tensor,3],
+    output_shapes=([415, 559, 3],[1]),  # Ensure correct shape format
+    output_types=(tf.float32,tf.int32)  # Add comma to make it a tuple
 )
 
-dataset_size = len(full_dataset)
+
+
+#############################################################
+
+
+dataset_size = 49572 # CHANGE DEPENDING ON DATA USED
 train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used

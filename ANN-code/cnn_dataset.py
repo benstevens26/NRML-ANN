@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import tensorflow as tf
-from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
+from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
 from cnn_processing import noise_adder, smooth_operator, pad_image_3
 
 # Paths to your dataset
@@ -16,6 +16,7 @@ example_dark_list_unbinned = np.load(
     f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
 )
 
+
 # Function to load and preprocess a single image
 def load_and_preprocess(filepath, label=None):
     filepath_str = filepath.numpy().decode("utf-8")
@@ -27,27 +28,35 @@ def load_and_preprocess(filepath, label=None):
     # label = (
     #     0 if "C" in os.path.basename(filepath_str) else 1
     # )
-    
+
     # Preprocessing steps
-    image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list_unbinned)
+    image = noise_adder(
+        image, m_dark=m_dark, example_dark_list=example_dark_list_unbinned
+    )
     image = smooth_operator(image)
     image = pad_image_3(image)
-    image = np.stack([image]*3, axis=-1)  # Duplicate channels
+    image = np.stack([image] * 3, axis=-1)  # Duplicate channels
     image = preprocess_input(image)  # VGG16 preprocessing
     image = image / np.max(image)
     # image = tf.image.resize(image, (415, 559))  # Resize if needed
-    
+
     return image, label
+
 
 # Wrap the function for TensorFlow compatibility
 def tf_load_and_preprocess(filepath, label):
-    return tf.py_function(func=load_and_preprocess, inp=[filepath, label], Tout=(tf.float32, tf.int32))
+    return tf.py_function(
+        func=load_and_preprocess, inp=[filepath, label], Tout=(tf.float32, tf.int32)
+    )
+
 
 # Create dataset from file paths
 def create_dataset(file_paths, labels):
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
     dataset = dataset.map(tf_load_and_preprocess, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.batch(32).prefetch(tf.data.AUTOTUNE)  # Batch size and prefetch for efficiency
+    dataset = dataset.batch(32).prefetch(
+        tf.data.AUTOTUNE
+    )  # Batch size and prefetch for efficiency
     return dataset
 
 
@@ -63,4 +72,4 @@ file_list.sort()
 np.random.seed(77)
 np.random.shuffle(file_list)
 
-dataset = create_dataset(file_list,labels)
+dataset = create_dataset(file_list, labels)

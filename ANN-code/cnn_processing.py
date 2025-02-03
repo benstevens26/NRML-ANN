@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import scipy.ndimage as nd
 import tensorflow as tf
-from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
+from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
 
 from bb_event import BB_Event
 from convert_sim_ims import convert_im, get_dark_sample
@@ -85,12 +85,13 @@ def pad_image_2(image, target_size=(415, 559)):
     except:
         "Image could not fit inside target frame"
 
-def pad_image_3(small_image, target_size=(559,415)):
+
+def pad_image_3(small_image, target_size=(559, 415)):
 
     # Convert the input numpy array to a TensorFlow tensor
     small_image = tf.convert_to_tensor(small_image, dtype=tf.float32)
 
- # Ensure the image has 3 dimensions (add a channel dimension if needed)
+    # Ensure the image has 3 dimensions (add a channel dimension if needed)
     if len(small_image.shape) == 2:
         small_image = tf.expand_dims(small_image, axis=-1)  # Add a channel dimension
 
@@ -187,7 +188,9 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
             m_dark,
             [len(image[0]), len(image)],
             # example_dark_list[np.random.randint(0, len(example_dark_list) - 1)],
-            tf.random.shuffle(example_dark_list)[0], # Apparently tensorflow didn't like using numpy's randomiser. Not sure how to properly seed this randomisation beacuse it's tf not np. May need to come back here later
+            tf.random.shuffle(example_dark_list)[
+                0
+            ],  # Apparently tensorflow didn't like using numpy's randomiser. Not sure how to properly seed this randomisation beacuse it's tf not np. May need to come back here later
         ),
     )
     return image
@@ -227,9 +230,9 @@ def parse_function(
     else:
         try:
             file_path_str = file_path.numpy().decode("utf-8")
-        except Exception as e: 
+        except Exception as e:
             print(f"HANDLED FILE PATH BADLY IN PARSE_FUNCTION {e}")
-        
+
     # Load the image data from the .npy file
     image = np.load(file_path_str)
 
@@ -284,7 +287,7 @@ def parse_function(
         max_val = np.max(image)
         if max_val > 0:  # Avoid division by zero
             image = image / max_val
-        else:  
+        else:
             print("POTENTIAL ERROR: max value in image is 0 or less")
         # Create 3 channels by stacking
         image = np.repeat(
@@ -350,3 +353,32 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return dataset
+
+
+def load_data_yield(
+    base_dirs, batch_size, example_dark_tensor, m_dark_tensor, channels=1
+):
+    # Get all the .npy files from base_dirs
+    file_list = []
+    for base_dir in base_dirs:
+        for root, dirs, files in os.walk(base_dir):
+            files = [f for f in files if f.endswith(".npy")]
+            file_list.extend([os.path.join(root, file) for file in files])
+
+    file_list.sort()
+    np.random.seed(77)
+    np.random.shuffle(file_list)
+
+
+    # Process the single image
+    for file_path in file_list:
+        data = parse_function(file_path, m_dark_tensor, example_dark_tensor, channels)
+        yield data
+    
+    # # Set output shapes explicitly to avoid unknown rank issues
+    # dataset = dataset.map(
+    #     lambda image, label: (
+    #         tf.ensure_shape(image, (415, 559, channels)),
+    #         tf.ensure_shape(label, ()),
+    #     )
+    # )
