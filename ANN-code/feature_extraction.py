@@ -252,7 +252,7 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
         centroid (tuple, optional): Precomputed centroid. If None, it will be computed.
 
     Returns:
-        tuple: distances (numpy.ndarray), intensities (list)
+        tuple: distances (numpy.ndarray), intensities (list)    
     """
     if method == 'thin_intensity_profile':
         # Compute principal axis and centroid if not provided
@@ -329,19 +329,22 @@ def extract_recoil_angle(principal_axis: np.ndarray) -> float:
     return angle_degrees
 
 
-def extract_length(image: np.ndarray, energy_percentile: float) -> float:
+def extract_length(image: np.ndarray, energy_percentile: float = 50, distances: np.ndarray = None, intensities: list = None) -> float:
     """
     Calculates the length of the recoil track based on an energy threshold.
 
     Parameters:
         image (numpy.ndarray): 2D array representing the image.
         energy_percentile (float): Percentile of intensity to use as the threshold.
+        distances (numpy.ndarray, optional): Precomputed distances along the principal axis.
+        intensities (list, optional): Precomputed intensity profile along the principal axis.
 
     Returns:
         float: Length of the recoil in pixels.
     """
-    # Extract intensity profile
-    distances, intensities = extract_intensity_profile(image, plot=False)
+    # Extract intensity profile if not provided
+    if distances is None or intensities is None:
+        distances, intensities = extract_intensity_profile(image, plot=False)
 
     # Calculate the threshold intensity based on the percentile
     threshold = np.percentile(intensities, energy_percentile)
