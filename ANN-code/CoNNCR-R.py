@@ -171,7 +171,7 @@ print("""
 base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
 
 
-batch_size = 2
+batch_size = 16
 dark_list_number = 0
 binning = 1
 dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
@@ -194,12 +194,12 @@ example_dark_list_unbinned = np.load(
 m_dark_tensor = tf.convert_to_tensor(m_dark, dtype=tf.float32)
 example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.float32)
 
-
 full_dataset = tf.data.Dataset.from_generator(
-    load_data_yield,
-    args=[base_dirs, batch_size, example_dark_tensor, m_dark_tensor,3],
-    output_shapes=([415, 559, 3],[1]),  # Ensure correct shape format
-    output_types=(tf.float32,tf.int32)  # Add comma to make it a tuple
+    lambda: load_data_yield(base_dirs, batch_size, example_dark_tensor, m_dark_tensor, 3),
+    output_signature=(
+        tf.TensorSpec(shape=(415, 559, 3), dtype=tf.float32),
+        tf.TensorSpec(shape=(), dtype=tf.int32),
+    )
 )
 
 
@@ -216,6 +216,8 @@ train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
 remaining = full_dataset.skip(train_size)  # Remaining 30%
 val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
 test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
+
+# print(train_dataset.take(1))
 
 print("""
       -=+=-
@@ -330,15 +332,21 @@ print("""
       -=+=-
       """)
 
-# history = model.fit(
-#     train_dataset,
-#     epochs=epochs,
-#     batch_size=batch_size,
-#     validation_data=val_dataset,
-#     verbose=1,
-#     class_weight=None,  # look into changing this, might be good to
-#     callbacks=[tb_callback, ckpt_callback],
-# )
+
+
+for sample in train_dataset.take(1):
+    print(sample)
+
+
+history = model.fit(
+    train_dataset,
+    epochs=epochs,
+    batch_size=batch_size,
+    validation_data=val_dataset,
+    verbose=1,
+    class_weight=None,  # look into changing this, might be good to
+    callbacks=[tb_callback, ckpt_callback],
+)
 
 print("""
       -=+=-

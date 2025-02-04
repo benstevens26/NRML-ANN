@@ -311,6 +311,52 @@ def parse_function(
     return image, label
 
 
+def parse_function_2(file_path, m_dark, example_dark_list_unbinned, channels=1, binning=1):
+    # Ensure `file_path` is a string (needed for `np.load`)
+    if isinstance(file_path, tf.Tensor):
+        file_path = file_path.numpy().decode("utf-8")  # Convert from Tensor to string
+
+    # Load the image
+    image = np.load(file_path)
+
+    # Extract label (assumes filenames contain "C" or "F")
+    label = 0 if "C" in os.path.basename(file_path) else 1  # 0: Carbon, 1: Fluorine
+
+    # Apply binning if necessary
+    example_dark_list = example_dark_list_unbinned if binning == 1 else [bin_image(i, binning) for i in example_dark_list_unbinned]
+
+    # Apply processing functions
+    image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
+    image = smooth_operator(image)
+    image = pad_image(image)
+
+    # Convert to float32
+    image = image.astype(np.float32)
+
+    # Ensure correct number of channels
+    if channels == 3:
+        # Normalize and stack channels
+        max_val = np.max(image)
+        if max_val > 0:
+            image = image / max_val
+        else:
+            print("Warning: Image max value is 0, potential issue in normalization.")
+
+        # Create 3-channel image
+        image = np.repeat(image[:, :, np.newaxis], 3, axis=-1)
+
+        # Apply VGG16 preprocessing
+        image = preprocess_input(image)
+    else:
+        # Ensure grayscale format
+        image = np.expand_dims(image, axis=-1)
+
+    # Convert to TensorFlow tensors
+    image = tf.convert_to_tensor(image, dtype=tf.float32)
+    label = tf.convert_to_tensor(label, dtype=tf.int32)
+
+    return image, label
+
 # Dataset Preparation Function Using `tf.data`
 def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Get all the .npy files from base_dirs
@@ -372,8 +418,8 @@ def load_data_yield(
 
     # Process the single image
     for file_path in file_list:
-        data = parse_function(file_path, m_dark_tensor, example_dark_tensor, channels)
-        yield data
+        image, label = parse_function_2(file_path, m_dark_tensor.numpy(), example_dark_tensor.numpy(), channels)
+        yield image, label
     
     # # Set output shapes explicitly to avoid unknown rank issues
     # dataset = dataset.map(
