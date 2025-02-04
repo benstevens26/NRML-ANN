@@ -239,7 +239,8 @@ def extract_bounding_box(image: np.ndarray) -> tuple:
     return min_y, min_x, max_y, max_x
 
 
-def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_profile', plot: bool = False):
+def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_profile', plot: bool = False, 
+                              principal_axis: np.ndarray = None, centroid: tuple = None):
     """
     Extracts an intensity profile along the principal axis of an image.
 
@@ -247,19 +248,21 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
         image (numpy.ndarray): 2D array representing the image.
         method (str): Method for extracting intensity profile. Default is 'thin_intensity_profile'.
         plot (bool): Whether to plot the intensity profile. Default is False.
+        principal_axis (numpy.ndarray, optional): Precomputed principal axis. If None, it will be computed.
+        centroid (tuple, optional): Precomputed centroid. If None, it will be computed.
 
     Returns:
         tuple: distances (numpy.ndarray), intensities (list)
     """
     if method == 'thin_intensity_profile':
-        # Extract the principal axis and centroid
-        principal_axis, centroid = extract_axis(image)
+        # Compute principal axis and centroid if not provided
+        if principal_axis is None or centroid is None:
+            principal_axis, centroid = extract_axis(image)
 
         # Define a line along the principal axis
         centroid_x, centroid_y = centroid
         line_points = []
-        y_coords, x_coords = np.nonzero(image)
-
+        
         for t in np.linspace(-image.shape[1], image.shape[1], 500):
             line_x = centroid_x + t * principal_axis[0]
             line_y = centroid_y + t * principal_axis[1]
@@ -292,6 +295,7 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
 
     else:
         raise ValueError(f"Unsupported method: {method}")
+
 
 
 def extract_recoil_angle(principal_axis: np.ndarray) -> float:
