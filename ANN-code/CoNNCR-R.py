@@ -179,8 +179,8 @@ print(
 # "/vols/lz/tmarley/GEM_ITO/run/im4/C",
 # "/vols/lz/tmarley/GEM_ITO/run/im4/F",
 # ]
-base_dirs = ["ANN-code/Data/C", "ANN-code/Data/F"]  # List your data directories here
-# base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
+# base_dirs = ["ANN-code/Data/C", "ANN-code/Data/F"]  # List your data directories here
+base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
 
 
 batch_size = 16
