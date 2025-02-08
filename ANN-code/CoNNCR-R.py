@@ -1,27 +1,31 @@
 import os
+
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import tensorflow as tf
-physical_devices = tf.config.list_physical_devices('GPU')
+
+physical_devices = tf.config.list_physical_devices("GPU")
 for gpu in physical_devices:
     tf.config.experimental.set_memory_growth(gpu, True)
 import datetime
 import glob
 import random
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.activations import softmax # type: ignore
-from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input # type: ignore
-from tensorflow.keras.layers import * # type: ignore
 
 from bb_event import *
 from cnn_processing import load_data, load_data_yield
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.activations import softmax  # type: ignore
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input  # type: ignore
+from tensorflow.keras.layers import *  # type: ignore
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #1
       -=+=-
-      """)
+      """
+)
 
 # def load_all_bb_events(base_dirs: list):
 #     """
@@ -124,7 +128,7 @@ print("Num GPUs Available:", len(tf.config.list_physical_devices("GPU")))
 print("GPU Device Name:", tf.test.gpu_device_name())
 print("==========================================")
 # List available GPUs
-print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
 # Check if TensorFlow is using the GPU
 if tf.test.gpu_device_name():
@@ -134,24 +138,25 @@ else:
 print("==========================================")
 
 
-
-gpus = tf.config.list_physical_devices('GPU')
+gpus = tf.config.list_physical_devices("GPU")
 print(gpus)
 if gpus:
     try:
         # Set memory growth to prevent TensorFlow from allocating all GPU memory at once
         for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
+            tf.config.experimental.set_memory_growth(gpu, False)
         print(f"Using GPU: {gpus[0].name}")
     except RuntimeError as e:
         print(f"Error while setting memory growth: {e}")
 # HOPEFULLY this means it will automatically use the gpu from this point?
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #2
       -=+=-
-      """)
+      """
+)
 
 # Define base directories and batch size
 # with tf.device(gpus[0].name):
@@ -162,13 +167,13 @@ print("""
 # "/vols/lz/tmarley/GEM_ITO/run/im1/F",
 # "/vols/lz/tmarley/GEM_ITO/run/im2/C",
 # "/vols/lz/tmarley/GEM_ITO/run/im2/F",
-# "/vols/lz/tmarley/GEM_ITO/run/im3/C", 
+# "/vols/lz/tmarley/GEM_ITO/run/im3/C",
 # "/vols/lz/tmarley/GEM_ITO/run/im3/F",
 # "/vols/lz/tmarley/GEM_ITO/run/im4/C",
 # "/vols/lz/tmarley/GEM_ITO/run/im4/F",
 # ]
-# base_dirs = ['Data/C', 'Data/F']  # List your data directories here
-base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
+base_dirs = ["ANN-code/Data/C", "ANN-code/Data/F"]  # List your data directories here
+# base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
 
 
 batch_size = 16
@@ -187,7 +192,6 @@ example_dark_list_unbinned = np.load(
 # )
 
 
-
 ########################trying yielding####################
 
 
@@ -195,19 +199,20 @@ m_dark_tensor = tf.convert_to_tensor(m_dark, dtype=tf.float32)
 example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.float32)
 
 full_dataset = tf.data.Dataset.from_generator(
-    lambda: load_data_yield(base_dirs, batch_size, example_dark_tensor, m_dark_tensor, 3),
+    lambda: load_data_yield(
+        base_dirs, batch_size, example_dark_tensor, m_dark_tensor, 3
+    ),
     output_signature=(
         tf.TensorSpec(shape=(415, 559, 3), dtype=tf.float32),
         tf.TensorSpec(shape=(), dtype=tf.int32),
-    )
+    ),
 )
-
 
 
 #############################################################
 
 
-dataset_size = 49572 # CHANGE DEPENDING ON DATA USED
+dataset_size = 49572  # CHANGE DEPENDING ON DATA USED
 train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used
@@ -219,23 +224,27 @@ test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
 
 # print(train_dataset.take(1))
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #3
       -=+=-
-      """)
+      """
+)
 
-# Supposedly these lines will optimise the loading 
+# Supposedly these lines will optimise the loading
 AUTOTUNE = tf.data.AUTOTUNE
 
 train_dataset = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 val_dataset = val_dataset.cache().prefetch(buffer_size=AUTOTUNE)
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #4
       -=+=-
-      """)
+      """
+)
 
 # events = load_image_subset(frac=0.001)
 # # data = load_all_bb_events(["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"])
@@ -291,11 +300,13 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
     monitor="val_loss",
 )
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #5
       -=+=-
-      """)
+      """
+)
 
 # # Split into 70% train, 15% validation, 15% test
 # train_ratio = 0.70
@@ -326,12 +337,13 @@ print("After loading dataset")
 print(train_dataset)
 
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #6
       -=+=-
-      """)
-
+      """
+)
 
 
 for sample in train_dataset.take(1):
@@ -348,11 +360,13 @@ history = model.fit(
     callbacks=[tb_callback, ckpt_callback],
 )
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #7
       -=+=-
-      """)
+      """
+)
 
 train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
@@ -360,11 +374,13 @@ history_filename = os.path.join(log_dir, "history.json")
 
 model_save_path = "CoNNCR-R.keras"
 model.save(model_save_path)
-print("""
+print(
+    """
       -=+=-
       Checkpoint #8
       -=+=-
-      """)
+      """
+)
 info_filename = os.path.join(log_dir, "info.txt")
 
 # with open(history_filename, "w") as file:
@@ -386,13 +402,20 @@ from cnn_processing import parse_function
 
 
 try:
-    output = parse_function("/vols/lz/MIGDAL/sim_ims/C/300-320keV/313.879keV_C_2.228cm_1141_gem_out.npy",m_dark,example_dark_list_unbinned,channels=3)
+    output = parse_function(
+        "/vols/lz/MIGDAL/sim_ims/C/300-320keV/313.879keV_C_2.228cm_1141_gem_out.npy",
+        m_dark,
+        example_dark_list_unbinned,
+        channels=3,
+    )
     print("Parse function output:", output)
 except Exception as e:
     print("Error in parse_function:", e)
 
-print("""
+print(
+    """
       -=+=-
       Checkpoint #11
       -=+=-
-      """)
+      """
+)
