@@ -17,6 +17,61 @@ from convert_sim_ims import convert_im, get_dark_sample
 from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
 
 
+# Not checked either of these classes. They might just be chatgpt gobbledegook.
+class SmoothOperator(tf.keras.layers.Layer):
+    def __init__(self, smoothing_sigma=5, **kwargs):
+        """
+        A custom layer that applies a Gaussian smoothing filter to the input.
+        """
+        super(SmoothOperator, self).__init__(**kwargs)
+        self.smoothing_sigma = smoothing_sigma
+
+    def call(self, inputs):
+        # This inner function will be run in Python.
+        def _smooth(x):
+            # x is a NumPy array.
+            # Apply Gaussian filter from scipy.ndimage:
+            return nd.gaussian_filter(x, sigma=self.smoothing_sigma)
+
+        # Wrap the python function in tf.py_function.
+        outputs = tf.py_function(func=_smooth, inp=[inputs], Tout=inputs.dtype)
+        # Make sure the output tensor has the same shape as the input.
+        outputs.set_shape(inputs.shape)
+        return outputs
+
+
+class NoiseAdder(tf.keras.layers.Layer):
+    def __init__(self, m_dark=None, example_dark_list=None, **kwargs):
+        """
+        A custom layer that adds noise to the image.
+        If m_dark or example_dark_list is not provided, a warning is printed and the image is returned unchanged.
+        """
+        super(NoiseAdder, self).__init__(**kwargs)
+        self.m_dark = m_dark
+        self.example_dark_list = example_dark_list
+
+    def call(self, inputs):
+        def _add_noise(x):
+            # x is a NumPy array.
+            if self.m_dark is None or self.example_dark_list is None:
+                print("WARNING: Noise isn't being added.")
+                return x
+            # Shuffle the example_dark_list using TF and then convert to a NumPy value.
+            shuffled = tf.random.shuffle(tf.convert_to_tensor(self.example_dark_list))
+            sample_dark = shuffled[0].numpy()
+            # Assume that get_dark_sample returns a dark sample given the parameters
+            # and that convert_im applies that dark sample to the image.
+            # We use x.shape to get dimensions (x.shape: (height, width, channels))
+            dark_sample = get_dark_sample(
+                self.m_dark, [x.shape[1], x.shape[0]], sample_dark
+            )
+            return convert_im(x, dark_sample)
+
+        outputs = tf.py_function(func=_add_noise, inp=[inputs], Tout=inputs.dtype)
+        outputs.set_shape(inputs.shape)
+        return outputs
+
+
 def resize_pad_image_tf(event, target_size=(224, 224)):
     """
     Rescales the image (with padding) using tensorflow for CNN input
@@ -363,6 +418,57 @@ def parse_function_2(
     return image, label
 
 
+def parse_function_bb(file_path, channels=3, binning=1):
+    # Ensure `file_path` is a string (needed for `np.load`)
+    if isinstance(file_path, tf.Tensor):
+        file_path = file_path.numpy().decode("utf-8")  # Convert from Tensor to string
+
+    # Load the image
+    image = np.load(file_path)
+
+    # Extract label (assumes filenames contain "C" or "F")
+    label = 0 if "C" in os.path.basename(file_path) else 1  # 0: Carbon, 1: Fluorine
+
+    # # Apply binning if necessary
+    # example_dark_list = (
+    #     example_dark_list_unbinned
+    #     if binning == 1
+    #     else [bin_image(i, binning) for i in example_dark_list_unbinned]
+    # )
+
+    # # Apply processing functions
+    # image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
+    # image = smooth_operator(image)
+    # image = pad_image(image)
+
+    # Convert to float32
+    image = image.astype(np.float32)
+
+    # Ensure correct number of channels
+    if channels == 3:
+        # Normalize and stack channels
+        max_val = np.max(image)
+        if max_val > 0:
+            image = image / max_val
+        else:
+            print("Warning: Image max value is 0, potential issue in normalization.")
+
+        # Create 3-channel image
+        image = np.repeat(image[:, :, np.newaxis], 3, axis=-1)
+
+        # Apply VGG16 preprocessing
+        image = preprocess_input(image)
+    else:
+        # Ensure grayscale format
+        image = np.expand_dims(image, axis=-1)
+
+    # Convert to TensorFlow tensors
+    image = tf.convert_to_tensor(image, dtype=tf.float32)
+    label = tf.convert_to_tensor(label, dtype=tf.int32)
+
+    return image, label
+
+
 # Dataset Preparation Function Using `tf.data`
 def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Get all the .npy files from base_dirs
@@ -407,9 +513,7 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     return dataset
 
 
-def load_data_yield(
-    base_dirs, batch_size, example_dark_tensor, m_dark_tensor, channels=1
-):
+def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
     # Get all the .npy files from base_dirs
     file_list = []
     for base_dir in base_dirs:
@@ -435,3 +539,21 @@ def load_data_yield(
     #         tf.ensure_shape(label, ()),
     #     )
     # )
+
+
+def load_data_yield_bb(base_dirs, channels=3):
+    # Get all the .npy files from base_dirs
+    file_list = []
+    for base_dir in base_dirs:
+        for root, dirs, files in os.walk(base_dir):
+            files = [f for f in files if f.endswith(".npy")]
+            file_list.extend([os.path.join(root, file) for file in files])
+
+    file_list.sort()
+    np.random.seed(77)
+    np.random.shuffle(file_list)
+
+    # Process the single image
+    for file_path in file_list:
+        image, label = parse_function_bb(file_path, channels)
+        yield image, label
