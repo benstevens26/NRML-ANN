@@ -167,4 +167,5 @@ ANN-code/test.py
 figures
 ANN-code/logs/
 logs/
+*.keras
 ANN-code/old_models/old_logs/cnn_0.err
