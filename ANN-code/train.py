@@ -1,5 +1,5 @@
 """
-train.py - Training script for LENRI classification
+train.py
 
 This script handles:
 - Loading the dataset using feature_preprocessing.py
@@ -64,7 +64,7 @@ for epoch in range(num_epochs):
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         stopping_counter = 0
-        torch.save(model.state_dict(), "lenri_model.pth")  # Save best model
+        torch.save(model.state_dict(), "lenri_model.pth")  # Save best model with name
     else:
         stopping_counter += 1
         if stopping_counter >= patience:
