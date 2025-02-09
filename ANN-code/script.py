@@ -30,21 +30,22 @@ if local:
     base_dirs = ["ANN-code/Data/im0/C", "ANN-code/Data/im0/F"]
 else:
     base_dirs = [
-        # "/vols/lz/tmarley/GEM_ITO/run/im0/C",
-        # "/vols/lz/tmarley/GEM_ITO/run/im0/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im0/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im0/F",
         "/vols/lz/tmarley/GEM_ITO/run/im1/C",
         "/vols/lz/tmarley/GEM_ITO/run/im1/F",
-        # "/vols/lz/tmarley/GEM_ITO/run/im2/C",
-        # "/vols/lz/tmarley/GEM_ITO/run/im2/F",
-        # "/vols/lz/tmarley/GEM_ITO/run/im3/C",
-        # "/vols/lz/tmarley/GEM_ITO/run/im3/F",
-        # "/vols/lz/tmarley/GEM_ITO/run/im4/C",
-        # "/vols/lz/tmarley/GEM_ITO/run/im4/F"
+        "/vols/lz/tmarley/GEM_ITO/run/im2/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im2/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im3/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im3/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im4/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im4/F"
     ]
 
 
 events = []
 dir_number = start_num
+base_dirs = base_dirs[start_num:start_num+2]
 
 if local:
     dark_dir = "ANN-code/Data/darks"
@@ -122,6 +123,10 @@ for event in tqdm(events):
     distances, intensities = extract_intensity_profile(
         event.image, principal_axis=axis_camera, centroid=centroid_camera
     )
+
+    if intensities.size == 0:
+        print(f"Error extracting intensity profile for {filename}")
+        continue
 
     recoil_length_camera = extract_length(
         event.image, distances=distances, intensities=intensities
