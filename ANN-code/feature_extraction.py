@@ -201,7 +201,9 @@ def extract_spline(image, smoothing=0.5, resolution=500):
 
     # Check if we have enough points for spline fitting
     if len(sorted_coords) < 4:
-        raise ValueError("Not enough points for spline fitting. At least 4 unique points are required.")
+        raise ValueError(
+            "Not enough points for spline fitting. At least 4 unique points are required."
+        )
 
     # Fit a spline through the sorted, weighted points
     tck, _ = splprep(
@@ -242,8 +244,13 @@ def extract_bounding_box(image: np.ndarray) -> tuple:
     return min_y, min_x, max_y, max_x
 
 
-def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_profile', plot: bool = False, 
-                              principal_axis: np.ndarray = None, centroid: tuple = None):
+def extract_intensity_profile(
+    image: np.ndarray,
+    method: str = "thin_intensity_profile",
+    plot: bool = False,
+    principal_axis: np.ndarray = None,
+    centroid: tuple = None,
+):
     """
     Extracts an intensity profile along the principal axis of an image.
 
@@ -255,9 +262,9 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
         centroid (tuple, optional): Precomputed centroid. If None, it will be computed.
 
     Returns:
-        tuple: distances (numpy.ndarray), intensities (list)    
+        tuple: distances (numpy.ndarray), intensities (list)
     """
-    if method == 'thin_intensity_profile':
+    if method == "thin_intensity_profile":
         # Compute principal axis and centroid if not provided
         if principal_axis is None or centroid is None:
             principal_axis, centroid = extract_axis(image)
@@ -265,7 +272,7 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
         # Define a line along the principal axis
         centroid_x, centroid_y = centroid
         line_points = []
-        
+
         for t in np.linspace(-image.shape[1], image.shape[1], 500):
             line_x = centroid_x + t * principal_axis[0]
             line_y = centroid_y + t * principal_axis[1]
@@ -281,12 +288,14 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
                 intensities.append(image[y, x])
 
         # Normalize distances along the principal axis
-        distances = np.linspace(-image.shape[1] / 2, image.shape[1] / 2, len(intensities))
+        distances = np.linspace(
+            -image.shape[1] / 2, image.shape[1] / 2, len(intensities)
+        )
 
         if plot:
             plt.figure(figsize=(10, 6))
             plt.plot(distances, intensities, label="Intensity")
-            plt.axvline(0, color='red', linestyle='--', label='Centroid')
+            plt.axvline(0, color="red", linestyle="--", label="Centroid")
             plt.title("Intensity Along Principal Axis")
             plt.xlabel("Distance Along Principal Axis")
             plt.ylabel("Mean Intensity")
@@ -298,7 +307,6 @@ def extract_intensity_profile(image: np.ndarray, method: str = 'thin_intensity_p
 
     else:
         raise ValueError(f"Unsupported method: {method}")
-
 
 
 def extract_recoil_angle(principal_axis: np.ndarray) -> float:
@@ -332,7 +340,12 @@ def extract_recoil_angle(principal_axis: np.ndarray) -> float:
     return angle_degrees
 
 
-def extract_length(image: np.ndarray, energy_percentile: float = 40, distances: np.ndarray = None, intensities: list = None) -> float:
+def extract_length(
+    image: np.ndarray,
+    energy_percentile: float = 40,
+    distances: np.ndarray = None,
+    intensities: list = None,
+) -> float:
     """
     Calculates the length of the recoil track based on an energy threshold.
 

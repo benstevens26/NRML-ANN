@@ -13,7 +13,6 @@ from image_preprocessing import gaussian_smoothing
 from image_analysis import plot_3d
 
 
-
 def smoothing_widget(image, smoothing_sigma):
     """
     Apply Gaussian smoothing to the image and display the result.
@@ -70,13 +69,12 @@ def smoothing_widget_3d(image: np.ndarray):
         min=0.0,
         max=10.0,
         step=0.1,
-        description='Smoothing σ:',
-        continuous_update=False
+        description="Smoothing σ:",
+        continuous_update=False,
     )
 
     interactive_plot = widgets.interactive(
-        lambda sigma: plot_3d(gaussian_smoothing(image, sigma)),
-        sigma=smoothing_slider
+        lambda sigma: plot_3d(gaussian_smoothing(image, sigma)), sigma=smoothing_slider
     )
 
     display(interactive_plot)
@@ -192,7 +190,9 @@ def combined_widget(image: np.ndarray, axis=False):
 
             # Apply thresholding
             threshold_value = np.percentile(smoothed_image, threshold_percentile)
-            thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
+            thresholded_image = np.where(
+                smoothed_image >= threshold_value, smoothed_image, 0
+            )
 
             # Calculate principal axis and centroid for smoothed image
             smoothed_axis, smoothed_centroid = extract_axis(smoothed_image)
@@ -225,10 +225,15 @@ def combined_widget(image: np.ndarray, axis=False):
         # Create interactive sliders for smoothing_sigma and threshold_percentile
         interact(
             process_image,
-            smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
-            threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
+            smoothing_sigma=FloatSlider(
+                value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"
+            ),
+            threshold_percentile=FloatSlider(
+                value=95, min=0, max=100, step=1, description="Percentile"
+            ),
         )
     else:
+
         def process_image(smoothing_sigma: float, threshold_percentile: float):
             """
             Process the image with Gaussian smoothing and thresholding.
@@ -245,7 +250,9 @@ def combined_widget(image: np.ndarray, axis=False):
 
             # Apply thresholding
             threshold_value = np.percentile(smoothed_image, threshold_percentile)
-            thresholded_image = np.where(smoothed_image >= threshold_value, smoothed_image, 0)
+            thresholded_image = np.where(
+                smoothed_image >= threshold_value, smoothed_image, 0
+            )
 
             # Plot the original, smoothed, and thresholded images
             plt.figure(figsize=(15, 5))
@@ -277,10 +284,13 @@ def combined_widget(image: np.ndarray, axis=False):
         # Create interactive sliders for smoothing_sigma and threshold_percentile
         interact(
             process_image,
-            smoothing_sigma=FloatSlider(value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"),
-            threshold_percentile=FloatSlider(value=95, min=0, max=100, step=1, description="Percentile"),
+            smoothing_sigma=FloatSlider(
+                value=1.0, min=0, max=10, step=0.1, description="Smoothing σ"
+            ),
+            threshold_percentile=FloatSlider(
+                value=95, min=0, max=100, step=1, description="Percentile"
+            ),
         )
-
 
 
 def intensity_profile_widget(image: np.ndarray):
@@ -298,8 +308,8 @@ def intensity_profile_widget(image: np.ndarray):
         min=0.0,
         max=10.0,
         step=0.1,
-        description='Smoothing σ:',
-        continuous_update=False
+        description="Smoothing σ:",
+        continuous_update=False,
     )
 
     def update_plot(smoothing_sigma):
@@ -308,16 +318,16 @@ def intensity_profile_widget(image: np.ndarray):
         # Plot the smoothed image
         plt.figure(figsize=(12, 6))
         plt.subplot(1, 2, 1)
-        plt.imshow(smoothed_image, cmap='viridis', origin='lower')
-        plt.colorbar(label='Intensity')
+        plt.imshow(smoothed_image, cmap="viridis", origin="lower")
+        plt.colorbar(label="Intensity")
         plt.title(f"Smoothed Image (Smoothing σ={smoothing_sigma})")
-        plt.axis('off')
+        plt.axis("off")
 
         # Extract and plot the intensity profile
         distances, intensities = extract_intensity_profile(smoothed_image, plot=False)
         plt.subplot(1, 2, 2)
         plt.plot(distances, intensities, label="Intensity")
-        plt.axvline(0, color='red', linestyle='--', label='Centroid')
+        plt.axvline(0, color="red", linestyle="--", label="Centroid")
         plt.title("Intensity Along Principal Axis")
         plt.xlabel("Distance Along Principal Axis")
         plt.ylabel("Intensity")
@@ -327,10 +337,10 @@ def intensity_profile_widget(image: np.ndarray):
         plt.tight_layout()
         plt.show()
 
-    interactive_plot = widgets.interactive(update_plot, smoothing_sigma=smoothing_slider)
+    interactive_plot = widgets.interactive(
+        update_plot, smoothing_sigma=smoothing_slider
+    )
     display(interactive_plot)
-
-
 
 
 def recoil_length_widget(image: np.ndarray):
@@ -343,7 +353,6 @@ def recoil_length_widget(image: np.ndarray):
     Returns:
         None
     """
-
 
     def extract_length_widget(image: np.ndarray, energy_percentile: float) -> tuple:
 
@@ -382,12 +391,14 @@ def recoil_length_widget(image: np.ndarray):
         min=0.0,
         max=100.0,
         step=1.0,
-        description='Threshold (%)',
-        continuous_update=False
+        description="Threshold (%)",
+        continuous_update=False,
     )
 
     def update_visualization(energy_percentile):
-        recoil_length, start_point, end_point = extract_length_widget(image, energy_percentile)
+        recoil_length, start_point, end_point = extract_length_widget(
+            image, energy_percentile
+        )
         distances, intensities = extract_intensity_profile(image, plot=False)
 
         # Calculate the threshold value
@@ -398,34 +409,49 @@ def recoil_length_widget(image: np.ndarray):
 
         # Plot intensity profile
         axes[0].plot(distances, intensities, label="Intensity")
-        axes[0].axhline(threshold, color='red', linestyle='--', label=f'Threshold = {threshold:.2f}')
-        axes[0].set_title(f"Intensity Profile\nRecoil Length = {recoil_length:.2f} pixels")
+        axes[0].axhline(
+            threshold, color="red", linestyle="--", label=f"Threshold = {threshold:.2f}"
+        )
+        axes[0].set_title(
+            f"Intensity Profile\nRecoil Length = {recoil_length:.2f} pixels"
+        )
         axes[0].set_xlabel("Distance Along Principal Axis")
         axes[0].set_ylabel("Intensity")
         axes[0].legend()
         axes[0].grid()
 
         # Plot recoil track with principal axis and start/end points
-        axes[1].imshow(image, cmap='gray', origin='lower')
+        axes[1].imshow(image, cmap="gray", origin="lower")
         principal_axis, centroid = extract_axis(image)
         axes[1].quiver(
-            centroid[0], centroid[1],
-            principal_axis[0], principal_axis[1],
-            angles='xy', scale_units='xy', scale=1, color='red', label='Principal Axis'
+            centroid[0],
+            centroid[1],
+            principal_axis[0],
+            principal_axis[1],
+            angles="xy",
+            scale_units="xy",
+            scale=1,
+            color="red",
+            label="Principal Axis",
         )
         if start_point and end_point:
             axes[1].plot(
-                [start_point[0], end_point[0]], [start_point[1], end_point[1]],
-                color='blue', linestyle='--', label='Recoil Track'
+                [start_point[0], end_point[0]],
+                [start_point[1], end_point[1]],
+                color="blue",
+                linestyle="--",
+                label="Recoil Track",
             )
-            axes[1].scatter(*start_point, color='green', label='Start Point')
-            axes[1].scatter(*end_point, color='orange', label='End Point')
+            axes[1].scatter(*start_point, color="green", label="Start Point")
+            axes[1].scatter(*end_point, color="orange", label="End Point")
         axes[1].set_title("Recoil Track")
         axes[1].legend()
-        axes[1].axis('off')
+        axes[1].axis("off")
 
         plt.tight_layout()
         plt.show()
 
-    interactive_plot = widgets.interactive(update_visualization, energy_percentile=threshold_slider)
+    interactive_plot = widgets.interactive(
+        update_visualization, energy_percentile=threshold_slider
+    )
     display(interactive_plot)

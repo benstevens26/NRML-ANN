@@ -27,22 +27,19 @@ local = False
 
 # image directories
 if local:
-    base_dirs = [
-        "ANN-code/Data/im0/C",
-        "ANN-code/Data/im0/F"
-        ]
+    base_dirs = ["ANN-code/Data/im0/C", "ANN-code/Data/im0/F"]
 else:
     base_dirs = [
-    "/vols/lz/tmarley/GEM_ITO/run/im0/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im0/F",
-    "/vols/lz/tmarley/GEM_ITO/run/im1/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im1/F",
-    "/vols/lz/tmarley/GEM_ITO/run/im2/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im2/F",
-    "/vols/lz/tmarley/GEM_ITO/run/im3/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im3/F",
-    "/vols/lz/tmarley/GEM_ITO/run/im4/C",
-    "/vols/lz/tmarley/GEM_ITO/run/im4/F"
+        "/vols/lz/tmarley/GEM_ITO/run/im0/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im0/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im2/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im2/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im3/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im3/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im4/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im4/F",
     ]
 
 
@@ -75,9 +72,7 @@ else:
 
 dark_list_number = dir_number
 m_dark = np.load(f"{dark_dir}/master_dark_1x1.npy")
-example_dark_list = np.load(
-    f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
-)
+example_dark_list = np.load(f"{dark_dir}/quest_std_dark_{dark_list_number}.npy")
 
 events = []
 
@@ -93,10 +88,17 @@ for path in tqdm(image_paths):
 
 # Define columns for the features dataframe
 features = [
-    "file_name", "sum_intensity_camera", "max_intensity_camera", "recoil_angle_camera", 
-    "recoil_length_camera", "mean_energy_deposition_camera", "std_energy_deposition_camera",
-    "skew_energy_deposition_camera", "kurt_energy_deposition_camera", "head_tail_mean_difference_camera"
-    ]
+    "file_name",
+    "sum_intensity_camera",
+    "max_intensity_camera",
+    "recoil_angle_camera",
+    "recoil_length_camera",
+    "mean_energy_deposition_camera",
+    "std_energy_deposition_camera",
+    "skew_energy_deposition_camera",
+    "kurt_energy_deposition_camera",
+    "head_tail_mean_difference_camera",
+]
 
 features_dataframe = pd.DataFrame(columns=features)
 
@@ -114,29 +116,37 @@ for event in tqdm(events):
     recoil_angle_camera = extract_recoil_angle(axis_camera)
 
     # intensity profile features
-    distances, intensities = extract_intensity_profile(event.image, principal_axis=axis_camera, centroid=centroid_camera)
+    distances, intensities = extract_intensity_profile(
+        event.image, principal_axis=axis_camera, centroid=centroid_camera
+    )
 
-    recoil_length_camera = extract_length(event.image, distances=distances, intensities=intensities)
+    recoil_length_camera = extract_length(
+        event.image, distances=distances, intensities=intensities
+    )
     mean_energy_deposition_camera = np.mean(intensities)
     std_energy_deposition_camera = np.std(intensities)
     skew_energy_deposition_camera = sp.stats.skew(intensities)
     kurt_energy_deposition_camera = sp.stats.kurtosis(intensities)
-    head_tail_mean_difference_camera = np.mean(intensities[:len(intensities)//2]) - np.mean(intensities[len(intensities)//2:])
+    head_tail_mean_difference_camera = np.mean(
+        intensities[: len(intensities) // 2]
+    ) - np.mean(intensities[len(intensities) // 2 :])
 
-    features_dataframe = features_dataframe._append({
-        "file_name": filename,
-        "sum_intensity_camera": sum_intensity_camera,
-        "max_intensity_camera": max_intensity_camera,
-        "recoil_angle_camera": recoil_angle_camera,
-        "recoil_length_camera": recoil_length_camera,
-        "mean_energy_deposition_camera": mean_energy_deposition_camera,
-        "std_energy_deposition_camera": std_energy_deposition_camera,
-        "skew_energy_deposition_camera": skew_energy_deposition_camera,
-        "kurt_energy_deposition_camera": kurt_energy_deposition_camera,
-        "head_tail_mean_difference_camera": head_tail_mean_difference_camera
-    }, ignore_index=True)
+    features_dataframe = features_dataframe._append(
+        {
+            "file_name": filename,
+            "sum_intensity_camera": sum_intensity_camera,
+            "max_intensity_camera": max_intensity_camera,
+            "recoil_angle_camera": recoil_angle_camera,
+            "recoil_length_camera": recoil_length_camera,
+            "mean_energy_deposition_camera": mean_energy_deposition_camera,
+            "std_energy_deposition_camera": std_energy_deposition_camera,
+            "skew_energy_deposition_camera": skew_energy_deposition_camera,
+            "kurt_energy_deposition_camera": kurt_energy_deposition_camera,
+            "head_tail_mean_difference_camera": head_tail_mean_difference_camera,
+        },
+        ignore_index=True,
+    )
 
 # save features to csv
-features_dataframe.to_csv("features_"+dir_name+"_raw.csv", index=False)
+features_dataframe.to_csv("features_" + dir_name + "_raw.csv", index=False)
 print("Features saved to csv")
-

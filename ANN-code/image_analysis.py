@@ -5,6 +5,7 @@ Module that contains standalone functions for imaging analysis.
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def plot_axis(image, principal_axis, centroid):
     """
     Plots the image with the principal axis overlayed.
@@ -207,16 +208,16 @@ def plot_3d(image: np.ndarray) -> None:
 
     # Create the figure and 3D axis
     fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
 
     # Plot the surface with intensity as z-height
-    ax.plot_surface(x, y, image, cmap='viridis', edgecolor='none')
+    ax.plot_surface(x, y, image, cmap="viridis", edgecolor="none")
 
     # Label the axes
-    ax.set_xlabel('X-axis')
-    ax.set_ylabel('Y-axis')
-    ax.set_zlabel('Intensity (Z-height)')
-    ax.set_title('3D Intensity Plot')
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+    ax.set_zlabel("Intensity (Z-height)")
+    ax.set_title("3D Intensity Plot")
 
     # Show the plot
     plt.show()

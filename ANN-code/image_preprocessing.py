@@ -28,7 +28,6 @@ def gaussian_smoothing(image, smoothing_sigma=3.5):
     return gaussian_filter(image, sigma=smoothing_sigma)
 
 
-
 def noise_adder(image, m_dark, example_dark_list, noise_index=None):
     """
     Add noise to an event image based on a master dark image and random sample from example darks.
@@ -65,7 +64,6 @@ def noise_adder(image, m_dark, example_dark_list, noise_index=None):
         ),
     )
     return noised_image
-
 
 
 def uncropped_check(
@@ -166,11 +164,3 @@ def zero_edges(image: np.ndarray, edge_width: int = 1) -> np.ndarray:
     image_zeroed[:, -edge_width:] = 0  # Right edge
 
     return image_zeroed
-
-
-
-
-
-
-
-
