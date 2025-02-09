@@ -24,6 +24,7 @@ length_percentile = 40
 local = False
 name = "im0"
 start_num = 0
+process_num = 2
 
 # image directories
 if local:
@@ -45,7 +46,7 @@ else:
 
 events = []
 dir_number = start_num
-base_dirs = base_dirs[start_num:start_num+2]
+base_dirs = base_dirs[start_num:start_num+process_num]
 
 if local:
     dark_dir = "ANN-code/Data/darks"
