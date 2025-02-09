@@ -125,7 +125,7 @@ for event in tqdm(events):
         event.image, principal_axis=axis_camera, centroid=centroid_camera
     )
 
-    if intensities.size == 0:
+    if len(intensities) == 0 or intensities is None:
         print(f"Error extracting intensity profile for {filename}")
         continue
 
