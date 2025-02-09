@@ -73,7 +73,7 @@ for base_dir in base_dirs:
 
     dir_number += 1
 
-    print("Preprocessing batch", dir_number+1)
+    print("Preprocessing batch", dir_number)
     for path in tqdm(image_paths):
         # preprocessing images (add noise and smooth)
         im = np.load(path)
