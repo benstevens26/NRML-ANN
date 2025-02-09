@@ -78,7 +78,8 @@ example_dark_list = np.load(
 
 events = []
 
-for path in image_paths:
+print("Preprocessing images")
+for path in tqdm(image_paths):
     # preprocessing images (add noise and smooth)
     im = np.load(path)
     im = noise_adder(im, m_dark, example_dark_list)
@@ -97,6 +98,7 @@ features = [
 features_dataframe = pd.DataFrame(columns=features)
 
 # extract features for each events
+print("Extracting features")
 for event in tqdm(events):
 
     # basic features
