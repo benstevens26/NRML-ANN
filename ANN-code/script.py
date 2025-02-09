@@ -42,7 +42,7 @@ else:
 
 
 events = []
-dir_number = 0
+dir_number = 2
 
 if local:
     dark_dir = "ANN-code/Data/darks"
