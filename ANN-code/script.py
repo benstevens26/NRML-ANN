@@ -30,14 +30,14 @@ else:
     base_dirs = [
         "/vols/lz/tmarley/GEM_ITO/run/im0/C",
         "/vols/lz/tmarley/GEM_ITO/run/im0/F",
-        "/vols/lz/tmarley/GEM_ITO/run/im1/C",
-        "/vols/lz/tmarley/GEM_ITO/run/im1/F",
-        "/vols/lz/tmarley/GEM_ITO/run/im2/C",
-        "/vols/lz/tmarley/GEM_ITO/run/im2/F",
-        "/vols/lz/tmarley/GEM_ITO/run/im3/C",
-        "/vols/lz/tmarley/GEM_ITO/run/im3/F",
-        "/vols/lz/tmarley/GEM_ITO/run/im4/C",
-        "/vols/lz/tmarley/GEM_ITO/run/im4/F",
+        # "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+        # "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+        # "/vols/lz/tmarley/GEM_ITO/run/im2/C",
+        # "/vols/lz/tmarley/GEM_ITO/run/im2/F",
+        # "/vols/lz/tmarley/GEM_ITO/run/im3/C",
+        # "/vols/lz/tmarley/GEM_ITO/run/im3/F",
+        # "/vols/lz/tmarley/GEM_ITO/run/im4/C",
+        # "/vols/lz/tmarley/GEM_ITO/run/im4/F"
     ]
 
 
@@ -81,6 +81,7 @@ for base_dir in base_dirs:
         im = gaussian_smoothing(im, smoothing_sigma=smoothing_sigma)
 
         events.append(Event(path, np.load(path)))
+
 
 print("---------------------------------")
 print("Preprocessing complete")
@@ -152,5 +153,5 @@ print("Features extracted")
 print("---------------------------------")
 
 # save features to csv
-features_dataframe.to_csv("features_raw.csv", index=False)
+features_dataframe.to_csv("features_raw_im0.csv", index=False)
 print("Features saved to csv")
