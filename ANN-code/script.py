@@ -152,5 +152,5 @@ print("Features extracted")
 print("---------------------------------")
 
 # save features to csv
-features_dataframe.to_csv("features_" + dir_name + "_raw.csv", index=False)
+features_dataframe.to_csv("features_raw.csv", index=False)
 print("Features saved to csv")
