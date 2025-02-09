@@ -329,7 +329,7 @@ def extract_recoil_angle(principal_axis: np.ndarray) -> float:
     return angle_degrees
 
 
-def extract_length(image: np.ndarray, energy_percentile: float = 50, distances: np.ndarray = None, intensities: list = None) -> float:
+def extract_length(image: np.ndarray, energy_percentile: float = 40, distances: np.ndarray = None, intensities: list = None) -> float:
     """
     Calculates the length of the recoil track based on an energy threshold.
 
