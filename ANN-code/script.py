@@ -21,8 +21,6 @@ from feature_extraction import extract_length
 # feature extraction parameters
 smoothing_sigma = 3.5
 length_percentile = 40
-dir_number = 0
-dir_name = "im0_C"
 local = False
 
 # image directories
@@ -43,48 +41,50 @@ else:
     ]
 
 
-base_dir = [base_dirs[dir_number]]
+events = []
+dir_number = 0
 
-# create list of image paths from a base directory
-image_paths = create_file_paths(base_dir)
-num_ims = len(image_paths)
-
-# removing known bad images if they are in the list
-if not local:
-    uncropped_error = np.loadtxt("uncropped_error.csv", delimiter=",", dtype=str)
-    min_dim_error = np.loadtxt("min_dim_error.csv", delimiter=",", dtype=str)
-    errors = np.concatenate((uncropped_error, min_dim_error))
-    image_paths = [path for path in image_paths if path not in errors]
-
-    print(f"Removed {num_ims - len(image_paths)} known bad images")
-    num_ims = len(image_paths)
-
-# while testing use subset
-if local:
-    image_paths = image_paths[:100]
-
-
-# event instantiation and preprocessing
 if local:
     dark_dir = "ANN-code/Data/darks"
 else:
     dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
 
-dark_list_number = dir_number
-m_dark = np.load(f"{dark_dir}/master_dark_1x1.npy")
-example_dark_list = np.load(f"{dark_dir}/quest_std_dark_{dark_list_number}.npy")
+for base_dir in base_dirs:
 
-events = []
+    # create list of image paths from a base directory
+    image_paths = create_file_paths([base_dir])
+    num_ims = len(image_paths)
 
-print("Preprocessing images")
-for path in tqdm(image_paths):
-    # preprocessing images (add noise and smooth)
-    im = np.load(path)
-    im = noise_adder(im, m_dark, example_dark_list)
-    im = gaussian_smoothing(im, smoothing_sigma=smoothing_sigma)
+    # removing known bad images if they are in the list
+    if not local:
+        uncropped_error = np.loadtxt("uncropped_error.csv", delimiter=",", dtype=str)
+        min_dim_error = np.loadtxt("min_dim_error.csv", delimiter=",", dtype=str)
+        errors = np.concatenate((uncropped_error, min_dim_error))
+        image_paths = [path for path in image_paths if path not in errors]
 
-    events.append(Event(path, np.load(path)))
+        print(f"Removed {num_ims - len(image_paths)} known bad images")
+        num_ims = len(image_paths)
 
+    # event instantiation and preprocessing
+
+    dark_list_number = dir_number
+    m_dark = np.load(f"{dark_dir}/master_dark_1x1.npy")
+    example_dark_list = np.load(f"{dark_dir}/quest_std_dark_{dark_list_number}.npy")
+
+    dir_number += 1
+
+    print("Preprocessing batch", dir_number+1)
+    for path in tqdm(image_paths):
+        # preprocessing images (add noise and smooth)
+        im = np.load(path)
+        im = noise_adder(im, m_dark, example_dark_list)
+        im = gaussian_smoothing(im, smoothing_sigma=smoothing_sigma)
+
+        events.append(Event(path, np.load(path)))
+
+print("---------------------------------")
+print("Preprocessing complete")
+print("---------------------------------")
 
 # Define columns for the features dataframe
 features = [
@@ -146,6 +146,10 @@ for event in tqdm(events):
         },
         ignore_index=True,
     )
+
+print("---------------------------------")
+print("Features extracted")
+print("---------------------------------")
 
 # save features to csv
 features_dataframe.to_csv("features_" + dir_name + "_raw.csv", index=False)
