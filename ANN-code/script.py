@@ -50,6 +50,7 @@ base_dir = [base_dirs[dir_number]]
 
 # create list of image paths from a base directory
 image_paths = create_file_paths(base_dir)
+num_ims = len(image_paths)
 
 # removing known bad images if they are in the list
 if not local:
@@ -57,7 +58,9 @@ if not local:
     min_dim_error = np.loadtxt("min_dim_error.csv", delimiter=",", dtype=str)
     errors = np.concatenate((uncropped_error, min_dim_error))
     image_paths = [path for path in image_paths if path not in errors]
-    print(f"Removed {len(errors)} known bad images")
+
+    print(f"Removed {len(image_paths)-num_ims} known bad images")
+    num_ims = len(image_paths)
 
 # while testing use subset
 if local:
