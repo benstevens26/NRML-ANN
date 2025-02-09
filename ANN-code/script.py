@@ -80,7 +80,7 @@ for base_dir in base_dirs:
         im = noise_adder(im, m_dark, example_dark_list)
         im = gaussian_smoothing(im, smoothing_sigma=smoothing_sigma)
 
-        events.append(Event(path, np.load(path)))
+        events.append(Event(path, im))
 
 
 print("---------------------------------")
