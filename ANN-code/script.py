@@ -22,16 +22,18 @@ from feature_extraction import extract_length
 smoothing_sigma = 3.5
 length_percentile = 40
 local = False
+name = "im1"
+start_num = 2
 
 # image directories
 if local:
     base_dirs = ["ANN-code/Data/im0/C", "ANN-code/Data/im0/F"]
 else:
     base_dirs = [
-        "/vols/lz/tmarley/GEM_ITO/run/im0/C",
-        "/vols/lz/tmarley/GEM_ITO/run/im0/F",
-        # "/vols/lz/tmarley/GEM_ITO/run/im1/C",
-        # "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+        # "/vols/lz/tmarley/GEM_ITO/run/im0/C",
+        # "/vols/lz/tmarley/GEM_ITO/run/im0/F",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+        "/vols/lz/tmarley/GEM_ITO/run/im1/F",
         # "/vols/lz/tmarley/GEM_ITO/run/im2/C",
         # "/vols/lz/tmarley/GEM_ITO/run/im2/F",
         # "/vols/lz/tmarley/GEM_ITO/run/im3/C",
@@ -42,7 +44,7 @@ else:
 
 
 events = []
-dir_number = 2
+dir_number = start_num
 
 if local:
     dark_dir = "ANN-code/Data/darks"
@@ -153,5 +155,5 @@ print("Features extracted")
 print("---------------------------------")
 
 # save features to csv
-features_dataframe.to_csv("features_raw_im0.csv", index=False)
+features_dataframe.to_csv("features_raw_"+name+".csv", index=False)
 print("Features saved to csv")
