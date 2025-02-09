@@ -59,7 +59,7 @@ if not local:
     errors = np.concatenate((uncropped_error, min_dim_error))
     image_paths = [path for path in image_paths if path not in errors]
 
-    print(f"Removed {len(image_paths)-num_ims} known bad images")
+    print(f"Removed {num_ims - len(image_paths)} known bad images")
     num_ims = len(image_paths)
 
 # while testing use subset
