@@ -28,7 +28,7 @@ else:
 
 print(f"Running job {job_number}")
 
-# feature extraction parameters
+# feature extraction parameters CHANGE CHANGE CHANGE DONT FORGET CHANGE !!!
 smoothing_sigma = 3.5
 length_percentile = 40
 local = False
@@ -36,7 +36,6 @@ name = "Ar_CF4_"+str(job_number)
 uncropped_file = "uncropped_Ar_CF4_true.csv"
 min_dim_file = "min_dim_Ar_CF4_true.csv"
 
-# image directories
 if local:
     base_dirs = ["ANN-code/Data/im0/C", "ANN-code/Data/im0/F"]
 else:
@@ -58,6 +57,8 @@ else:
     "/vols/lz/tmarley/GEM_ITO/run/im_Ar_CF44/Ar"
     ]
 
+
+# now create events etc
 
 events = []
 base_dirs = [base_dirs[job_number]]
