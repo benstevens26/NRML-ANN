@@ -53,7 +53,7 @@ else:
 
 
 events = []
-base_dirs = base_dirs[job_number]
+base_dirs = [base_dirs[job_number]]
 
 if local:
     dark_dir = "ANN-code/Data/darks"
