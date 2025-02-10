@@ -168,4 +168,6 @@ figures
 ANN-code/logs/
 logs/
 *.keras
+*.err
+*.log
 ANN-code/old_models/old_logs/cnn_0.err
