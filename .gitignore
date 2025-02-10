@@ -170,4 +170,5 @@ logs/
 *.keras
 *.err
 *.log
+ANN-code/new-venv
 ANN-code/old_models/old_logs/cnn_0.err

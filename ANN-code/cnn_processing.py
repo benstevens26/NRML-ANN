@@ -8,13 +8,13 @@ contains methods for changing the event.image to be correct for use in the CNN m
 import os
 import random
 
-import cv2
 import numpy as np
 import scipy.ndimage as nd
 import tensorflow as tf
 from bb_event import BB_Event
 from convert_sim_ims import convert_im, get_dark_sample
 from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
+import tensorflow_addons as tfa
 
 
 
@@ -27,7 +27,6 @@ class PreprocessingLayer(tf.keras.layers.Layer):
         self.target_size = target_size
 
 
-    @tf.function(experimental_compile=False)
     def call(self, inputs):
         # inputs is a tuple: (images, original_shapes)
         images, original_shapes = inputs  # images: [B, H_pad, W_pad, 3]; original_shapes: [B, 2]
@@ -293,6 +292,28 @@ def smooth_operator(image, smoothing_sigma=3.5):
     image = nd.gaussian_filter(image, sigma=smoothing_sigma)
 
     return image
+
+
+def tf_smooth_operator(image, smoothing_sigma=3.5):
+    """
+    Applies a Gaussian smoothing filter using TensorFlow Addons.
+    If the input image is 2D ([H, W]), a channel dimension is added before filtering.
+    """
+    # If image is 2D, add a channel dimension.
+    squeeze_output = False
+    if tf.rank(image) == 2:
+        image = tf.expand_dims(image, axis=-1)
+        squeeze_output = True
+
+    # Compute a kernel size: we use 6*sigma rounded up and ensure it’s odd.
+    kernel_size = tf.cast(tf.math.ceil(smoothing_sigma * 6), tf.int32)
+    kernel_size = kernel_size + (1 - kernel_size % 2)  # add 1 if even
+
+    # Apply Gaussian filtering.
+    smoothed = tfa.image.gaussian_filter2d(image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma)
+    if squeeze_output:
+        smoothed = tf.squeeze(smoothed, axis=-1)
+    return smoothed
 
 
 def noise_adder(image, m_dark=None, example_dark_list=None):
@@ -622,3 +643,256 @@ def load_data_yield_bb(base_dirs, channels=3):
         yield image, label
 
 
+
+
+
+#=========CHAT GPT HAIL MARY===============
+
+
+# def chatgpt_hailmary():
+    
+#     import math
+#     import tensorflow as tf
+#     import numpy as np
+
+#     ###############################################
+#     # Section 1: Custom Gaussian Filtering
+#     ###############################################
+
+#     def tf_gauss_kernel(size, sigma):
+#         """
+#         Create a 2D Gaussian kernel of shape [size, size].
+#         """
+#         # Create a coordinate grid from -(size-1)/2 to (size-1)/2.
+#         pos = tf.linspace(- (size - 1) / 2.0, (size - 1) / 2.0, size)
+#         xx, yy = tf.meshgrid(pos, pos)
+#         kernel = tf.exp(- (xx**2 + yy**2) / (2.0 * sigma**2))
+#         kernel = kernel / tf.reduce_sum(kernel)
+#         return kernel
+
+#     def tf_gaussian_filter2d(image, sigma):
+#         """
+#         Applies a 2D Gaussian filter to an image using depthwise convolution.
+#         Works for both 2D images (shape [H, W]) and multi-channel images (shape [H, W, C]).
+#         """
+#         # If image is 2D, add a channel dimension.
+#         squeeze_output = False
+#         if tf.rank(image) == 2:
+#             image = tf.expand_dims(image, axis=-1)
+#             squeeze_output = True
+
+#         # Compute kernel size: typically 6*sigma rounded up, then ensure it's odd.
+#         kernel_size = tf.cast(tf.math.ceil(sigma * 6), tf.int32)
+#         kernel_size = kernel_size + (1 - kernel_size % 2)
+        
+#         kernel = tf_gauss_kernel(kernel_size, sigma)  # shape: [kernel_size, kernel_size]
+#         # Reshape kernel to [kernel_size, kernel_size, 1, 1] for convolution.
+#         kernel = tf.reshape(kernel, [kernel_size, kernel_size, 1, 1])
+        
+#         # Get number of channels and tile the kernel.
+#         in_channels = tf.shape(image)[-1]
+#         kernel = tf.tile(kernel, [1, 1, in_channels, 1])
+        
+#         # Expand image to include batch dimension: [1, H, W, C].
+#         image = tf.expand_dims(image, axis=0)
+        
+#         # Use depthwise_conv2d.
+#         filtered = tf.nn.depthwise_conv2d(image, kernel, strides=[1, 1, 1, 1], padding='SAME')
+        
+#         # Remove batch dimension.
+#         filtered = tf.squeeze(filtered, axis=0)
+#         if squeeze_output:
+#             filtered = tf.squeeze(filtered, axis=-1)
+#         return filtered
+
+#     def tf_smooth_operator(image, smoothing_sigma=3.5):
+#         """
+#         Smooths an image by applying a Gaussian filter.
+#         Expects the input image to be either 2D ([H, W]) or 3D ([H, W, C]).
+#         """
+#         return tf_gaussian_filter2d(image, smoothing_sigma)
+
+#     ###############################################
+#     # Section 2: Noise Addition Functions
+#     ###############################################
+
+#     # These functions re-implement your existing convert_im and get_dark_sample logic.
+
+#     def tf_get_dark_sample(m_dark, im_dims, example_dark):
+#         """
+#         Mimics your get_dark_sample function.
+#         m_dark: 2D tensor [H_m, W_m] (master dark).
+#         im_dims: [width, height] (list or tensor).
+#         example_dark: 2D tensor [H_e, W_e] (example dark).
+#         Returns: dark_sample, a 2D tensor of shape [height, width].
+#         """
+#         m_dark_shape = tf.shape(m_dark)  # [H_m, W_m]
+#         H_m = m_dark_shape[0]
+#         W_m = m_dark_shape[1]
+        
+#         # im_dims is [width, height]
+#         if not isinstance(im_dims, tf.Tensor):
+#             im_dims = tf.convert_to_tensor(im_dims, dtype=tf.int32)
+#         w_im = im_dims[0]
+#         h_im = im_dims[1]
+        
+#         max_x = W_m - w_im + 1
+#         max_y = H_m - h_im + 1
+#         start_x = tf.random.uniform([], minval=0, maxval=max_x, dtype=tf.int32)
+#         start_y = tf.random.uniform([], minval=0, maxval=max_y, dtype=tf.int32)
+        
+#         m_dark_sample = m_dark[start_y : start_y + h_im, start_x : start_x + w_im]
+#         example_dark_sample = example_dark[start_y : start_y + h_im, start_x : start_x + w_im]
+        
+#         dark_sample = tf.cast(example_dark_sample, tf.float32) - tf.cast(m_dark_sample, tf.float32)
+#         return dark_sample
+
+#     def tf_convert_im(im, dark_sample, light_fraction, reflect_fraction=0, gain_corr=10, seed=None):
+#         """
+#         Mimics your convert_im function.
+#         im: 2D float32 tensor.
+#         dark_sample: 2D float32 tensor.
+#         light_fraction: scalar float.
+#         reflect_fraction: scalar float (if nonzero, applies convolution).
+#         gain_corr: scalar.
+#         seed: 2-element int32 tensor; if None, one is generated.
+#         Returns a processed image as a 2D tensor.
+#         """
+#         im = tf.cast(im, tf.float32)
+#         # Multiply im by gain_corr and cast to int32 for binomial sampling.
+#         n_trials = tf.cast(gain_corr * im, tf.int32)
+#         if seed is None:
+#             seed = tf.random.uniform([2], maxval=10000, dtype=tf.int32)
+#         binom_samples = tf.random.stateless_binomial(
+#             shape=tf.shape(im),
+#             seed=seed,
+#             counts=n_trials,
+#             probs=light_fraction,
+#             dtype=tf.int32
+#         )
+#         im_out = tf.cast(binom_samples, tf.float32) / 0.11
+        
+#         if reflect_fraction:
+#             # Mimic convolve2d(im, gauss_kernel(10,5), mode='same', boundary='symm')
+#             # Here we use our custom Gaussian filter with fixed parameters.
+#             kernel = tf_gauss_kernel(10, 5)  # [10, 10]
+#             kernel = tf.reshape(kernel, [10, 10, 1, 1])
+#             im_out_exp = tf.expand_dims(tf.expand_dims(im_out, axis=0), axis=-1)  # [1, H, W, 1]
+#             im_conv = tf.nn.conv2d(im_out_exp, kernel, strides=[1, 1, 1, 1], padding='SAME')
+#             im_conv = tf.squeeze(im_conv, axis=[0, -1])
+#             im_out = im_out + reflect_fraction * im_conv
+
+#         im_out = tf.round(im_out) + dark_sample
+#         return im_out
+
+#     def tf_noise_adder(image, m_dark, example_dark_list, light_fraction, reflect_fraction=0, gain_corr=10):
+#         """
+#         Re-implements noise_adder in TF.
+#         image: 2D tensor [H, W] (float32).
+#         m_dark: 2D tensor [H_m, W_m] (master dark, float32).
+#         example_dark_list: 3D tensor [N, H_e, W_e] (example dark events, float32).
+#         light_fraction: scalar float.
+#         reflect_fraction: scalar float.
+#         gain_corr: scalar.
+#         Returns the processed image as a 2D tensor.
+#         """
+#         image = tf.cast(image, tf.float32)
+#         shape = tf.shape(image)
+#         H = shape[0]
+#         W = shape[1]
+        
+#         num_examples = tf.shape(example_dark_list)[0]
+#         rand_index = tf.random.uniform([], minval=0, maxval=num_examples, dtype=tf.int32)
+#         selected_example_dark = example_dark_list[rand_index]
+        
+#         # im_dims is [width, height]
+#         im_dims = [W, H]
+#         dark_sample = tf_get_dark_sample(m_dark, im_dims, selected_example_dark)
+        
+#         seed = tf.random.uniform([2], maxval=10000, dtype=tf.int32)
+#         im_converted = tf_convert_im(image, dark_sample, light_fraction, reflect_fraction, gain_corr, seed)
+#         return im_converted
+
+#     ###############################################
+#     # Section 3: Preprocessing Layer
+#     ###############################################
+
+#     class PreprocessingLayer(tf.keras.layers.Layer):
+#         def __init__(self, smoothing_sigma=3.5, m_dark=None, example_dark_list=None,
+#                     target_size=(224, 224), light_fraction=0.34 * 0.23 * 0.34,  # using your calc_light_fraction result as an example
+#                     reflect_fraction=0, gain_corr=10, **kwargs):
+#             """
+#             Parameters:
+#             smoothing_sigma: standard deviation for Gaussian smoothing.
+#             m_dark: master dark image (2D numpy array).
+#             example_dark_list: list/array of example dark images (each a 2D numpy array).
+#             target_size: desired final [height, width].
+#             light_fraction: scalar float.
+#             reflect_fraction: scalar float.
+#             gain_corr: scalar.
+#             """
+#             super().__init__(**kwargs)
+#             self.smoothing_sigma = smoothing_sigma
+#             self.target_size = target_size
+#             self.light_fraction = light_fraction
+#             self.reflect_fraction = reflect_fraction
+#             self.gain_corr = gain_corr
+
+#             if m_dark is not None:
+#                 self.m_dark = tf.convert_to_tensor(m_dark, dtype=tf.float32)
+#             else:
+#                 self.m_dark = None
+#             if example_dark_list is not None:
+#                 # Expect example_dark_list as a 3D array: [N, H, W].
+#                 self.example_dark_list = tf.convert_to_tensor(example_dark_list, dtype=tf.float32)
+#             else:
+#                 self.example_dark_list = None
+
+#         def call(self, inputs):
+#             """
+#             inputs: tuple (images, original_shapes)
+#             images: tensor of shape [B, H_pad, W_pad] or [B, H_pad, W_pad, C].
+#             original_shapes: tensor of shape [B, 2] containing [width, height] for each image.
+#             """
+#             images, original_shapes = inputs
+
+#             def process_single_image(args):
+#                 image, orig_shape = args
+#                 orig_shape = tf.cast(orig_shape, tf.int32)
+#                 # Expect orig_shape as [width, height]
+#                 w, h = orig_shape[0], orig_shape[1]
+#                 # Crop to original size.
+#                 image = image[:h, :w]
+#                 # If image has an extra channel dimension, squeeze it (we expect a 2D image for noise addition).
+#                 if tf.rank(image) > 2:
+#                     image = tf.squeeze(image)
+#                 # Apply noise addition if dark images are provided.
+#                 if (self.m_dark is not None) and (self.example_dark_list is not None):
+#                     image = tf_noise_adder(image, self.m_dark, self.example_dark_list,
+#                                         self.light_fraction, self.reflect_fraction, self.gain_corr)
+#                 # Apply smoothing.
+#                 image = tf_smooth_operator(image, self.smoothing_sigma)
+#                 # If needed, expand dims for resizing.
+#                 if tf.rank(image) == 2:
+#                     image = tf.expand_dims(image, axis=-1)
+#                 image = tf.image.resize(image, self.target_size)
+#                 return image
+
+#             processed_images = tf.map_fn(
+#                 process_single_image,
+#                 (images, original_shapes),
+#                 fn_output_signature=tf.float32
+#             )
+#             return processed_images
+
+#         def get_config(self):
+#             config = super().get_config()
+#             config.update({
+#                 "smoothing_sigma": self.smoothing_sigma,
+#                 "target_size": self.target_size,
+#                 "light_fraction": self.light_fraction,
+#                 "reflect_fraction": self.reflect_fraction,
+#                 "gain_corr": self.gain_corr,
+#             })
+#             return config
+# # it didn't work. wrapped it in a function to hide it
