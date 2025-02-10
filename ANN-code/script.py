@@ -22,8 +22,8 @@ from feature_extraction import extract_length
 smoothing_sigma = 3.5
 length_percentile = 40
 local = False
-name = "im2"
-start_num = 4
+name = "im3"
+start_num = 6
 process_num = 2
 
 # image directories
