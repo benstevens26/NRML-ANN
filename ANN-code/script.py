@@ -63,7 +63,7 @@ else:
 for base_dir in base_dirs:
 
     # create list of image paths from a base directory
-    image_paths = create_file_paths([base_dir])
+    image_paths = create_file_paths(base_dir)
     num_ims = len(image_paths)
 
     # removing known bad images if they are in the list
