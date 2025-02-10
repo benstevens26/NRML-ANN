@@ -17,9 +17,72 @@ from convert_sim_ims import convert_im, get_dark_sample
 from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
 
 
+
+class PreprocessingLayer(tf.keras.layers.Layer):
+    def __init__(self, smoothing_sigma=3.5, m_dark=None, example_dark_list=None, target_size=(224, 224), **kwargs):
+        super().__init__(**kwargs)
+        self.smoothing_sigma = smoothing_sigma
+        self.m_dark = m_dark
+        self.example_dark_list = example_dark_list
+        self.target_size = target_size
+
+    def call(self, inputs):
+        # inputs is a tuple: (images, original_shapes)
+        images, original_shapes = inputs  # images: [B, H_pad, W_pad, 3]; original_shapes: [B, 2]
+
+        def process_single_image(args):
+            image, orig_shape = args
+            # orig_shape is a tensor with shape [2] (height, width)
+            orig_shape = tf.cast(orig_shape, tf.int32)
+            h, w = orig_shape[0], orig_shape[1]
+
+            # Crop the image to its original size. (Assuming padding is at the bottom/right.)
+            image = image[:h, :w, :]
+
+            # Apply noise addition and smoothing.
+            # Use tf.py_function to call the Python functions.
+            image = tf.py_function(
+                func=lambda x: noise_adder(x, self.m_dark, self.example_dark_list),
+                inp=[image],
+                Tout=image.dtype
+            )
+            image = tf.py_function(
+                func=lambda x: smooth_operator(x, self.smoothing_sigma),
+                inp=[image],
+                Tout=image.dtype
+            )
+
+            # It is a good idea to set the shape if you know it is still [h, w, 3],
+            # but note h and w are dynamic.
+            image.set_shape([None, None, 3])
+
+            # # Finally, resize to the target size using a built-in TensorFlow op (GPU accelerated).
+            # image = tf.image.resize(image, self.target_size)
+            # # I'm gonna stick to doing this as its own seperate layer I think. I prefer the control given by the other method
+            return image
+
+        # Process each image in the batch individually.
+        processed_images = tf.map_fn(
+            process_single_image,
+            (images, original_shapes),
+            fn_output_signature=images.dtype
+        )
+        return processed_images
+        
+        
+    def get_config(self):
+        config = super(PreprocessingLayer, self).get_config()
+        config.update({
+            "smoothing_sigma": self.smoothing_sigma,
+            "m_dark": self.m_dark,
+            "example_dark_list": self.example_dark_list,
+            "target_size": self.target_size,
+        })
+        return config
+
 # Not checked either of these classes. They might just be chatgpt gobbledegook.
 class SmoothOperator(tf.keras.layers.Layer):
-    def __init__(self, smoothing_sigma=5, **kwargs):
+    def __init__(self, smoothing_sigma=3.5, **kwargs):
         """
         A custom layer that applies a Gaussian smoothing filter to the input.
         """
@@ -223,7 +286,7 @@ def bin_image(image, N: int):
         return trimmed_image
 
 
-def smooth_operator(image, smoothing_sigma=5):
+def smooth_operator(image, smoothing_sigma=3.5):
 
     image = nd.gaussian_filter(image, sigma=smoothing_sigma)
 
@@ -250,7 +313,7 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
     return image
 
 
-def pad_image(image, target_size=(415, 559)):
+def pad_image(image, target_size=(415, 559),random=True):
 
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
@@ -263,8 +326,8 @@ def pad_image(image, target_size=(415, 559)):
     max_x_offset = target_width - small_width
 
     # Generate random offsets within the allowable range
-    y_offset = random.randint(0, max_y_offset)
-    x_offset = random.randint(0, max_x_offset)
+    y_offset = random.randint(0, max_y_offset) if random else 0
+    x_offset = random.randint(0, max_x_offset) if random else 0
 
     # Insert the small image into the target frame at the random offset
     target_frame[
@@ -272,6 +335,7 @@ def pad_image(image, target_size=(415, 559)):
     ] = image
 
     return target_frame
+
 
 
 # Function to load a single file and preprocess it
@@ -418,7 +482,7 @@ def parse_function_2(
     return image, label
 
 
-def parse_function_bb(file_path, channels=3, binning=1):
+def parse_function_bb(file_path, channels=3, binning=1,max_dims = (415, 559)):
     # Ensure `file_path` is a string (needed for `np.load`)
     if isinstance(file_path, tf.Tensor):
         file_path = file_path.numpy().decode("utf-8")  # Convert from Tensor to string
@@ -429,21 +493,13 @@ def parse_function_bb(file_path, channels=3, binning=1):
     # Extract label (assumes filenames contain "C" or "F")
     label = 0 if "C" in os.path.basename(file_path) else 1  # 0: Carbon, 1: Fluorine
 
-    # # Apply binning if necessary
-    # example_dark_list = (
-    #     example_dark_list_unbinned
-    #     if binning == 1
-    #     else [bin_image(i, binning) for i in example_dark_list_unbinned]
-    # )
-
-    # # Apply processing functions
-    # image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
-    # image = smooth_operator(image)
-    # image = pad_image(image)
-
     # Convert to float32
     image = image.astype(np.float32)
+    original_size = tf.shape(image)[:2] # should be [height, width]
 
+    image = pad_image(image,random=False) # padding in preprocessing
+    
+    # print("ORIGINAL SIZE ASADASDNSGNSDFJGSJDFGNSDJFGND = " + str(original_size))
     # Ensure correct number of channels
     if channels == 3:
         # Normalize and stack channels
@@ -466,7 +522,7 @@ def parse_function_bb(file_path, channels=3, binning=1):
     image = tf.convert_to_tensor(image, dtype=tf.float32)
     label = tf.convert_to_tensor(label, dtype=tf.int32)
 
-    return image, label
+    return (image, original_size), label
 
 
 # Dataset Preparation Function Using `tf.data`
@@ -542,11 +598,16 @@ def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
 
 
 def load_data_yield_bb(base_dirs, channels=3):
+    # Removing bad eggs
+    uncropped_error = np.loadtxt("/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/uncropped_error.csv", delimiter=",", dtype=str)
+    min_dim_error = np.loadtxt("/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/min_dim_error.csv", delimiter=",", dtype=str)
     # Get all the .npy files from base_dirs
+    errors = np.concatenate((uncropped_error, min_dim_error))
+
     file_list = []
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
-            files = [f for f in files if f.endswith(".npy")]
+            files = [f for f in files if (f.endswith(".npy") and f not in errors)]
             file_list.extend([os.path.join(root, file) for file in files])
 
     file_list.sort()
@@ -557,3 +618,5 @@ def load_data_yield_bb(base_dirs, channels=3):
     for file_path in file_list:
         image, label = parse_function_bb(file_path, channels)
         yield image, label
+
+

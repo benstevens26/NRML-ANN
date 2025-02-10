@@ -43,7 +43,7 @@ def bin_event(event, N, parse_image=False):
         return event
 
 
-def smooth_operator(event, smoothing_sigma=5):
+def smooth_operator(event, smoothing_sigma=3.5):
     """
     Apply Gaussian smoothing to an event image.
 
