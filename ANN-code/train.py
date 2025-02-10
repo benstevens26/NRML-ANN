@@ -23,7 +23,7 @@ batch_size = 32
 patience = 5  # Early stopping patience
 
 # Load datasets
-train_loader, val_loader, _ = get_dataloaders("data/features_raw.csv", batch_size=batch_size)
+train_loader, val_loader, _ = get_dataloaders("data/features_CF4.csv", batch_size=batch_size)
 
 # Initialize model, loss function, optimizer
 model = LENRI()
