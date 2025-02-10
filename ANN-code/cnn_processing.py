@@ -26,6 +26,8 @@ class PreprocessingLayer(tf.keras.layers.Layer):
         self.example_dark_list = example_dark_list
         self.target_size = target_size
 
+
+    @tf.function(experimental_compile=False)
     def call(self, inputs):
         # inputs is a tuple: (images, original_shapes)
         images, original_shapes = inputs  # images: [B, H_pad, W_pad, 3]; original_shapes: [B, 2]
