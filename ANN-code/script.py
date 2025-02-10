@@ -32,7 +32,7 @@ print(f"Running job {job_number}")
 smoothing_sigma = 3.5
 length_percentile = 40
 local = False
-name = str(job_number)
+name = "Ar_CF4_"+str(job_number)
 uncropped_file = "uncropped_Ar_CF4_true.csv"
 min_dim_file = "min_dim_Ar_CF4_true.csv"
 
@@ -173,7 +173,7 @@ print("Features extracted")
 print("---------------------------------")
 
 # save features to csv
-features_dataframe.to_csv("features_Ar_CF4_"+name+".csv", index=False)
+features_dataframe.to_csv("features_"+name+".csv", index=False)
 
 print("---------------------------------")
 print("Features saved to csv")
