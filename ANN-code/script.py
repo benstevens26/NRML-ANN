@@ -33,6 +33,8 @@ smoothing_sigma = 3.5
 length_percentile = 40
 local = False
 name = str(job_number)
+uncropped_file = "uncropped_Ar_CF4_true.csv"
+min_dim_file = "min_dim_Ar_CF4_true.csv"
 
 # image directories
 if local:
@@ -73,8 +75,8 @@ for base_dir in base_dirs:
 
     # removing known bad images if they are in the list
     if not local:
-        uncropped_error = np.loadtxt("uncropped_CF4_true.csv", delimiter=",", dtype=str)
-        min_dim_error = np.loadtxt("min_dim_CF4_true.csv", delimiter=",", dtype=str)
+        uncropped_error = np.loadtxt(uncropped_file, delimiter=",", dtype=str)
+        min_dim_error = np.loadtxt(min_dim_file, delimiter=",", dtype=str)
         errors = np.concatenate((uncropped_error, min_dim_error))
         image_paths = [path for path in image_paths if path not in errors]
 
