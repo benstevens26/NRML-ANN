@@ -23,8 +23,8 @@ smoothing_sigma = 3.5
 length_percentile = 40
 local = False
 name = "im2"
-start_num = 2
-process_num = 4
+start_num = 4
+process_num = 2
 
 # image directories
 if local:
