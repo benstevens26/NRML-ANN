@@ -19,7 +19,7 @@ from cnn_processing import (
     load_data,
     load_data_yield,
     load_data_yield_bb,
-    PreprocessingLayer
+    PreprocessingLayer,
 )
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
@@ -215,17 +215,14 @@ example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.
 
 full_dataset = tf.data.Dataset.from_generator(
     lambda: load_data_yield_bb(base_dirs, 3),
-    output_signature = (
+    output_signature=(
         (
-            tf.TensorSpec(shape=(None, None, 3), dtype=tf.float32),   # image
-            tf.TensorSpec(shape=(2,), dtype=tf.int32)                   # original_size
+            tf.TensorSpec(shape=(None, None, 3), dtype=tf.float32),  # image
+            tf.TensorSpec(shape=(2,), dtype=tf.int32),  # original_size
         ),
-        tf.TensorSpec(shape=(), dtype=tf.int32)                        # label
+        tf.TensorSpec(shape=(), dtype=tf.int32),  # label
     ),
 )
-
-
-
 
 
 #############################################################
@@ -278,7 +275,7 @@ num_categories = 2  # Change to 3 if argon included
 # X = [event.image for event in events]
 # y = [event.get_species_from_name() for event in events]
 
-#================================OLD MODEL DEFINITION=======================================
+# ================================OLD MODEL DEFINITION=======================================
 # inputs = keras.Input(shape=(None, None, 3))  # (224, 224, 3)
 
 
@@ -301,12 +298,11 @@ num_categories = 2  # Change to 3 if argon included
 # preds = tf.keras.layers.Dense(num_categories, activation="softmax")(net)
 # model = tf.keras.Model(base_model.input, preds)
 
-#======================================================================================
+# ======================================================================================
 # model = tf.keras.models.load_model(
 #     "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/CNN_checkpoints/epoch-04.keras",
 #     custom_objects={"softmax_v2": softmax}  # Map softmax_v2 to softmax
 # )
-
 
 
 images_input = keras.Input(shape=(None, None, 3), name="images")
@@ -315,9 +311,9 @@ shapes_input = keras.Input(shape=(2,), name="original_shape", dtype=tf.int32)
 # Apply your preprocessing layer.
 x = PreprocessingLayer(
     smoothing_sigma=3.5,
-    m_dark=m_dark,                     # Replace with your parameter
-    example_dark_list=example_dark_list_unbinned,   # Replace with your list
-    target_size=(224, 224)
+    m_dark=m_dark,  # Replace with your parameter
+    example_dark_list=example_dark_list_unbinned,  # Replace with your list
+    target_size=(224, 224),
 )([images_input, shapes_input])
 
 x = tf.keras.layers.Resizing(
@@ -333,15 +329,14 @@ features = base_model(x)
 
 # Build your classification head.
 x = tf.keras.layers.Flatten()(features)
-x = tf.keras.layers.Dense(256, activation='relu')(x)
+x = tf.keras.layers.Dense(256, activation="relu")(x)
 x = tf.keras.layers.Dropout(0.5)(x)
-predictions = tf.keras.layers.Dense(10, activation='softmax')(x)  # adjust number of categories
+predictions = tf.keras.layers.Dense(10, activation="softmax")(
+    x
+)  # adjust number of categories
 
 # Create the model.
 model = keras.Model(inputs=[images_input, shapes_input], outputs=predictions)
-
-
-
 
 
 # Ensure input dtype is tf.float32
@@ -355,8 +350,8 @@ if freeze:
         layer.trainable = False
 
 opt = tf.keras.optimizers.Adam(
-    learning_rate=1e-6, decay=0
-)  # Default values from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
+    learning_rate=1e-6
+)  # Default value from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
 loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
 # "binary_crossentropy" if num_categories == 2 else
@@ -407,7 +402,7 @@ print(
 # X_test = preprocess_input(np.array(X_test))
 # X_val = preprocess_input(np.array(X_val))
 
-epochs = 10
+epochs = 30
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
@@ -427,6 +422,10 @@ print(
 for sample in train_dataset.take(1):
     print(sample)
 
+early_stopping = keras.callbacks.EarlyStopping(
+    monitor="val_loss", patience=5, restore_best_weights=True
+)
+
 
 history = model.fit(
     train_dataset,
@@ -435,7 +434,7 @@ history = model.fit(
     validation_data=val_dataset,
     verbose=1,
     class_weight=None,  # look into changing this, might be good to
-    callbacks=[tb_callback, ckpt_callback],
+    callbacks=[tb_callback, ckpt_callback, early_stopping],
 )
 
 print(

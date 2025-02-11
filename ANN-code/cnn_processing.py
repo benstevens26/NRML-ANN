@@ -17,20 +17,30 @@ from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
 import tensorflow_addons as tfa
 
 
-
 class PreprocessingLayer(tf.keras.layers.Layer):
-    def __init__(self, smoothing_sigma=3.5, m_dark=None, example_dark_list=None, target_size=(224, 224), **kwargs):
+    def __init__(
+        self,
+        smoothing_sigma=3.5,
+        m_dark=None,
+        example_dark_list=None,
+        target_size=(224, 224),
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.smoothing_sigma = smoothing_sigma
         self.m_dark = m_dark
         self.example_dark_list = example_dark_list
         self.target_size = target_size
 
-
     def call(self, inputs):
         # inputs is a tuple: (images, original_shapes)
-        images, original_shapes = inputs  # images: [B, H_pad, W_pad, 3]; original_shapes: [B, 2]
+        images, original_shapes = (
+            inputs  # images: [B, H_pad, W_pad, 3]; original_shapes: [B, 2]
+        )
 
+        @tf.function(
+            jit_compile=True
+        )  # Need this for it to run on the GPU - currently doesn't work though
         def process_single_image(args):
             image, orig_shape = args
             # orig_shape is a tensor with shape [2] (height, width)
@@ -45,12 +55,12 @@ class PreprocessingLayer(tf.keras.layers.Layer):
             image = tf.py_function(
                 func=lambda x: noise_adder(x, self.m_dark, self.example_dark_list),
                 inp=[image],
-                Tout=image.dtype
+                Tout=image.dtype,
             )
             image = tf.py_function(
                 func=lambda x: smooth_operator(x, self.smoothing_sigma),
                 inp=[image],
-                Tout=image.dtype
+                Tout=image.dtype,
             )
 
             # It is a good idea to set the shape if you know it is still [h, w, 3],
@@ -66,20 +76,22 @@ class PreprocessingLayer(tf.keras.layers.Layer):
         processed_images = tf.map_fn(
             process_single_image,
             (images, original_shapes),
-            fn_output_signature=images.dtype
+            fn_output_signature=images.dtype,
         )
         return processed_images
-        
-        
+
     def get_config(self):
         config = super(PreprocessingLayer, self).get_config()
-        config.update({
-            "smoothing_sigma": self.smoothing_sigma,
-            "m_dark": self.m_dark,
-            "example_dark_list": self.example_dark_list,
-            "target_size": self.target_size,
-        })
+        config.update(
+            {
+                "smoothing_sigma": self.smoothing_sigma,
+                "m_dark": self.m_dark,
+                "example_dark_list": self.example_dark_list,
+                "target_size": self.target_size,
+            }
+        )
         return config
+
 
 # Not checked either of these classes. They might just be chatgpt gobbledegook.
 class SmoothOperator(tf.keras.layers.Layer):
@@ -310,7 +322,9 @@ def tf_smooth_operator(image, smoothing_sigma=3.5):
     kernel_size = kernel_size + (1 - kernel_size % 2)  # add 1 if even
 
     # Apply Gaussian filtering.
-    smoothed = tfa.image.gaussian_filter2d(image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma)
+    smoothed = tfa.image.gaussian_filter2d(
+        image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma
+    )
     if squeeze_output:
         smoothed = tf.squeeze(smoothed, axis=-1)
     return smoothed
@@ -336,7 +350,7 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
     return image
 
 
-def pad_image(image, target_size=(415, 559),random=True):
+def pad_image(image, target_size=(415, 559), random=True):
 
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
@@ -358,7 +372,6 @@ def pad_image(image, target_size=(415, 559),random=True):
     ] = image
 
     return target_frame
-
 
 
 # Function to load a single file and preprocess it
@@ -505,7 +518,7 @@ def parse_function_2(
     return image, label
 
 
-def parse_function_bb(file_path, channels=3, binning=1,max_dims = (415, 559)):
+def parse_function_bb(file_path, channels=3, binning=1, max_dims=(415, 559)):
     # Ensure `file_path` is a string (needed for `np.load`)
     if isinstance(file_path, tf.Tensor):
         file_path = file_path.numpy().decode("utf-8")  # Convert from Tensor to string
@@ -518,10 +531,10 @@ def parse_function_bb(file_path, channels=3, binning=1,max_dims = (415, 559)):
 
     # Convert to float32
     image = image.astype(np.float32)
-    original_size = tf.shape(image)[:2] # should be [height, width]
+    original_size = tf.shape(image)[:2]  # should be [height, width]
 
-    image = pad_image(image,random=False) # padding in preprocessing
-    
+    image = pad_image(image, random=False)  # padding in preprocessing
+
     # print("ORIGINAL SIZE ASADASDNSGNSDFJGSJDFGNSDJFGND = " + str(original_size))
     # Ensure correct number of channels
     if channels == 3:
@@ -622,8 +635,16 @@ def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
 
 def load_data_yield_bb(base_dirs, channels=3):
     # Removing bad eggs
-    uncropped_error = np.loadtxt("/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/uncropped_error.csv", delimiter=",", dtype=str)
-    min_dim_error = np.loadtxt("/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/min_dim_error.csv", delimiter=",", dtype=str)
+    uncropped_error = np.loadtxt(
+        "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/uncropped_error.csv",
+        delimiter=",",
+        dtype=str,
+    )
+    min_dim_error = np.loadtxt(
+        "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/min_dim_error.csv",
+        delimiter=",",
+        dtype=str,
+    )
     # Get all the .npy files from base_dirs
     errors = np.concatenate((uncropped_error, min_dim_error))
 
@@ -643,14 +664,11 @@ def load_data_yield_bb(base_dirs, channels=3):
         yield image, label
 
 
-
-
-
-#=========CHAT GPT HAIL MARY===============
+# =========CHAT GPT HAIL MARY===============
 
 
 # def chatgpt_hailmary():
-    
+
 #     import math
 #     import tensorflow as tf
 #     import numpy as np
@@ -684,21 +702,21 @@ def load_data_yield_bb(base_dirs, channels=3):
 #         # Compute kernel size: typically 6*sigma rounded up, then ensure it's odd.
 #         kernel_size = tf.cast(tf.math.ceil(sigma * 6), tf.int32)
 #         kernel_size = kernel_size + (1 - kernel_size % 2)
-        
+
 #         kernel = tf_gauss_kernel(kernel_size, sigma)  # shape: [kernel_size, kernel_size]
 #         # Reshape kernel to [kernel_size, kernel_size, 1, 1] for convolution.
 #         kernel = tf.reshape(kernel, [kernel_size, kernel_size, 1, 1])
-        
+
 #         # Get number of channels and tile the kernel.
 #         in_channels = tf.shape(image)[-1]
 #         kernel = tf.tile(kernel, [1, 1, in_channels, 1])
-        
+
 #         # Expand image to include batch dimension: [1, H, W, C].
 #         image = tf.expand_dims(image, axis=0)
-        
+
 #         # Use depthwise_conv2d.
 #         filtered = tf.nn.depthwise_conv2d(image, kernel, strides=[1, 1, 1, 1], padding='SAME')
-        
+
 #         # Remove batch dimension.
 #         filtered = tf.squeeze(filtered, axis=0)
 #         if squeeze_output:
@@ -729,21 +747,21 @@ def load_data_yield_bb(base_dirs, channels=3):
 #         m_dark_shape = tf.shape(m_dark)  # [H_m, W_m]
 #         H_m = m_dark_shape[0]
 #         W_m = m_dark_shape[1]
-        
+
 #         # im_dims is [width, height]
 #         if not isinstance(im_dims, tf.Tensor):
 #             im_dims = tf.convert_to_tensor(im_dims, dtype=tf.int32)
 #         w_im = im_dims[0]
 #         h_im = im_dims[1]
-        
+
 #         max_x = W_m - w_im + 1
 #         max_y = H_m - h_im + 1
 #         start_x = tf.random.uniform([], minval=0, maxval=max_x, dtype=tf.int32)
 #         start_y = tf.random.uniform([], minval=0, maxval=max_y, dtype=tf.int32)
-        
+
 #         m_dark_sample = m_dark[start_y : start_y + h_im, start_x : start_x + w_im]
 #         example_dark_sample = example_dark[start_y : start_y + h_im, start_x : start_x + w_im]
-        
+
 #         dark_sample = tf.cast(example_dark_sample, tf.float32) - tf.cast(m_dark_sample, tf.float32)
 #         return dark_sample
 
@@ -771,7 +789,7 @@ def load_data_yield_bb(base_dirs, channels=3):
 #             dtype=tf.int32
 #         )
 #         im_out = tf.cast(binom_samples, tf.float32) / 0.11
-        
+
 #         if reflect_fraction:
 #             # Mimic convolve2d(im, gauss_kernel(10,5), mode='same', boundary='symm')
 #             # Here we use our custom Gaussian filter with fixed parameters.
@@ -800,15 +818,15 @@ def load_data_yield_bb(base_dirs, channels=3):
 #         shape = tf.shape(image)
 #         H = shape[0]
 #         W = shape[1]
-        
+
 #         num_examples = tf.shape(example_dark_list)[0]
 #         rand_index = tf.random.uniform([], minval=0, maxval=num_examples, dtype=tf.int32)
 #         selected_example_dark = example_dark_list[rand_index]
-        
+
 #         # im_dims is [width, height]
 #         im_dims = [W, H]
 #         dark_sample = tf_get_dark_sample(m_dark, im_dims, selected_example_dark)
-        
+
 #         seed = tf.random.uniform([2], maxval=10000, dtype=tf.int32)
 #         im_converted = tf_convert_im(image, dark_sample, light_fraction, reflect_fraction, gain_corr, seed)
 #         return im_converted
