@@ -27,6 +27,8 @@ from tensorflow.keras.activations import softmax  # type: ignore
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input  # type: ignore
 from tensorflow.keras.layers import *  # type: ignore
 
+use_working_version = True
+
 print(
     """
       -=+=-
@@ -194,10 +196,6 @@ example_dark_list_unbinned = np.load(
     f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
 )
 
-# Load the dataset
-# full_dataset = load_data(
-#     base_dirs, batch_size, example_dark_list_unbinned, m_dark, channels=3
-# )
 
 
 ########################trying yielding####################
@@ -213,17 +211,25 @@ print(
 m_dark_tensor = tf.convert_to_tensor(m_dark, dtype=tf.float32)
 example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.float32)
 
-full_dataset = tf.data.Dataset.from_generator(
-    lambda: load_data_yield_bb(base_dirs, 3),
-    output_signature=(
-        (
-            tf.TensorSpec(shape=(None, None, 3), dtype=tf.float32),  # image
-            tf.TensorSpec(shape=(2,), dtype=tf.int32),  # original_size
+if use_working_version:
+    full_dataset = tf.data.Dataset.from_generator(
+        lambda: load_data_yield(base_dirs, batch_size, example_dark_tensor, m_dark_tensor, 3),
+        output_signature=(
+            tf.TensorSpec(shape=(415, 559, 3), dtype=tf.float32),
+            tf.TensorSpec(shape=(), dtype=tf.int32),
+        )
+    )
+else: # Failed layering approach:
+    full_dataset = tf.data.Dataset.from_generator(
+        lambda: load_data_yield_bb(base_dirs, 3),
+        output_signature=(
+            (
+                tf.TensorSpec(shape=(None, None, 3), dtype=tf.float32),  # image
+                tf.TensorSpec(shape=(2,), dtype=tf.int32),  # original_size
+            ),
+            tf.TensorSpec(shape=(), dtype=tf.int32),  # label
         ),
-        tf.TensorSpec(shape=(), dtype=tf.int32),  # label
-    ),
-)
-
+    )
 
 #############################################################
 print(
@@ -276,67 +282,76 @@ num_categories = 2  # Change to 3 if argon included
 # y = [event.get_species_from_name() for event in events]
 
 # ================================OLD MODEL DEFINITION=======================================
-# inputs = keras.Input(shape=(None, None, 3))  # (224, 224, 3)
+if use_working_version:
+    inputs = keras.Input(shape=(None, None, 3))  # (224, 224, 3)
 
 
-# # x = NoiseAdder(m_dark=m_dark, example_dark_list=example_dark_list_unbinned)(inputs)
-# # x = SmoothOperator(smoothing_sigma=3.5)(x)
+    # x = NoiseAdder(m_dark=m_dark, example_dark_list=example_dark_list_unbinned)(inputs)
+    # x = SmoothOperator(smoothing_sigma=3.5)(x)
 
-# x = tf.keras.layers.Resizing(
-#     224, 224, pad_to_aspect_ratio=True, fill_mode="constant", fill_value=0.0
-# )(
-#     x
-# )  # This should use tensorflow's inbuilt resizing
+    # x = tf.keras.layers.Resizing(
+    #     224, 224, pad_to_aspect_ratio=True, fill_mode="constant", fill_value=0.0
+    # )(
+    #     inputs
+    # )  # This should use tensorflow's inbuilt resizing
 
-# ## Loading VGG16 model
-# base_model = VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
-# features = base_model(x)
+    ## Loading VGG16 model
+    # base_model = VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
+    # features = base_model(x)
 
-# net = tf.keras.layers.Flatten()(features)
-# net = tf.keras.layers.Dense(256, activation="relu")(net)
-# net = tf.keras.layers.Dropout(0.5)(net)
-# preds = tf.keras.layers.Dense(num_categories, activation="softmax")(net)
-# model = tf.keras.Model(base_model.input, preds)
+    # net = tf.keras.layers.Flatten()(features)
+    # net = tf.keras.layers.Dense(256, activation="relu")(net)
+    # net = tf.keras.layers.Dropout(0.5)(net)
+    # preds = tf.keras.layers.Dense(num_categories, activation="softmax")(net)
+    # model = tf.keras.Model(base_model.input, preds)
 
+
+    base_model = VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
+    net = base_model.output
+    net = tf.keras.layers.Flatten()(net)
+    net = tf.keras.layers.Dense(256, activation=tf.nn.relu)(net)
+    net = tf.keras.layers.Dropout(0.5)(net)
+    preds = tf.keras.layers.Dense(num_categories, activation=tf.nn.softmax)(net)
+    model = tf.keras.Model(base_model.input, preds)
 # ======================================================================================
 # model = tf.keras.models.load_model(
 #     "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/CNN_checkpoints/epoch-04.keras",
 #     custom_objects={"softmax_v2": softmax}  # Map softmax_v2 to softmax
 # )
 
+elif not use_working_version:
+    images_input = keras.Input(shape=(None, None, 3), name="images")
+    shapes_input = keras.Input(shape=(2,), name="original_shape", dtype=tf.int32)
 
-images_input = keras.Input(shape=(None, None, 3), name="images")
-shapes_input = keras.Input(shape=(2,), name="original_shape", dtype=tf.int32)
+    # Apply your preprocessing layer.
+    x = PreprocessingLayer(
+        smoothing_sigma=3.5,
+        m_dark=m_dark,  # Replace with your parameter
+        example_dark_list=example_dark_list_unbinned,  # Replace with your list
+        target_size=(224, 224),
+    )([images_input, shapes_input])
 
-# Apply your preprocessing layer.
-x = PreprocessingLayer(
-    smoothing_sigma=3.5,
-    m_dark=m_dark,  # Replace with your parameter
-    example_dark_list=example_dark_list_unbinned,  # Replace with your list
-    target_size=(224, 224),
-)([images_input, shapes_input])
+    x = tf.keras.layers.Resizing(
+        224, 224, pad_to_aspect_ratio=True, fill_mode="constant", fill_value=0.0
+    )(
+        x
+    )  # This should use tensorflow's inbuilt resizing
 
-x = tf.keras.layers.Resizing(
-    224, 224, pad_to_aspect_ratio=True, fill_mode="constant", fill_value=0.0
-)(
-    x
-)  # This should use tensorflow's inbuilt resizing
+    # Now x is a batch of images with shape (batch, 224, 224, 3).
+    # You can feed it into your base model.
+    base_model = VGG16(weights="imagenet", include_top=False)
+    features = base_model(x)
 
-# Now x is a batch of images with shape (batch, 224, 224, 3).
-# You can feed it into your base model.
-base_model = VGG16(weights="imagenet", include_top=False)
-features = base_model(x)
+    # Build your classification head.
+    x = tf.keras.layers.Flatten()(features)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    predictions = tf.keras.layers.Dense(10, activation="softmax")(
+        x
+    )  # adjust number of categories
 
-# Build your classification head.
-x = tf.keras.layers.Flatten()(features)
-x = tf.keras.layers.Dense(256, activation="relu")(x)
-x = tf.keras.layers.Dropout(0.5)(x)
-predictions = tf.keras.layers.Dense(10, activation="softmax")(
-    x
-)  # adjust number of categories
-
-# Create the model.
-model = keras.Model(inputs=[images_input, shapes_input], outputs=predictions)
+    # Create the model.
+    model = keras.Model(inputs=[images_input, shapes_input], outputs=predictions)
 
 
 # Ensure input dtype is tf.float32
@@ -402,7 +417,7 @@ print(
 # X_test = preprocess_input(np.array(X_test))
 # X_val = preprocess_input(np.array(X_val))
 
-epochs = 30
+epochs = 40
 
 train_start_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 

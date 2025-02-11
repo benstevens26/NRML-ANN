@@ -488,7 +488,8 @@ def parse_function_2(
     # Apply processing functions
     image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
     image = smooth_operator(image)
-    image = pad_image(image)
+    # image = pad_image(image)
+    image = tf.image.resize_with_pad(image,224,224)
 
     # Convert to float32
     image = image.astype(np.float32)
