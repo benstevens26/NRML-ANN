@@ -14,7 +14,7 @@ import tensorflow as tf
 from bb_event import BB_Event
 from convert_sim_ims import convert_im, get_dark_sample
 from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
-import tensorflow_addons as tfa
+# import tensorflow_addons as tfa
 
 
 class PreprocessingLayer(tf.keras.layers.Layer):
@@ -322,9 +322,12 @@ def tf_smooth_operator(image, smoothing_sigma=3.5):
     kernel_size = kernel_size + (1 - kernel_size % 2)  # add 1 if even
 
     # Apply Gaussian filtering.
-    smoothed = tfa.image.gaussian_filter2d(
-        image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma
-    )
+    try:
+        smoothed = tfa.image.gaussian_filter2d(
+            image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma
+        )
+    except ModuleNotFoundError as e: 
+        print(f"probably didn't import tfa: {e}")
     if squeeze_output:
         smoothed = tf.squeeze(smoothed, axis=-1)
     return smoothed

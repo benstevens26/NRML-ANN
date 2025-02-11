@@ -213,7 +213,7 @@ example_dark_tensor = tf.convert_to_tensor(example_dark_list_unbinned, dtype=tf.
 
 if use_working_version:
     full_dataset = tf.data.Dataset.from_generator(
-        lambda: load_data_yield(base_dirs, batch_size, example_dark_tensor, m_dark_tensor, 3),
+        lambda: load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, 3),
         output_signature=(
             tf.TensorSpec(shape=(415, 559, 3), dtype=tf.float32),
             tf.TensorSpec(shape=(), dtype=tf.int32),
