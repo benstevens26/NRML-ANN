@@ -492,7 +492,6 @@ def parse_function_2(
     image = noise_adder(image, m_dark=m_dark, example_dark_list=example_dark_list)
     image = smooth_operator(image)
     # image = pad_image(image)
-    image = tf.image.resize_with_pad(image,224,224)
 
     # Convert to float32
     image = image.astype(np.float32)
@@ -514,6 +513,8 @@ def parse_function_2(
     else:
         # Ensure grayscale format
         image = np.expand_dims(image, axis=-1)
+
+    image = tf.image.resize_with_pad(image,224,224)
 
     # Convert to TensorFlow tensors
     image = tf.convert_to_tensor(image, dtype=tf.float32)
