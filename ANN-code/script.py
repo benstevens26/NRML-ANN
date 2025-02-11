@@ -9,12 +9,12 @@ import pandas as pd
 dfs = []
 
 # Read in the CSV files
-for i in range(10):
-    df = pd.read_csv(f'features_{i}.csv')
+for i in range(15):
+    df = pd.read_csv(f'features_Ar_CF4_{i}.csv')
     dfs.append(df)
 
 # Concatenate all dataframes
 concatenated_df = pd.concat(dfs, ignore_index=True)
 
 # Save the concatenated dataframe to a new CSV file
-concatenated_df.to_csv('features_CF4.csv', index=False)
+concatenated_df.to_csv('features_Ar_CF4.csv', index=False)
