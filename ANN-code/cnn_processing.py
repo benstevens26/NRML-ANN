@@ -156,7 +156,7 @@ def resize_pad_image_tf(event, target_size=(224, 224)):
     event.image = tf.image.resize_with_pad(event.image, target_size[0], target_size[1])
 
 
-def pad_image(event, target_size=(415, 559)):
+def pad_image(event, target_size=(572, 562)):
 
     small_image = event.image
 
@@ -164,7 +164,7 @@ def pad_image(event, target_size=(415, 559)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (415, 559)
+        # Create an empty frame filled with zeros (black) of size (572, 562)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -186,7 +186,7 @@ def pad_image(event, target_size=(415, 559)):
         "Image could not fit inside target frame"
 
 
-def pad_image_2(image, target_size=(415, 559)):
+def pad_image_2(image, target_size=(572, 562)):
 
     small_image = image
 
@@ -194,7 +194,7 @@ def pad_image_2(image, target_size=(415, 559)):
         small_height, small_width = small_image.shape[:2]
         target_height, target_width = target_size
 
-        # Create an empty frame filled with zeros (black) of size (415, 559)
+        # Create an empty frame filled with zeros (black) of size (572, 562)
         target_frame = np.zeros((target_height, target_width), dtype=small_image.dtype)
 
         # Calculate maximum offsets so the small image fits inside the target frame
@@ -353,12 +353,12 @@ def noise_adder(image, m_dark=None, example_dark_list=None):
     return image
 
 
-def pad_image(image, target_size=(415, 559), random=True):
+def pad_image(image, target_size=(572, 562), random=True):
 
     small_height, small_width = image.shape[:2]
     target_height, target_width = target_size
 
-    # Create an empty frame filled with zeros (black) of size (415, 559)
+    # Create an empty frame filled with zeros (black) of size (572, 562)
     target_frame = np.zeros((target_height, target_width), dtype=image.dtype)
 
     # Calculate maximum offsets so the small image fits inside the target frame
@@ -421,7 +421,7 @@ def parse_function(
     #     # image = preprocess_input(image)
 
     # else:
-    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (415, 559, 1)
+    #     image = np.expand_dims(image, axis=-1)  # Shape becomes (572, 562, 1)
 
     if channels == 3:
         # Ensure the image is a 2D array
@@ -508,13 +508,13 @@ def parse_function_2(
         # Create 3-channel image
         image = np.repeat(image[:, :, np.newaxis], 3, axis=-1)
 
-        # Apply VGG16 preprocessing
-        image = preprocess_input(image)
     else:
         # Ensure grayscale format
         image = np.expand_dims(image, axis=-1)
 
     image = tf.image.resize_with_pad(image,224,224)
+    # Apply VGG16 preprocessing
+    image = preprocess_input(image)
 
     # Convert to TensorFlow tensors
     image = tf.convert_to_tensor(image, dtype=tf.float32)
@@ -523,7 +523,7 @@ def parse_function_2(
     return image, label
 
 
-def parse_function_bb(file_path, channels=3, binning=1, max_dims=(415, 559)):
+def parse_function_bb(file_path, channels=3, binning=1, max_dims=(572, 562)):
     # Ensure `file_path` is a string (needed for `np.load`)
     if isinstance(file_path, tf.Tensor):
         file_path = file_path.numpy().decode("utf-8")  # Convert from Tensor to string
@@ -597,7 +597,7 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
     # Set output shapes explicitly to avoid unknown rank issues
     dataset = dataset.map(
         lambda image, label: (
-            tf.ensure_shape(image, (415, 559, channels)),
+            tf.ensure_shape(image, (572, 562, channels)),
             tf.ensure_shape(label, ()),
         )
     )
@@ -632,7 +632,7 @@ def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
     # # Set output shapes explicitly to avoid unknown rank issues
     # dataset = dataset.map(
     #     lambda image, label: (
-    #         tf.ensure_shape(image, (415, 559, channels)),
+    #         tf.ensure_shape(image, (572, 562, channels)),
     #         tf.ensure_shape(label, ()),
     #     )
     # )

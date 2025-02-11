@@ -170,20 +170,20 @@ print(
 
 # Define base directories and batch size
 # with tf.device(gpus[0].name):
-# base_dirs = [
-# "/vols/lz/tmarley/GEM_ITO/run/im0/C",
-# "/vols/lz/tmarley/GEM_ITO/run/im0/F",
-# "/vols/lz/tmarley/GEM_ITO/run/im1/C",
-# "/vols/lz/tmarley/GEM_ITO/run/im1/F",
-# "/vols/lz/tmarley/GEM_ITO/run/im2/C",
-# "/vols/lz/tmarley/GEM_ITO/run/im2/F",
-# "/vols/lz/tmarley/GEM_ITO/run/im3/C",
-# "/vols/lz/tmarley/GEM_ITO/run/im3/F",
-# "/vols/lz/tmarley/GEM_ITO/run/im4/C",
-# "/vols/lz/tmarley/GEM_ITO/run/im4/F",
-# ]
+base_dirs = [
+"/vols/lz/tmarley/GEM_ITO/run/im0/C",
+"/vols/lz/tmarley/GEM_ITO/run/im0/F",
+"/vols/lz/tmarley/GEM_ITO/run/im1/C",
+"/vols/lz/tmarley/GEM_ITO/run/im1/F",
+"/vols/lz/tmarley/GEM_ITO/run/im2/C",
+"/vols/lz/tmarley/GEM_ITO/run/im2/F",
+"/vols/lz/tmarley/GEM_ITO/run/im3/C",
+"/vols/lz/tmarley/GEM_ITO/run/im3/F",
+"/vols/lz/tmarley/GEM_ITO/run/im4/C",
+"/vols/lz/tmarley/GEM_ITO/run/im4/F",
+]
 # base_dirs = ["ANN-code/Data/C", "ANN-code/Data/F"]  # List your data directories here
-base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
+# base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
 
 
 batch_size = 16
@@ -240,7 +240,7 @@ print(
       """
 )
 
-dataset_size = 49572  # CHANGE DEPENDING ON DATA USED
+dataset_size = 99989  # CHANGE DEPENDING ON DATA USED
 train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used
@@ -355,7 +355,7 @@ elif not use_working_version:
 
 
 # Ensure input dtype is tf.float32
-# model.build(input_shape=(None, 415, 559, 3))
+# model.build(input_shape=(None, 572, 562, 3))
 # model.layers[0].input_dtype = tf.float32
 
 freeze = False

@@ -38,7 +38,7 @@ def load_and_preprocess(filepath, label=None):
     image = np.stack([image] * 3, axis=-1)  # Duplicate channels
     image = preprocess_input(image)  # VGG16 preprocessing
     image = image / np.max(image)
-    # image = tf.image.resize(image, (415, 559))  # Resize if needed
+    # image = tf.image.resize(image, (572, 562))  # Resize if needed
 
     return image, label
 
