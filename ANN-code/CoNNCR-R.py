@@ -215,7 +215,7 @@ if use_working_version:
     full_dataset = tf.data.Dataset.from_generator(
         lambda: load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, 3),
         output_signature=(
-            tf.TensorSpec(shape=(415, 559, 3), dtype=tf.float32),
+            tf.TensorSpec(shape=(224, 224, 3), dtype=tf.float32), # MAY NEED TO CHANGE
             tf.TensorSpec(shape=(), dtype=tf.int32),
         )
     )
