@@ -518,7 +518,7 @@ def parse_function_2(
         with open("/volz/lz/twatson/ANN/NR-ANN/ANN-code/logs/problem_files.txt", "a") as file:
             file.write(file_path)
             file.write(e)
-        continue
+        
         
     # Apply VGG16 preprocessing
     image = preprocess_input(image)
