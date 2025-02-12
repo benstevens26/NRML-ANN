@@ -14,6 +14,7 @@ import tensorflow as tf
 from bb_event import BB_Event
 from convert_sim_ims import convert_im, get_dark_sample
 from tensorflow.keras.applications.vgg16 import preprocess_input  # type: ignore
+
 # import tensorflow_addons as tfa
 
 
@@ -326,7 +327,7 @@ def tf_smooth_operator(image, smoothing_sigma=3.5):
         smoothed = tfa.image.gaussian_filter2d(
             image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma
         )
-    except ModuleNotFoundError as e: 
+    except ModuleNotFoundError as e:
         print(f"probably didn't import tfa: {e}")
     if squeeze_output:
         smoothed = tf.squeeze(smoothed, axis=-1)
@@ -513,13 +514,14 @@ def parse_function_2(
         image = np.expand_dims(image, axis=-1)
 
     try:
-        image = tf.image.resize_with_pad(image,224,224)
+        image = tf.image.resize_with_pad(image, 224, 224)
     except Exception as e:
-        with open("/volz/lz/twatson/ANN/NR-ANN/ANN-code/logs/problem_files.txt", "a") as file:
+        with open(
+            "/volz/lz/twatson/ANN/NR-ANN/ANN-code/logs/problem_files.txt", "a"
+        ) as file:
             file.write(file_path)
             file.write(e)
-        
-        
+
     # Apply VGG16 preprocessing
     image = preprocess_input(image)
 

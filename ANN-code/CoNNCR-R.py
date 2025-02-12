@@ -171,16 +171,16 @@ print(
 # Define base directories and batch size
 # with tf.device(gpus[0].name):
 base_dirs = [
-"/vols/lz/tmarley/GEM_ITO/run/im0/C",
-"/vols/lz/tmarley/GEM_ITO/run/im0/F",
-"/vols/lz/tmarley/GEM_ITO/run/im1/C",
-"/vols/lz/tmarley/GEM_ITO/run/im1/F",
-"/vols/lz/tmarley/GEM_ITO/run/im2/C",
-"/vols/lz/tmarley/GEM_ITO/run/im2/F",
-"/vols/lz/tmarley/GEM_ITO/run/im3/C",
-"/vols/lz/tmarley/GEM_ITO/run/im3/F",
-"/vols/lz/tmarley/GEM_ITO/run/im4/C",
-"/vols/lz/tmarley/GEM_ITO/run/im4/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im0/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im0/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im1/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im1/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im2/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im2/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im3/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im3/F",
+    "/vols/lz/tmarley/GEM_ITO/run/im4/C",
+    "/vols/lz/tmarley/GEM_ITO/run/im4/F",
 ]
 # base_dirs = ["ANN-code/Data/C", "ANN-code/Data/F"]  # List your data directories here
 # base_dirs = ["/vols/lz/MIGDAL/sim_ims/C", "/vols/lz/MIGDAL/sim_ims/F"]
@@ -195,7 +195,6 @@ m_dark = np.load(f"{dark_dir}/master_dark_{str(binning)}x{str(binning)}.npy")
 example_dark_list_unbinned = np.load(
     f"{dark_dir}/quest_std_dark_{dark_list_number}.npy"
 )
-
 
 
 ########################trying yielding####################
@@ -215,11 +214,11 @@ if use_working_version:
     full_dataset = tf.data.Dataset.from_generator(
         lambda: load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, 3),
         output_signature=(
-            tf.TensorSpec(shape=(224, 224, 3), dtype=tf.float32), # MAY NEED TO CHANGE
+            tf.TensorSpec(shape=(224, 224, 3), dtype=tf.float32),  # MAY NEED TO CHANGE
             tf.TensorSpec(shape=(), dtype=tf.int32),
-        )
+        ),
     )
-else: # Failed layering approach:
+else:  # Failed layering approach:
     full_dataset = tf.data.Dataset.from_generator(
         lambda: load_data_yield_bb(base_dirs, 3),
         output_signature=(
@@ -285,7 +284,6 @@ num_categories = 2  # Change to 3 if argon included
 if use_working_version:
     inputs = keras.Input(shape=(None, None, 3))  # (224, 224, 3)
 
-
     # x = NoiseAdder(m_dark=m_dark, example_dark_list=example_dark_list_unbinned)(inputs)
     # x = SmoothOperator(smoothing_sigma=3.5)(x)
 
@@ -304,7 +302,6 @@ if use_working_version:
     # net = tf.keras.layers.Dropout(0.5)(net)
     # preds = tf.keras.layers.Dense(num_categories, activation="softmax")(net)
     # model = tf.keras.Model(base_model.input, preds)
-
 
     base_model = VGG16(weights="imagenet", include_top=False, input_shape=(224, 224, 3))
     net = base_model.output
@@ -365,7 +362,7 @@ if freeze:
         layer.trainable = False
 
 opt = tf.keras.optimizers.Adam(
-    learning_rate=1e-5 # upped it from 1e-6 because it seems to be learning veryyyy slowly
+    learning_rate=1e-5  # upped it from 1e-6 because it seems to be learning veryyyy slowly
 )  # Default value from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
 loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
@@ -438,7 +435,6 @@ print(
 #     print(sample)
 #     plt.imshow(sample[0])
 #     plt.savefig("test",dpi=200)
-
 
 
 early_stopping = keras.callbacks.EarlyStopping(
