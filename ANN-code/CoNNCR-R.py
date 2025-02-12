@@ -365,7 +365,7 @@ if freeze:
         layer.trainable = False
 
 opt = tf.keras.optimizers.Adam(
-    learning_rate=1e-6
+    learning_rate=1e-5 # upped it from 1e-6 because it seems to be learning veryyyy slowly
 )  # Default value from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
 loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
@@ -434,8 +434,12 @@ print(
 )
 
 
-for sample in train_dataset.take(1):
-    print(sample)
+# for sample in train_dataset.take(1): # doesn't work
+#     print(sample)
+#     plt.imshow(sample[0])
+#     plt.savefig("test",dpi=200)
+
+
 
 early_stopping = keras.callbacks.EarlyStopping(
     monitor="val_loss", patience=5, restore_best_weights=True

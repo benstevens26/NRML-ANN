@@ -512,7 +512,14 @@ def parse_function_2(
         # Ensure grayscale format
         image = np.expand_dims(image, axis=-1)
 
-    image = tf.image.resize_with_pad(image,224,224)
+    try:
+        image = tf.image.resize_with_pad(image,224,224)
+    except Exception as e:
+        with open("/volz/lz/twatson/ANN/NR-ANN/ANN-code/logs/problem_files.txt", "a") as file:
+            file.write(file_path)
+            file.write(e)
+        continue
+        
     # Apply VGG16 preprocessing
     image = preprocess_input(image)
 
@@ -611,11 +618,24 @@ def load_data(base_dirs, batch_size, example_dark_list, m_dark, channels=1):
 
 
 def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
+    uncropped_error = np.loadtxt(
+        "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/uncropped_error.csv",
+        delimiter=",",
+        dtype=str,
+    )
+    min_dim_error = np.loadtxt(
+        "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/min_dim_error.csv",
+        delimiter=",",
+        dtype=str,
+    )
+    # Get all the .npy files from base_dirs
+    errors = np.concatenate((uncropped_error, min_dim_error))
+
     # Get all the .npy files from base_dirs
     file_list = []
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
-            files = [f for f in files if f.endswith(".npy")]
+            files = [f for f in files if (f.endswith(".npy") and f not in errors)]
             file_list.extend([os.path.join(root, file) for file in files])
 
     file_list.sort()
