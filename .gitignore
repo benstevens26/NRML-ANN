@@ -169,3 +169,5 @@ figures
 notebooks/min_dim_list_true.csv
 notebooks/uncropped_list_true.csv
 notebooks/outputs
+notebooks/Features_Ar_CF4_viz
+notebooks/Features_CF4_viz
