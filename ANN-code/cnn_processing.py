@@ -502,7 +502,7 @@ def parse_function_2(
         # Normalize and stack channels
         max_val = np.max(image)
         if max_val > 0:
-            image = image / max_val
+            image = 255*image / max_val
         else:
             print("Warning: Image max value is 0, potential issue in normalization.")
 
@@ -516,14 +516,15 @@ def parse_function_2(
     try:
         image = tf.image.resize_with_pad(image, 224, 224)
     except Exception as e:
-        with open(
-            "/volz/lz/twatson/ANN/NR-ANN/ANN-code/logs/problem_files.txt", "a"
-        ) as file:
-            file.write(file_path)
-            file.write(e)
+        print("###################################################")
+        print(f"PROBLEM FILE: {file_path}")
+        print("###################################################")
 
     # Apply VGG16 preprocessing
     image = preprocess_input(image)
+    # scale back to [-1, 1]
+    image5/=np.max(abs(image5))
+
 
     # Convert to TensorFlow tensors
     image = tf.convert_to_tensor(image, dtype=tf.float32)
