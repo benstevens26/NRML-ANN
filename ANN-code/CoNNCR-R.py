@@ -237,7 +237,7 @@ print(
       Checkpoint #2.75
       -=+=-
       """
-) # test
+)
 
 dataset_size = 99366 # 99989 without the  # CHANGE DEPENDING ON DATA USED
 train_size = int(0.7 * dataset_size)
