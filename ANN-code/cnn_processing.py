@@ -324,7 +324,7 @@ def tf_smooth_operator(image, smoothing_sigma=3.5):
 
     # Apply Gaussian filtering.
     try:
-        smoothed = tfa.image.gaussian_filter2d(
+        smoothed = tfa.image.gaussian_filter2d( # type: ignore
             image, filter_shape=[kernel_size, kernel_size], sigma=smoothing_sigma
         )
     except ModuleNotFoundError as e:
