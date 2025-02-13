@@ -523,7 +523,7 @@ def parse_function_2(
     # Apply VGG16 preprocessing
     image = preprocess_input(image)
     # scale back to [-1, 1]
-    image5/=np.max(abs(image5))
+    image/=np.max(abs(image))
 
 
     # Convert to TensorFlow tensors
@@ -638,7 +638,7 @@ def load_data_yield(base_dirs, example_dark_tensor, m_dark_tensor, channels=1):
     file_list = []
     for base_dir in base_dirs:
         for root, dirs, files in os.walk(base_dir):
-            files = [f for f in files if (f.endswith(".npy") and f not in errors)]
+            files = [f for f in files if (f.endswith(".npy") and os.path.join(root, f) not in errors)]
             file_list.extend([os.path.join(root, file) for file in files])
 
     file_list.sort()

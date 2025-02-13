@@ -362,7 +362,7 @@ if freeze:
         layer.trainable = False
 
 opt = tf.keras.optimizers.Adam(
-    learning_rate=1e-5  # upped it from 1e-6 because it seems to be learning veryyyy slowly
+    learning_rate=1e-6
 )  # Default value from the paper I'm "leaning on". Good to have very low learning rate for transfer learning
 loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
