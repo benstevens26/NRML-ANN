@@ -244,10 +244,11 @@ train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used
 
-train_dataset = full_dataset.take(train_size).batch(batch_size)  # First 70%
+train_dataset = full_dataset.take(train_size).cache().repeat().batch(batch_size, drop_remainder=True) # First 70%
 remaining = full_dataset.skip(train_size)  # Remaining 30%
-val_dataset = remaining.take(val_size).batch(batch_size)  # Next 15%
-test_dataset = remaining.skip(val_size).batch(batch_size)  # Final 15%
+val_dataset = full_dataset.skip(train_size).take(val_size).cache().batch(batch_size, drop_remainder=False) # Next 15%
+test_dataset = full_dataset.skip(train_size + val_size).cache().batch(batch_size, drop_remainder=False) # Final 15%
+
 
 # print(train_dataset.take(1))
 
@@ -445,6 +446,7 @@ early_stopping = keras.callbacks.EarlyStopping(
 history = model.fit(
     train_dataset,
     epochs=epochs,
+    steps_per_epoch=(train_size // batch_size),
     batch_size=batch_size,
     validation_data=val_dataset,
     verbose=1,
@@ -464,7 +466,7 @@ train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
 history_filename = os.path.join(log_dir, "history.json")
 
-model_save_path = "CoNNCR-R.keras"
+model_save_path = "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/CoNNCR-R.keras"
 model.save(model_save_path)
 print(
     """
