@@ -38,6 +38,7 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 best_val_acc = 0.0
 stopping_counter = 0
 
+# exit() # remove to train the model
 # Training loop
 for epoch in range(num_epochs):
     model.train()
