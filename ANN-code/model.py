@@ -17,7 +17,6 @@ class LENRI(nn.Module):
             nn.Linear(16, 8),
             nn.LeakyReLU(negative_slope=0.01),
             nn.Linear(8, 2),  
-            nn.Softmax(dim=1) 
         )
 
     def forward(self, x):
