@@ -5,8 +5,9 @@ This script handles:
 - Reading the dataset from CSV
 - Extracting numerical features
 - Extracting labels (C -> 0, F -> 1) from the 'file_name' column
-- Splitting into train, validation, and test sets
+- Splitting into train, validation, and test sets (70% train, 15% val, 15% test)
 - Ensuring training and validation sets have an equal number of C and F
+- Ensuring the test set has 80% fluorine and 20% carbon
 - Creating PyTorch Datasets and DataLoaders
 """
 
@@ -16,19 +17,18 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 import re
 
+def extract_label(filename):
+    if re.search(r"00_C_", filename):
+        return 0  # Carbon
+    elif re.search(r"00_F_", filename):
+        return 1  # Fluorine
+    else:
+        raise ValueError(f"Unexpected filename format: {filename}")
+
 class NuclearRecoilDataset(Dataset):
     def __init__(self, dataframe):
         self.features = dataframe.iloc[:, 1:].values  # Extract numerical features
-
-        def extract_label(filename):
-            if re.search(r"00_C_", filename):
-                return 0
-            elif re.search(r"00_F_", filename):
-                return 1
-            else:
-                raise ValueError(f"Unexpected filename format: {filename}")
-
-        self.labels = dataframe["file_name"].apply(extract_label)
+        self.labels = dataframe["label"].values
     
     def __len__(self):
         return len(self.labels)
@@ -38,26 +38,34 @@ class NuclearRecoilDataset(Dataset):
         y = torch.tensor(self.labels[idx], dtype=torch.long)
         return x, y
 
-def get_dataloaders(csv_file, batch_size=32, test_ratio=0.2, val_ratio=0.1):
+def get_dataloaders(csv_file, batch_size=32):
     df = pd.read_csv(csv_file)
-    df["label"] = df["file_name"].apply(lambda x: 0 if "C" in x else 1)
+    df["label"] = df["file_name"].apply(extract_label)
+
+    # Drop rows with NaN labels (if any)
+    df = df.dropna(subset=["label"])
     
-    # Split into train+val and test sets
-    train_val, test = train_test_split(df, test_size=test_ratio, stratify=df["label"], random_state=42)
+    # Split data into 70% train, 15% validation, 15% test
+    train_val, test = train_test_split(df, test_size=0.15, stratify=df["label"], random_state=42)
+    train, val = train_test_split(train_val, test_size=0.1765, stratify=train_val["label"], random_state=42)  # 0.1765 ensures 15% of original dataset
     
-    # Ensure test set follows the 80% Fluorine, 20% Carbon ratio
-    test_f = test[test["label"] == 1].sample(frac=0.8, random_state=42)
-    test_c = test[test["label"] == 0].sample(frac=0.2, random_state=42)
-    test = pd.concat([test_f, test_c])
+    # Ensure training and validation sets are balanced (equal C and F)
+    min_train_samples = min(train[train["label"] == 0].shape[0], train[train["label"] == 1].shape[0])
+    train_c = train[train["label"] == 0].sample(n=min_train_samples, random_state=42)
+    train_f = train[train["label"] == 1].sample(n=min_train_samples, random_state=42)
+    train = pd.concat([train_c, train_f]).sample(frac=1, random_state=42)  # Shuffle
     
-    # Ensure training and validation sets have equal numbers of C and F
-    train, val = train_test_split(train_val, test_size=val_ratio, stratify=train_val["label"], random_state=42)
-    num_c = train[train["label"] == 0].shape[0]
-    num_f = train[train["label"] == 1].shape[0]
-    min_samples = min(num_c, num_f)
-    train_c = train[train["label"] == 0].sample(n=min_samples, random_state=42)
-    train_f = train[train["label"] == 1].sample(n=min_samples, random_state=42)
-    train = pd.concat([train_c, train_f])
+    min_val_samples = min(val[val["label"] == 0].shape[0], val[val["label"] == 1].shape[0])
+    val_c = val[val["label"] == 0].sample(n=min_val_samples, random_state=42)
+    val_f = val[val["label"] == 1].sample(n=min_val_samples, random_state=42)
+    val = pd.concat([val_c, val_f]).sample(frac=1, random_state=42)  # Shuffle
+    
+    # Ensure test set follows 80% F, 20% C ratio
+    num_f = int(0.8 * len(test))
+    num_c = len(test) - num_f
+    test_f = test[test["label"] == 1].sample(n=num_f, random_state=42)
+    test_c = test[test["label"] == 0].sample(n=num_c, random_state=42)
+    test = pd.concat([test_f, test_c]).sample(frac=1, random_state=42)  # Shuffle
     
     # Convert to PyTorch datasets
     train_dataset = NuclearRecoilDataset(train)
