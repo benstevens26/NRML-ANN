@@ -14,11 +14,21 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+import re
 
 class NuclearRecoilDataset(Dataset):
     def __init__(self, dataframe):
         self.features = dataframe.iloc[:, 1:].values  # Extract numerical features
-        self.labels = dataframe["file_name"].apply(lambda x: 0 if "C" in x else 1).values
+
+        def extract_label(filename):
+            if re.search(r"00_C_", filename):
+                return 0
+            elif re.search(r"00_F_", filename):
+                return 1
+            else:
+                raise ValueError(f"Unexpected filename format: {filename}")
+
+        self.labels = dataframe["file_name"].apply(extract_label)
     
     def __len__(self):
         return len(self.labels)
