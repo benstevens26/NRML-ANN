@@ -69,7 +69,7 @@ def get_dataloaders(csv_file, batch_size=32):
 
     # Compute required samples while ensuring they are within available limits
     num_f = min(int(0.8 * len(test)), available_f)
-    num_c = int(min(len(test) - num_f, available_c) * 0.25) # we want 20% of the total test set to be C
+    num_c = int(min(len(test) - num_f, available_c)) # we want 20% of the total test set to be C
 
     test_f = test[test["label"] == 1].sample(n=num_f, random_state=42)
     test_c = test[test["label"] == 0].sample(n=num_c, random_state=42)
