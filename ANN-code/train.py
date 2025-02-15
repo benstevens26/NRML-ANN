@@ -14,7 +14,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from feature_preprocessing import get_dataloaders
-from model import LENRI
+from model import LENRI_CF4
 
 # Hyperparameters
 num_epochs = 50
