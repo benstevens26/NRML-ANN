@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from sklearn.metrics import precision_score, recall_score, f1_score
 from feature_preprocessing import get_dataloaders
-from model import LENRI
+from model import LENRI_CF4
 
 model_path = "LENRI_CF4_1_unopt.pth"
 features_path = "ANN-code/Data/features_CF4_processed.csv"
