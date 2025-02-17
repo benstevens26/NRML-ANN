@@ -109,10 +109,13 @@ for epoch in range(num_epochs):
             "best_val_acc": best_val_acc,  # Store best validation accuracy
         }
 
-        # Only save hyperparameters if they exist
-        if "hyperparameters" in globals() or "hyperparameters" in locals():
+        # Save hyperparameters if they exist, else save "None"
+        if "hyperparameters" not in locals():
+            hyperparameters = None
             checkpoint["hyperparameters"] = hyperparameters
-
+        else:
+            checkpoint["hyperparameters"] = hyperparameters
+        
         # Save model checkpoint
         torch.save(checkpoint, "lenri_model_best.pth")
         
