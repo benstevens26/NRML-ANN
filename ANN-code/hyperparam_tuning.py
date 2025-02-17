@@ -13,7 +13,18 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import optuna
-from feature_preprocessing import get_dataloaders
+from feature_preprocessing import get_dataloaders_cf4
+
+features_path = "ANN-code/Data/features_old/all_features_2_scaled.csv"
+
+def save_best_model(model, trial):
+    """Saves the best model with its hyperparameters."""
+    model_path = f"lenri_best_{trial.number}.pth"
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'hyperparameters': trial.params
+    }, model_path)
+    print(f"Best model saved as {model_path}")
 
 class LENRI(nn.Module):
     def __init__(self, input_size=9, hidden_layers=[32, 16, 8], activation="LeakyReLU", dropout_rate=0.2):
@@ -39,11 +50,11 @@ class LENRI(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-def train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_layers, activation, num_epochs=50, patience=5):
+def train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_layers, activation, trial, num_epochs=50, patience=5):
     """Trains LENRI with given hyperparameters and architecture and returns validation accuracy."""
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_loader, val_loader, _ = get_dataloaders("ANN-code/Data/features_CF4_processed.csv", batch_size=batch_size)
+    train_loader, val_loader, _ = get_dataloaders_cf4(features_path, batch_size=batch_size)
     
     model = LENRI(hidden_layers=hidden_layers, activation=activation, dropout_rate=dropout_rate).to(device)
     criterion = nn.CrossEntropyLoss()
@@ -95,7 +106,7 @@ def train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             stopping_counter = 0
-            torch.save(model.state_dict(), "lenri_model_best.pth")
+            save_best_model(model, trial)
         else:
             stopping_counter += 1
             if stopping_counter >= patience:
@@ -105,18 +116,18 @@ def train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_
     return best_val_acc
 
 def objective(trial):
-    """Objective function for Optuna hyperparameter tuning."""
+    """Objective function for Optuna hyperparameter tuning with refined search space."""
     
-    learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1e-2)
-    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
-    dropout_rate = trial.suggest_uniform("dropout_rate", 0.1, 0.5)
+    learning_rate = trial.suggest_float("learning_rate", 0.0005, 0.01, log=True)
+    batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+    dropout_rate = trial.suggest_float("dropout_rate", 0.05, 0.2)
     optimizer_name = trial.suggest_categorical("optimizer", ["Adam", "SGD"])
-    activation = trial.suggest_categorical("activation", ["ReLU", "LeakyReLU"])
+    activation = trial.suggest_categorical("activation", ["LeakyReLU", "ReLU"]) 
     
-    num_layers = trial.suggest_int("num_layers", 1, 3)
-    hidden_layers = [trial.suggest_int(f"n_units_layer_{i}", 8, 128, log=True) for i in range(num_layers)]
+    num_layers = trial.suggest_int("num_layers", 2, 4)
+    hidden_layers = [trial.suggest_int(f"n_units_layer_{i}", 50, 100) for i in range(num_layers)]
     
-    val_acc = train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_layers, activation)
+    val_acc = train_model(learning_rate, batch_size, dropout_rate, optimizer_name, hidden_layers, activation, trial)
     return val_acc
 
 study = optuna.create_study(direction="maximize")
