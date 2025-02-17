@@ -25,6 +25,5 @@ else:
     _, _, test_loader = get_dataloaders_ar_cf4(features_path, batch_size=32)
 
 
-
 checkpoint = torch.load(model_path, map_location=device)
 print("Checkpoint keys:", checkpoint.keys())  # Debugging

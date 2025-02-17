@@ -27,7 +27,7 @@ def create_file_paths(base_dirs):
 
     if not isinstance(base_dirs, list):
         base_dirs = [base_dirs]
-        
+
     for dir in base_dirs:
         for filename in tqdm(os.listdir(dir)):
             if filename.endswith(".npy"):

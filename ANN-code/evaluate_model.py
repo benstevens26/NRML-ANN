@@ -20,9 +20,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (confusion_matrix, roc_curve, auc,
-                             precision_recall_curve, precision_score,
-                             recall_score, f1_score)
+from sklearn.metrics import (
+    confusion_matrix,
+    roc_curve,
+    auc,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 from sklearn.ensemble import RandomForestClassifier
 from feature_preprocessing import get_dataloaders
 from model import LENRI_CF4
@@ -48,6 +54,7 @@ model.eval()
 # Define loss function
 criterion = nn.CrossEntropyLoss()
 
+
 def evaluate_model():
     """Evaluate model on test set and return predictions and true labels."""
     test_loss = 0
@@ -56,44 +63,53 @@ def evaluate_model():
     all_labels = []
     all_preds = []
     all_probs = []
-    
+
     with torch.no_grad():
         for batch in test_loader:
             inputs, labels = batch
             inputs, labels = inputs.to(device), labels.to(device)
-            
+
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             test_loss += loss.item()
-            
+
             probabilities = F.softmax(outputs, dim=1)
             predictions = torch.argmax(outputs, dim=1)
-            
+
             correct_test += (predictions == labels).sum().item()
             total_test += labels.size(0)
-            
+
             all_labels.extend(labels.cpu().numpy())
             all_preds.extend(predictions.cpu().numpy())
             all_probs.extend(probabilities.cpu().numpy())
-    
+
     test_loss /= len(test_loader)
     test_acc = correct_test / total_test
-    
+
     print(f"Test Loss: {test_loss:.4f}")
     print(f"Test Accuracy: {test_acc:.4f}")
-    
+
     return np.array(all_labels), np.array(all_preds), np.array(all_probs)
+
 
 def plot_confusion_matrix(labels, preds):
     """Plot confusion matrix."""
     cm = confusion_matrix(labels, preds)
     plt.figure(figsize=(6, 5))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["C", "F"], yticklabels=["C", "F"])
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=["C", "F"],
+        yticklabels=["C", "F"],
+    )
     plt.xlabel("Predicted Label")
     plt.ylabel("True Label")
     plt.title("Confusion Matrix")
     plt.savefig(f"{save_path}/confusion_matrix.png")
     plt.show()
+
 
 def plot_roc_curve(labels, probs):
     """Plot ROC curve and compute AUC."""
@@ -109,6 +125,7 @@ def plot_roc_curve(labels, probs):
     plt.savefig(f"{save_path}/roc_curve.png")
     plt.show()
 
+
 def plot_precision_recall_curve(labels, probs):
     """Plot Precision-Recall curve."""
     precision, recall, _ = precision_recall_curve(labels, probs[:, 1])
@@ -121,28 +138,32 @@ def plot_precision_recall_curve(labels, probs):
     plt.savefig(f"{save_path}/precision_recall_curve.png")
     plt.show()
 
+
 def feature_importance_analysis():
     """Analyze feature importance using Random Forest."""
     df = pd.read_csv(features_path)
     df["label"] = df["file_name"].apply(lambda x: 1 if "00_F_" in x else 0)
     X = df.drop(columns=["file_name", "label"]).values
     y = df["label"].values
-    
+
     rf = RandomForestClassifier(n_estimators=100, random_state=42)
     rf.fit(X, y)
-    
+
     feature_names = df.drop(columns=["file_name", "label"]).columns
     importances = rf.feature_importances_
-    
+
     plt.figure(figsize=(12, 6))  # Increase figure size
-    plt.barh(range(len(feature_names)), importances, align='center')
-    plt.yticks(range(len(feature_names)), feature_names, fontsize=10, rotation=0)  # Adjust font size
+    plt.barh(range(len(feature_names)), importances, align="center")
+    plt.yticks(
+        range(len(feature_names)), feature_names, fontsize=10, rotation=0
+    )  # Adjust font size
     plt.xlabel("Feature Importance")
     plt.ylabel("Feature")
     plt.title("Feature Importance in Nuclear Recoil Classification")
     plt.tight_layout()  # Ensure labels fit properly
     plt.savefig(f"{save_path}/feature_importance.png")
     plt.show()
+
 
 def plot_confidence_distribution(probs):
     """Plot distribution of model confidence."""
@@ -153,6 +174,7 @@ def plot_confidence_distribution(probs):
     plt.legend()
     plt.savefig(f"{save_path}/confidence_distribution.png")
     plt.show()
+
 
 # Run all evaluations - comment if not wanted
 labels, preds, probs = evaluate_model()

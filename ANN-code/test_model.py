@@ -48,15 +48,15 @@ with torch.no_grad():
     for batch in test_loader:
         inputs, labels = batch
         inputs, labels = inputs.to(device), labels.to(device)
-        
+
         outputs = model(inputs)
         loss = criterion(outputs, labels)
         test_loss += loss.item()
-        
+
         predictions = torch.argmax(outputs, dim=1)
         correct_test += (predictions == labels).sum().item()
         total_test += labels.size(0)
-        
+
         all_labels.extend(labels.cpu().numpy())
         all_preds.extend(predictions.cpu().numpy())
 
