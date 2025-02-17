@@ -12,23 +12,27 @@ This script handles:
 import torch
 import torch.nn as nn
 from sklearn.metrics import precision_score, recall_score, f1_score
-from feature_preprocessing import get_dataloaders
-from model import LENRI_CF4
-
-model_path = "LENRI_CF4_1_unopt.pth"
-features_path = "ANN-code/Data/features_CF4_processed.csv"
+from feature_preprocessing import get_dataloaders_cf4, get_dataloaders_ar_cf4
+from model import LENRI_CF4, LENRI_Ar_CF4
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
+model_path = "LENRI_CF4_old_unopt.pth"
+features_path = "ANN-code/Data/features_old/all_features_2_scaled.csv"
+model = LENRI_CF4().to(device)
+binary = True
+
 # Load test set
-_, _, test_loader = get_dataloaders(features_path, batch_size=32)
+if binary:
+    _, _, test_loader = get_dataloaders_cf4(features_path, batch_size=32)
+else:
+    _, _, test_loader = get_dataloaders_ar_cf4(features_path, batch_size=32)
 
 # Load trained model
-model = LENRI().to(device)
-model.load_state_dict(torch.load(model_path))
-model.eval()
+checkpoint = torch.load(model_path, map_location=device)
+model.load_state_dict(checkpoint["model_state_dict"])
 
 # Define loss function
 criterion = nn.CrossEntropyLoss()
