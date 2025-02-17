@@ -467,7 +467,11 @@ train_end_time = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 history_filename = os.path.join(log_dir, "history.json")
 
 model_save_path = "/vols/lz/twatson/ANN/NR-ANN/ANN-code/logs/CoNNCR-R.keras"
-model.save(model_save_path)
+try:
+    model.save(model_save_path)
+except:
+    model.save("CoNNCR-R.keras")
+
 print(
     """
       -=+=-
