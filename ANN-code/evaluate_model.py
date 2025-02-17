@@ -25,9 +25,9 @@ from sklearn.metrics import (confusion_matrix, roc_curve, auc,
                              recall_score, f1_score)
 from sklearn.ensemble import RandomForestClassifier
 from feature_preprocessing import get_dataloaders
-from model import LENRI
+from model import LENRI_CF4
 
-model_path = "LENRI_CF4_1_unopt.pth"
+model_path = "LENRI_CF4_1_opt.pth"
 features_path = "ANN-code/Data/features_CF4_processed.csv"
 save_path = "ANN-code/Data/LENRI-CF4-1"
 
@@ -39,8 +39,10 @@ print(f"Using device: {device}")
 _, _, test_loader = get_dataloaders(features_path, batch_size=32)
 
 # Load trained model
-model = LENRI().to(device)
-model.load_state_dict(torch.load(model_path))
+model = LENRI_CF4().to(device)
+checkpoint = torch.load(model_path, map_location=device)  # Load checkpoint
+model.load_state_dict(checkpoint["model_state_dict"])  # Load model weights
+print("Loaded Hyperparameters:", checkpoint["hyperparameters"])  # Debugging
 model.eval()
 
 # Define loss function
@@ -104,17 +106,19 @@ def plot_roc_curve(labels, probs):
     plt.ylabel("True Positive Rate (Recall)")
     plt.title("ROC Curve")
     plt.legend()
+    plt.savefig(f"{save_path}/roc_curve.png")
     plt.show()
 
 def plot_precision_recall_curve(labels, probs):
     """Plot Precision-Recall curve."""
     precision, recall, _ = precision_recall_curve(labels, probs[:, 1])
     plt.figure(figsize=(7, 5))
-    plt.plot(recall, precision, marker=".", label="LENRI Model")
+    plt.plot(recall, precision, marker="x", label="LENRI Model")
     plt.xlabel("Recall")
     plt.ylabel("Precision")
     plt.title("Precision-Recall Curve")
     plt.legend()
+    plt.savefig(f"{save_path}/precision_recall_curve.png")
     plt.show()
 
 def feature_importance_analysis():
@@ -130,11 +134,14 @@ def feature_importance_analysis():
     feature_names = df.drop(columns=["file_name", "label"]).columns
     importances = rf.feature_importances_
     
-    plt.figure(figsize=(10, 5))
-    plt.barh(feature_names, importances)
+    plt.figure(figsize=(12, 6))  # Increase figure size
+    plt.barh(range(len(feature_names)), importances, align='center')
+    plt.yticks(range(len(feature_names)), feature_names, fontsize=10, rotation=0)  # Adjust font size
     plt.xlabel("Feature Importance")
     plt.ylabel("Feature")
     plt.title("Feature Importance in Nuclear Recoil Classification")
+    plt.tight_layout()  # Ensure labels fit properly
+    plt.savefig(f"{save_path}/feature_importance.png")
     plt.show()
 
 def plot_confidence_distribution(probs):
@@ -144,6 +151,7 @@ def plot_confidence_distribution(probs):
     plt.ylabel("Frequency")
     plt.title("Distribution of Model Confidence in Predictions")
     plt.legend()
+    plt.savefig(f"{save_path}/confidence_distribution.png")
     plt.show()
 
 # Run all evaluations - comment if not wanted
@@ -154,6 +162,5 @@ print(f"F1 Score: {f1_score(labels, preds):.4f}")
 plot_confusion_matrix(labels, preds)
 plot_roc_curve(labels, probs)
 plot_precision_recall_curve(labels, probs)
-exit() # remove to run feature importance analysis and confidence distribution
 feature_importance_analysis()
 plot_confidence_distribution(probs)
