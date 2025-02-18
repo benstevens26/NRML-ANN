@@ -32,7 +32,7 @@ smoothing_sigma = 3.5
 length_percentile = 40
 num_jobs = 20
 name = "CF4_2_"+str(job_number)
-matched_files = "ANN-code/matched_file_paths_CF4.csv"
+matched_files = "/vols/lz/bstevens/NR-ANN/ANN-code/matched_file_paths_CF4.csv"
 dark_dir = "/vols/lz/MIGDAL/sim_ims/darks"
 
 # Load matched file paths
