@@ -15,7 +15,7 @@ feature_files = sorted(glob.glob(input_pattern))
 
 # Check if any files were found
 if not feature_files:
-    raise FileNotFoundError("No feature files found to concatenate.")
+    raise FileNotFoundError("No feature files found to concatenate. Try again")
 
 # Load and concatenate all feature files
 df_combined = pd.concat((pd.read_csv(f) for f in feature_files), ignore_index=True)
