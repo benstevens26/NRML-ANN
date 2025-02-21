@@ -244,10 +244,10 @@ train_size = int(0.7 * dataset_size)
 val_size = int(0.15 * dataset_size)
 test_size = dataset_size - train_size - val_size  # Ensure all data is used
 
-train_dataset = full_dataset.take(train_size).cache().repeat().batch(batch_size, drop_remainder=True) # First 70%
+train_dataset = full_dataset.take(train_size).cache("/vols/lz/twatson/CNN_cache").repeat().batch(batch_size, drop_remainder=True) # First 70%
 remaining = full_dataset.skip(train_size)  # Remaining 30%
-val_dataset = full_dataset.skip(train_size).take(val_size).cache().batch(batch_size, drop_remainder=False) # Next 15%
-test_dataset = full_dataset.skip(train_size + val_size).cache().batch(batch_size, drop_remainder=False) # Final 15%
+val_dataset = full_dataset.skip(train_size).take(val_size).cache("/vols/lz/twatson/CNN_cache").batch(batch_size, drop_remainder=False) # Next 15%
+test_dataset = full_dataset.skip(train_size + val_size).cache("/vols/lz/twatson/CNN_cache").batch(batch_size, drop_remainder=False) # Final 15%
 
 
 # print(train_dataset.take(1))
@@ -442,10 +442,13 @@ early_stopping = keras.callbacks.EarlyStopping(
     monitor="val_loss", patience=5, restore_best_weights=True
 )
 
+# load in epoch 1
+model.load_weights("/vols/lz/twatson/ANN/NR-ANN/ANN-code/old_models/CoNNCR-R/v2/epoch-01.keras")
 
 history = model.fit(
     train_dataset,
     epochs=epochs,
+    initial_epoch=1,
     steps_per_epoch=(train_size // batch_size),
     batch_size=batch_size,
     validation_data=val_dataset,
