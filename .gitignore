@@ -173,3 +173,4 @@ logs/
 ANN-code/new-venv
 ANN-code/old_models/old_logs/cnn_0.err
 ANN-code/CoNNCR-R.py
+ANN-code/*.png
